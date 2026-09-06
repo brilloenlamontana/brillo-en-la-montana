@@ -43,19 +43,16 @@ export const LoginScreen: React.FC = () => {
     <main style={{
       width: '100vw',
       height: '100vh',
-      background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)', // Modern light gradient
+      background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)', 
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Decorative background shapes for a modern feel */}
       <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '40vw', height: '40vw', background: 'radial-gradient(circle, rgba(200,16,46,0.05) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%', zIndex: 0 }} />
       <div style={{ position: 'absolute', bottom: '-15%', left: '-10%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(16,46,200,0.03) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%', zIndex: 0 }} />
       
-
-      {/* Main Card */}
       <section style={{
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px)',
@@ -73,19 +70,16 @@ export const LoginScreen: React.FC = () => {
         zIndex: 10
       }}>
         
-        {/* Header section with Logo and Title */}
         <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {/* Univalle Logo */}
           <div style={{ marginBottom: '1.5rem' }}>
             <img src="/univalle.svg" alt="logo univalle" style={{ width: '120px', height: 'auto', objectFit: 'contain' }} />
           </div>
 
-          {/* Title */}
           <h1 style={{ 
             fontSize: '1.6rem', 
             fontWeight: 700, 
             margin: '0 0 2rem 0',
-            background: 'linear-gradient(90deg, #C8102E 0%, #E53E3E 100%)', // Univalle Red gradient
+            background: 'linear-gradient(90deg, #C8102E 0%, #E53E3E 100%)', 
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             letterSpacing: '1.5px'
@@ -133,7 +127,6 @@ export const LoginScreen: React.FC = () => {
         </button>
       </section>
 
-      {/* Footer */}
       <footer style={{
         position: 'absolute',
         bottom: '2.5rem',

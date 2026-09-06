@@ -6,6 +6,7 @@ import { EcctrlCameraControls } from 'ecctrl/camera';
 import type { EcctrlHandle } from 'ecctrl';
 import type { EcctrlCameraControlsHandle } from 'ecctrl/camera';
 import * as THREE from 'three';
+import { useAvatarStore, type AvatarAction } from '../../store/avatarStore';
 
 export const PlayerController = ({ children }: { children: React.ReactNode }) => {
   const [, get] = useKeyboardControls();
@@ -25,6 +26,21 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
       jump,
       run,
     });
+    
+    const ecctrl = ecctrlRef.current;
+    if (ecctrl) {
+      let newAction: AvatarAction = 'Idle';
+      if (!ecctrl.isOnGround) {
+        newAction = 'Jumping';
+      } else if (forward || backward || leftward || rightward) {
+        newAction = run ? 'Running' : 'Walking';
+      }
+      
+      const currentAction = useAvatarStore.getState().action;
+      if (currentAction !== newAction) {
+        useAvatarStore.getState().setAction(newAction);
+      }
+    }
     
     if (!ecctrlRef.current || !cameraControls.current) return;
     
