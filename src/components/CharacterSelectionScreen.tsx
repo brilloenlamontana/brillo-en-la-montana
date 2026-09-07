@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { useAvatarStore, type AvatarGender } from '../store/avatarStore';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase.config';
+import { useAuthStore } from '../store/authStore';
+import { useNavigate } from 'react-router-dom';
+import { Logout } from './Logout';
 
 interface CharacterOption {
   name: string;
@@ -28,6 +33,7 @@ export const CharacterSelectionScreen: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(1); // Default to Elfa
   const [nickname, setNickname] = useState('');
   const completeSetup = useAvatarStore((state) => state.completeSetup);
+  const navigate = useNavigate();
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % characters.length);
@@ -37,14 +43,30 @@ export const CharacterSelectionScreen: React.FC = () => {
     setCurrentIndex((prev) => (prev - 1 + characters.length) % characters.length);
   };
 
-  const handleSelect = (e: React.FormEvent) => {
+  const handleSelect = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nickname.trim()) {
       alert('Por favor ingresa un nickname');
       return;
     }
     const selectedChar = characters[currentIndex];
-    completeSetup(nickname, selectedChar.glbName, selectedChar.gender);
+    
+    try {
+      const user = useAuthStore.getState().user;
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, {
+          nickname: nickname,
+          avatarName: selectedChar.glbName,
+          gender: selectedChar.gender
+        }, { merge: true });
+      }
+      completeSetup(nickname, selectedChar.glbName, selectedChar.gender);
+      navigate('/mundo');
+    } catch (error) {
+      console.error('Error guardando el personaje:', error);
+      alert('Hubo un error al guardar tu personaje. Inténtalo de nuevo.');
+    }
   };
 
   const currentChar = characters[currentIndex];
@@ -141,6 +163,7 @@ export const CharacterSelectionScreen: React.FC = () => {
         </form>
 
       </div>
+      <Logout />
     </div>
   );
 };

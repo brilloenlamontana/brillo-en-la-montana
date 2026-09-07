@@ -1,7 +1,7 @@
 import React, { useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { WebGPURenderer } from 'three/webgpu';
 import { useAuthStore } from '../store/authStore';
-import { useAvatarStore } from '../store/avatarStore';
 import { useNavigate } from 'react-router-dom';
 import { Logout } from '../components/Logout';
 import { Map } from '../components/models-3d/Map';
@@ -10,11 +10,9 @@ import { Physics } from '@react-three/rapier';
 import { Avatar } from '../components/models-3d/Avatar';  
 import { PlayerController } from '../components/models-3d/PlayerController';
 import { Ambience } from '../components/Ambience';
-import { CharacterSelectionScreen } from '../components/CharacterSelectionScreen';
 
 export const WorldPage: React.FC = () => {
   const { user } = useAuthStore();
-  const { hasSelectedCharacter } = useAvatarStore();
   const navigate = useNavigate();
 
   const keyboardMap = [
@@ -34,13 +32,23 @@ export const WorldPage: React.FC = () => {
 
   if (!user) return null;
 
-  if (!hasSelectedCharacter) {
-    return <CharacterSelectionScreen />;
-  }
 
   return (
     <main style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <Canvas>
+      <Canvas 
+        camera={{ position: [0, 0, 2] }}
+        gl={async (props) => {
+          try {
+            const renderer = new WebGPURenderer(props as any);
+            await renderer.init();
+            return renderer;
+          } catch (error) {
+            console.warn('WebGPU not supported or failed to initialize. Falling back to WebGLRenderer.', error);
+            const { WebGLRenderer } = await import('three');
+            return new WebGLRenderer(props as any);
+          }
+        }}
+      >
         <Ambience />
         <Suspense fallback={null}>
           <Physics>
