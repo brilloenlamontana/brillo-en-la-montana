@@ -14,29 +14,37 @@ const App: React.FC = () => {
   const { setAuthReady, setUser, isAuthReady } = useAuthStore();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        setUser({
+        const userData = {
           uid: firebaseUser.uid,
           name: firebaseUser.displayName || 'Unknown',
           email: firebaseUser.email || '',
           photoURL: firebaseUser.photoURL || '',
-        });
-        
-        const userRef = doc(db, 'users', firebaseUser.uid);
-        getDoc(userRef).then((docSnap) => {
+        };
+
+        try {
+          const userRef = doc(db, 'users', firebaseUser.uid);
+          const docSnap = await getDoc(userRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
             if (data.nickname && data.avatarName) {
               useAvatarStore.getState().completeSetup(data.nickname, data.avatarName, data.gender || 'female');
+            } else {
+              useAvatarStore.getState().resetAvatar();
             }
+          } else {
+            useAvatarStore.getState().resetAvatar();
           }
-          setAuthReady(true);
-        }).catch((err) => {
+        } catch (err) {
           console.error("Error fetching user data:", err);
+          useAvatarStore.getState().resetAvatar();
+        } finally {
+          setUser(userData);
           setAuthReady(true);
-        });
+        }
       } else {
+        useAvatarStore.getState().resetAvatar();
         setUser(null);
         setAuthReady(true);
       }

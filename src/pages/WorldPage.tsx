@@ -2,6 +2,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { WebGPURenderer } from 'three/webgpu';
 import { useAuthStore } from '../store/authStore';
+import { useAvatarStore } from '../store/avatarStore';
 import { useNavigate } from 'react-router-dom';
 import { Logout } from '../components/Logout';
 import { Map } from '../components/models-3d/Map';
@@ -15,6 +16,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 
 export const WorldPage: React.FC = () => {
   const { user } = useAuthStore();
+  const { hasSelectedCharacter } = useAvatarStore();
   const navigate = useNavigate();
   const detectedMobile = useIsMobile();
   const [manualControlsToggle, setManualControlsToggle] = useState<boolean | null>(null);
@@ -33,10 +35,12 @@ export const WorldPage: React.FC = () => {
   useEffect(() => {
     if (!user) {
       navigate('/login');
+    } else if (!hasSelectedCharacter) {
+      navigate('/seleccion-personaje');
     }
-  }, [user, navigate]);
+  }, [user, hasSelectedCharacter, navigate]);
 
-  if (!user) return null;
+  if (!user || !hasSelectedCharacter) return null;
 
   return (
     <main style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>

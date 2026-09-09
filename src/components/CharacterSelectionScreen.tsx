@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAvatarStore } from '../store/avatarStore';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase.config';
@@ -10,10 +10,21 @@ import { CHARACTERS as characters } from '../data/characters';
 
 
 export const CharacterSelectionScreen: React.FC = () => {
+  const { user } = useAuthStore();
+  const { hasSelectedCharacter, completeSetup } = useAvatarStore();
+  const navigate = useNavigate();
+
   const [currentIndex, setCurrentIndex] = useState(1); // Default to Elfa
   const [nickname, setNickname] = useState('');
-  const completeSetup = useAvatarStore((state) => state.completeSetup);
-  const navigate = useNavigate();
+
+  // Si no está autenticado, volver a /login. Si ya configuró personaje, ir a /mundo.
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    } else if (hasSelectedCharacter) {
+      navigate('/mundo');
+    }
+  }, [user, hasSelectedCharacter, navigate]);
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % characters.length);
