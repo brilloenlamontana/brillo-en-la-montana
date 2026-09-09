@@ -17,7 +17,6 @@ export function Avatar(props: any) {
   const { animations: idleAnim } = useGLTF(`/models-3d/animations/${genderFolder}/Idle.glb`) as any
   const { animations: walkAnim } = useGLTF(`/models-3d/animations/${genderFolder}/Walking.glb`) as any
   const { animations: runAnim } = useGLTF(`/models-3d/animations/${genderFolder}/Running.glb`) as any
-  const { animations: jumpAnim } = useGLTF(`/models-3d/animations/${genderFolder}/Jumping.glb`) as any
 
   // Combinamos todos los clips en un solo arreglo y los renombramos para asegurar que coincidan con la variable `action`
   const allAnimations = useMemo(() => {
@@ -37,13 +36,8 @@ export function Avatar(props: any) {
       clip.name = 'Running';
       clips.push(clip);
     }
-    if (jumpAnim?.length) {
-      const clip = jumpAnim[0].clone();
-      clip.name = 'Jumping';
-      clips.push(clip);
-    }
     return clips;
-  }, [idleAnim, walkAnim, runAnim, jumpAnim]);
+  }, [idleAnim, walkAnim, runAnim]);
 
   const { actions } = useAnimations(allAnimations, avatarRef)
   

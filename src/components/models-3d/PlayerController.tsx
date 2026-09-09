@@ -17,22 +17,19 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
   const { camera } = useThree();
 
   useFrame(() => {
-    const { forward, backward, leftward, rightward, jump, run } = get() as any;
+    const { forward, backward, leftward, rightward, run } = get() as any;
     ecctrlRef.current?.setMovement({
       forward,
       backward,
       leftward,
       rightward,
-      jump,
       run,
     });
     
     const ecctrl = ecctrlRef.current;
     if (ecctrl) {
       let newAction: AvatarAction = 'Idle';
-      if (!ecctrl.isOnGround) {
-        newAction = 'Jumping';
-      } else if (forward || backward || leftward || rightward) {
+      if (forward || backward || leftward || rightward) {
         newAction = run ? 'Running' : 'Walking';
       }
       
