@@ -12,6 +12,7 @@ interface AvatarState {
   setAvatar: (name: string, gender: AvatarGender) => void;
   setAction: (action: AvatarAction) => void;
   completeSetup: (nickname: string, avatarName: string, gender: AvatarGender) => void;
+  resetAvatar: () => void;
 }
 
 export const useAvatarStore = create<AvatarState>((set) => ({
@@ -23,4 +24,11 @@ export const useAvatarStore = create<AvatarState>((set) => ({
   setAvatar: (name, gender) => set({ avatarName: name, gender }),
   setAction: (action) => set({ action }),
   completeSetup: (nickname, avatarName, gender) => set({ nickname, avatarName, gender, hasSelectedCharacter: true }),
+  resetAvatar: () => set({
+    avatarName: 'Elfa',
+    gender: 'female',
+    action: 'Idle',
+    nickname: '',
+    hasSelectedCharacter: false,
+  }),
 }));

@@ -41,19 +41,18 @@ export const LoginPage: React.FC = () => {
 
         if (!userSnap.exists()) {
           await setDoc(userRef, userData);
+          useAvatarStore.getState().resetAvatar();
           setUser(userData);
           navigate('/seleccion-personaje');
         } else {
-          setUser(userData);
-          // Assuming App.tsx will set hasSelectedCharacter soon, but since we are navigating immediately:
-          // Wait, actually, let's just let the useEffect handle the navigation.
-          // Because App.tsx onAuthStateChanged might fetch the avatar details in parallel,
-          // or we can just fetch it here as well to be safe and avoid race conditions.
           const data = userSnap.data();
           if (data && data.nickname && data.avatarName) {
             useAvatarStore.getState().completeSetup(data.nickname, data.avatarName, data.gender || 'female');
+            setUser(userData);
             navigate('/mundo');
           } else {
+            useAvatarStore.getState().resetAvatar();
+            setUser(userData);
             navigate('/seleccion-personaje');
           }
         }
