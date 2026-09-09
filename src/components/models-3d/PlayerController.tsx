@@ -7,6 +7,7 @@ import type { EcctrlHandle } from 'ecctrl';
 import type { EcctrlCameraControlsHandle } from 'ecctrl/camera';
 import * as THREE from 'three';
 import { useAvatarStore, type AvatarAction } from '../../store/avatarStore';
+import { useJoystickStore, useButtonStore } from 'ecctrl/input';
 
 export const PlayerController = ({ children }: { children: React.ReactNode }) => {
   const [, get] = useKeyboardControls();
@@ -17,20 +18,41 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
   const { camera } = useThree();
 
   useFrame(() => {
-    const { forward, backward, leftward, rightward, run } = get() as any;
+    const { forward, backward, leftward, rightward, run, jump } = get() as any;
+    
+    // Read mobile joystick
+    const joystickState = useJoystickStore.getState().joysticks['default'];
+    const joystickX = joystickState?.active ? joystickState.x : 0;
+    const joystickY = joystickState?.active ? joystickState.y : 0;
+
+    // Read virtual buttons
+    const buttonJump = useButtonStore.getState().buttons['jump'] || false;
+    const buttonRun = useButtonStore.getState().buttons['run'] || false;
+
+    const isRunning = Boolean(run || buttonRun);
+    const isJumping = Boolean(jump || buttonJump);
+
     ecctrlRef.current?.setMovement({
       forward,
       backward,
       leftward,
       rightward,
-      run,
+      run: isRunning,
+      jump: isJumping,
+      joystick: { x: joystickX, y: joystickY },
     });
     
     const ecctrl = ecctrlRef.current;
     if (ecctrl) {
       let newAction: AvatarAction = 'Idle';
-      if (forward || backward || leftward || rightward) {
-        newAction = run ? 'Running' : 'Walking';
+      const hasKeyMove = Boolean(forward || backward || leftward || rightward);
+      const joyDistance = Math.hypot(joystickX, joystickY);
+      const hasJoyMove = Boolean(joystickState?.active && joyDistance > 0.05);
+
+      if (hasKeyMove || hasJoyMove) {
+        // Run if run button is pressed, shift key is held, or joystick is pushed to max
+        const shouldRun = isRunning || joyDistance > 0.75;
+        newAction = shouldRun ? 'Running' : 'Walking';
       }
       
       const currentAction = useAvatarStore.getState().action;

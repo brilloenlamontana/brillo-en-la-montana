@@ -24,12 +24,12 @@ export const Logout: React.FC = () => {
     <>
       <nav style={{
         position: 'absolute',
-        top: '1rem',
-        right: '1rem',
-        zIndex: 10,
+        top: 'max(0.75rem, env(safe-area-inset-top, 0.75rem))',
+        right: 'max(0.75rem, env(safe-area-inset-right, 0.75rem))',
+        zIndex: 20,
         display: 'flex',
         alignItems: 'center',
-        gap: '1rem'
+        gap: '0.75rem'
       }}>
         <div style={{ 
           display: 'flex', 

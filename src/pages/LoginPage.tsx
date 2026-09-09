@@ -67,105 +67,52 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <main style={{
-      width: '100vw',
-      height: '100vh',
-      background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '40vw', height: '40vw', background: 'radial-gradient(circle, rgba(200,16,46,0.05) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%', zIndex: 0 }} />
-      <div style={{ position: 'absolute', bottom: '-15%', left: '-10%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(16,46,200,0.03) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%', zIndex: 0 }} />
+    <main className="min-h-[100dvh] w-full bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] flex flex-col justify-between items-center px-4 py-6 sm:py-10 relative overflow-x-hidden select-none">
+      {/* Ambient background decoration */}
+      <div className="absolute top-[-10%] right-[-10%] w-[60vw] max-w-[400px] h-[60vw] max-h-[400px] bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[70vw] max-w-[500px] h-[70vw] max-h-[500px] bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
       
-      <section style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.4)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 20px rgba(0,0,0,0.03)',
-        borderRadius: '24px',
-        padding: '3.5rem 3rem',
-        width: '100%',
-        maxWidth: '460px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        color: '#1a202c',
-        zIndex: 10
-      }}>
-        <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <img src="/univalle.svg" alt="logo univalle" style={{ width: '120px', height: 'auto', objectFit: 'contain' }} />
+      {/* Spacer top */}
+      <div className="h-2 sm:h-6" />
+
+      {/* Main Login Card */}
+      <section className="w-full max-w-md mx-auto my-auto bg-white/90 backdrop-blur-xl border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.08)] rounded-3xl p-6 sm:p-10 flex flex-col items-center text-center z-10">
+        <header className="flex flex-col items-center w-full">
+          <div className="mb-4 sm:mb-6 p-2 rounded-2xl bg-slate-50/80 border border-slate-100 shadow-inner">
+            <img 
+              src="/univalle.svg" 
+              alt="Logo Universidad del Valle" 
+              className="w-20 sm:w-28 h-auto object-contain drop-shadow-sm" 
+            />
           </div>
 
-          <h1 style={{ 
-            fontFamily: '"Snowburst One", system-ui',
-            fontSize: '2.5rem', 
-            fontWeight: 400, 
-            margin: '0 0 2rem 0',
-            background: 'linear-gradient(90deg, #C8102E 0%, #E53E3E 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '1.5px',
-            lineHeight: '1.2'
-          }}>
+          <h1 
+            style={{ fontFamily: '"Snowburst One", system-ui' }}
+            className="text-2xl sm:text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-[#C8102E] to-[#E53E3E] tracking-wider mb-2 leading-tight"
+          >
             Brillo en la Montaña
           </h1>
+
+          <p className="text-xs sm:text-sm text-slate-500 mb-6 sm:mb-8 max-w-xs">
+            Ingresa con tu cuenta institucional para explorar el mundo 3D y personalizar tu avatar.
+          </p>
         </header>
 
+        {/* Google Sign In Button */}
         <button 
           onClick={handleGoogleSignIn}
           disabled={loading}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            width: '100%',
-            padding: '16px',
-            backgroundColor: '#fff',
-            color: '#2d3748',
-            border: '1px solid #e2e8f0',
-            borderRadius: '12px',
-            fontSize: '1rem',
-            fontWeight: 600,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = '#f7fafc';
-            e.currentTarget.style.borderColor = '#cbd5e0';
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.08)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = '#fff';
-            e.currentTarget.style.borderColor = '#e2e8f0';
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)';
-          }}
+          className="w-full py-3.5 sm:py-4 px-5 rounded-2xl flex items-center justify-center gap-3 bg-white text-slate-700 font-semibold border border-slate-200/80 shadow-sm hover:shadow-md hover:bg-slate-50 active:scale-[0.98] transition-all text-sm sm:text-base cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <img src="/univalle.svg" alt="Google" style={{ width: '22px', height: '22px' }} />
-          {loading ? 'INICIANDO SESIÓN...' : 'Continuar con Google'}
+          <img src="/univalle.svg" alt="Google" className="w-5 h-5 object-contain" />
+          <span>{loading ? 'Iniciando sesión...' : 'Continuar con Google'}</span>
         </button>
       </section>
 
-      <footer style={{
-        position: 'absolute',
-        bottom: '2.5rem',
-        textAlign: 'center',
-        color: '#718096',
-        fontSize: '0.75rem',
-        letterSpacing: '1px',
-        lineHeight: '1.8',
-        zIndex: 10
-      }}>
-        Desarrollado por Dirección de Desarrollo Estudiantil y Éxito Académico - DEXIA.<br/>
-        © 2026 Universidad del Valle
+      {/* Footer */}
+      <footer className="w-full max-w-md text-center text-slate-400 text-[11px] sm:text-xs tracking-wide leading-relaxed pt-6 pb-2 z-10">
+        <p>Desarrollado por Dirección de Desarrollo Estudiantil y Éxito Académico - DEXIA</p>
+        <p className="mt-0.5 text-slate-400/80">© 2026 Universidad del Valle</p>
       </footer>
     </main>
   );
