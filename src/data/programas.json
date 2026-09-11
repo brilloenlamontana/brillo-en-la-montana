@@ -1,0 +1,1850 @@
+[
+  {
+    "codigo": "2131-00-DIU",
+    "nombre": "TECNOLOGÍA QUÍMICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2131-00-NOC",
+    "nombre": "TECNOLOGÍA QUÍMICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2134-00-NOC",
+    "nombre": "TECNOLOGÍA EN ANÁLISIS Y LABORATORIO QUÍ",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2134-00-DIU",
+    "nombre": "TECNOLOGÍA EN ANÁLISIS Y LABORATORIO QUÍ",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3140-00-DIU",
+    "nombre": "BIOLOGÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3146-00-DIU",
+    "nombre": "FÍSICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3147-00-DIU",
+    "nombre": "MATEMÁTICAS",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3148-00-DIU",
+    "nombre": "QUÍMICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3150-00-DIU",
+    "nombre": "AGROINDUSTRIA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3247-00-DIU",
+    "nombre": "HISTORIA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3249-00-DIU",
+    "nombre": "TRABAJO SOCIAL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3250-00-DIU",
+    "nombre": "LICENCIATURA EN FILOSOFÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3251-00-DIU",
+    "nombre": "LICENCIATURA EN HISTORIA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3252-00-VES",
+    "nombre": "LICENCIATURA EN LITERATURA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3256-00-VES",
+    "nombre": "LICENCIATURA EN CIENCIAS SOCIALES",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3260-00-DIU",
+    "nombre": "PROFESIONAL EN FILOSOFÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3261-00-DIU",
+    "nombre": "GEOGRAFÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3262-00-DIU",
+    "nombre": "LICENCIATURA EN ESPAÑOL Y FILOLOGÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3263-00-DIU",
+    "nombre": "LICENCIATURA EN LENGUAS EXTRANJERAS INGL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3263-00-VES",
+    "nombre": "LICENCIATURA EN LENGUAS EXTRANJERAS INGL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3266-00-NOC",
+    "nombre": "LICENCIATURA EN EDUCACIÓN BÁSICA CON ÉNF",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3267-00-DIU",
+    "nombre": "LICENCIATURA EN LENGUAS EXTRANJERAS CON",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3268-00-VES",
+    "nombre": "INTERPRETACIÓN PARA SORDOS Y GUÍA-INTERP",
+    "sedeCodigo": "00",
+    "facultadCodigo": "2",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3340-00-DIU",
+    "nombre": "ECONOMÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "3",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3350-00-DIU",
+    "nombre": "SOCIOLOGÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "3",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3464-00-DIU",
+    "nombre": "RECREACIÓN",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3467-00-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN BÁSICA CON ÉNF",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3469-00-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN BÁSICA CON ÉNF",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3484-00-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN FÍSICA Y DEPOR",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3486-00-VES",
+    "nombre": "LICENCIATURA EN EDUCACIÓN POPULAR",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3487-00-DIU",
+    "nombre": "LICENCIATURA EN MATEMÁTICAS Y FÍSICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3490-00-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN FÍSICA Y DEPOR",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3491-00-DIU",
+    "nombre": "LICENCIATURA EN CIENCIAS NATURALES Y EDU",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3492-00-DIU",
+    "nombre": "LICENCIATURA EN MATEMÁTICAS",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3493-00-DIU",
+    "nombre": "LICENCIATURA EN FÍSICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3494-00-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN INFANTIL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3495-00-VES",
+    "nombre": "LICENCIATURA EN EDUCACIÓN INFANTIL (SEDE",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3411-00-DIU",
+    "nombre": "PRIMERA INFANCIA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4A",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3461-00-DIU",
+    "nombre": "PSICOLOGÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "4A",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2503-00-DIU",
+    "nombre": "TECNOLOGÍA EN CONSTRUCCIÓN DE EDIFICACIO",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3541-00-DIU",
+    "nombre": "LICENCIATURA EN MÚSICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3542-00-DIU",
+    "nombre": "LICENCIATURA EN DANZA CLÁSICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3545-00-DIU",
+    "nombre": "ARQUITECTURA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3548-00-DIU",
+    "nombre": "COMUNICACIÓN SOCIAL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3550-00-DIU",
+    "nombre": "DISEÑO INDUSTRIAL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3551-00-DIU",
+    "nombre": "DISEÑO GRÁFICO",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3552-00-DIU",
+    "nombre": "MÚSICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3553-00-DIU",
+    "nombre": "COMUNICACIÓN SOCIAL - PERIODISMO",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3554-00-DIU",
+    "nombre": "CONSTRUCCIÓN",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3555-00-DIU",
+    "nombre": "LICENCIATURA EN ARTE DRAMÁTICO",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3556-00-DIU",
+    "nombre": "LICENCIATURA EN ARTES VISUALES",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3560-00-DIU",
+    "nombre": "LICENCIATURA EN DANZA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2635-00-NOC",
+    "nombre": "TECNOLOGÍA EN ATENCIÓN PREHOSPITALARIA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "6",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3645-00-DIU",
+    "nombre": "ENFERMERÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "6",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3646-00-DIU",
+    "nombre": "FISIOTERAPIA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "6",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3647-00-DIU",
+    "nombre": "BACTERIOLOGÍA Y LABORATORIO CLÍNICO",
+    "sedeCodigo": "00",
+    "facultadCodigo": "6",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3648-00-DIU",
+    "nombre": "FONOAUDIOLOGÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "6",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3651-00-DIU",
+    "nombre": "TERAPIA OCUPACIONAL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "6",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3660-00-DIU",
+    "nombre": "MEDICINA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "6",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3661-00-DIU",
+    "nombre": "ODONTOLOGÍA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "6",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-00-NOC",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2711-00-NOC",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2712-00-NOC",
+    "nombre": "TECNOLOGÍA EN ALIMENTOS",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2713-00-NOC",
+    "nombre": "TECNOLOGÍA EN MANEJO Y CONSERVACIÓN DE S",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2713-00-VES",
+    "nombre": "TECNOLOGÍA EN MANEJO Y CONSERVACIÓN DE S",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "2715-00-NOC",
+    "nombre": "TECNOLOGÍA EN ECOLOGÍA Y MANEJO AMBIENTA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2724-00-NOC",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2725-00-NOC",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2726-00-NOC",
+    "nombre": "TECNOLOGÍA DE PROCESAMIENTO DE ALIMENTOS",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2729-00-VES",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE (SE",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3740-00-DIU",
+    "nombre": "INGENIERÍA TOPOGRÁFICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3741-00-DIU",
+    "nombre": "INGENIERÍA DE MATERIALES",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3743-00-DIU",
+    "nombre": "INGENIERÍA DE SISTEMAS",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3744-00-DIU",
+    "nombre": "INGENIERÍA ELECTRÓNICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3745-00-DIU",
+    "nombre": "INGENIERÍA AGRÍCOLA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3746-00-DIU",
+    "nombre": "INGENIERÍA ELÉCTRICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3747-00-DIU",
+    "nombre": "INGENIERÍA CIVIL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3748-00-DIU",
+    "nombre": "INGENIERÍA MECÁNICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3749-00-DIU",
+    "nombre": "INGENIERÍA QUÍMICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3751-00-DIU",
+    "nombre": "INGENIERÍA INDUSTRIAL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3752-00-DIU",
+    "nombre": "ESTADÍSTICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3753-00-DIU",
+    "nombre": "INGENIERÍA DE ALIMENTOS",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3754-00-DIU",
+    "nombre": "INGENIERÍA SANITARIA Y AMBIENTAL",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3755-00-DIU",
+    "nombre": "INGENIERÍA GEOMÁTICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2820-00-VES",
+    "nombre": "TECNOLOGÍA EN GESTIÓN LOGÍSTICA (SEDE OR",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3841-00-DIU",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-00-NOC",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3845-00-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-00-NOC",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3847-00-DIU",
+    "nombre": "ADMINISTRACIÓN PÚBLICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3847-00-NOC",
+    "nombre": "ADMINISTRACIÓN PÚBLICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3848-00-DIU",
+    "nombre": "FINANZAS Y BANCA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3849-00-DIU",
+    "nombre": "ADMINISTRACIÓN TURÍSTICA",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3850-00-DIU",
+    "nombre": "GESTIÓN DEL EMPRENDIMIENTO Y LA INNOVACI",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3857-00-DIU",
+    "nombre": "COMERCIO EXTERIOR",
+    "sedeCodigo": "00",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3251-01-DIU",
+    "nombre": "LICENCIATURA EN HISTORIA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3251-01-NOC",
+    "nombre": "LICENCIATURA EN HISTORIA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "2",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3252-01-DIU",
+    "nombre": "LICENCIATURA EN LITERATURA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3252-01-VES",
+    "nombre": "LICENCIATURA EN LITERATURA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "2",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3461-01-DIU",
+    "nombre": "PSICOLOGÍA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "4A",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3541-01-DIU",
+    "nombre": "LICENCIATURA EN MÚSICA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3548-01-DIU",
+    "nombre": "COMUNICACIÓN SOCIAL",
+    "sedeCodigo": "01",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3553-01-DIU",
+    "nombre": "COMUNICACIÓN SOCIAL - PERIODISMO",
+    "sedeCodigo": "01",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-01-NOC",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2711-01-DIU",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "01",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2711-01-NOC",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "01",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2724-01-DIU",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "01",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2724-01-NOC",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "01",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2725-01-NOC",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "01",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2725-01-DIU",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "01",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3751-01-DIU",
+    "nombre": "INGENIERÍA INDUSTRIAL",
+    "sedeCodigo": "01",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2835-01-DIU",
+    "nombre": "TECNOLOGÍA EN DIRECCIÓN DE EMPRESAS TURÍ",
+    "sedeCodigo": "01",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2840-01-NOC",
+    "nombre": "TECNOLOGÍA EN GESTIÓN DE ORGANIZACIONES",
+    "sedeCodigo": "01",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2840-01-DIU",
+    "nombre": "TECNOLOGÍA EN GESTIÓN DE ORGANIZACIONES",
+    "sedeCodigo": "01",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-01-NOC",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3841-01-DIU",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "01",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-01-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "01",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-01-NOC",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "01",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3857-01-DIU",
+    "nombre": "COMERCIO EXTERIOR",
+    "sedeCodigo": "01",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3252-02-VES",
+    "nombre": "LICENCIATURA EN LITERATURA",
+    "sedeCodigo": "02",
+    "facultadCodigo": "2",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3550-02-DIU",
+    "nombre": "DISEÑO INDUSTRIAL",
+    "sedeCodigo": "02",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2711-02-NOC",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "02",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2716-02-DIU",
+    "nombre": "TECNOLOGÍA AGROAMBIENTAL",
+    "sedeCodigo": "02",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2724-02-NOC",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "02",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2724-02-DIU",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "02",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2728-02-DIU",
+    "nombre": "TECNOLOGÍA EN PRODUCCIÓN AGROAMBIENTAL",
+    "sedeCodigo": "02",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3745-02-DIU",
+    "nombre": "INGENIERÍA AGRÍCOLA",
+    "sedeCodigo": "02",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3751-02-DIU",
+    "nombre": "INGENIERÍA INDUSTRIAL",
+    "sedeCodigo": "02",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2835-02-DIU",
+    "nombre": "TECNOLOGÍA EN DIRECCIÓN DE EMPRESAS TURÍ",
+    "sedeCodigo": "02",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2840-02-DIU",
+    "nombre": "TECNOLOGÍA EN GESTIÓN DE ORGANIZACIONES",
+    "sedeCodigo": "02",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-02-DIU",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "02",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-02-NOC",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "02",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3845-02-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "02",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-02-NOC",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "02",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3150-03-DIU",
+    "nombre": "AGROINDUSTRIA",
+    "sedeCodigo": "03",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3249-03-DIU",
+    "nombre": "TRABAJO SOCIAL",
+    "sedeCodigo": "03",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-03-NOC",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "03",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2716-03-DIU",
+    "nombre": "TECNOLOGÍA AGROAMBIENTAL",
+    "sedeCodigo": "03",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2725-03-NOC",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "03",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2728-03-DIU",
+    "nombre": "TECNOLOGÍA EN PRODUCCIÓN AGROAMBIENTAL",
+    "sedeCodigo": "03",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3744-03-DIU",
+    "nombre": "INGENIERÍA ELECTRÓNICA",
+    "sedeCodigo": "03",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2835-03-DIU",
+    "nombre": "TECNOLOGÍA EN DIRECCIÓN DE EMPRESAS TURÍ",
+    "sedeCodigo": "03",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2840-03-DIU",
+    "nombre": "TECNOLOGÍA EN GESTIÓN DE ORGANIZACIONES",
+    "sedeCodigo": "03",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-03-NOC",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "03",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3841-03-DIU",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "03",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-03-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "03",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-03-NOC",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "03",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3249-04-DIU",
+    "nombre": "TRABAJO SOCIAL",
+    "sedeCodigo": "04",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3467-04-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN BÁSICA CON ÉNF",
+    "sedeCodigo": "04",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3469-04-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN BÁSICA CON ÉNF",
+    "sedeCodigo": "04",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3491-04-DIU",
+    "nombre": "LICENCIATURA EN CIENCIAS NATURALES Y EDU",
+    "sedeCodigo": "04",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3492-04-DIU",
+    "nombre": "LICENCIATURA EN MATEMÁTICAS",
+    "sedeCodigo": "04",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3541-04-DIU",
+    "nombre": "LICENCIATURA EN MÚSICA",
+    "sedeCodigo": "04",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3555-04-DIU",
+    "nombre": "LICENCIATURA EN ARTE DRAMÁTICO",
+    "sedeCodigo": "04",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3560-04-DIU",
+    "nombre": "LICENCIATURA EN DANZA",
+    "sedeCodigo": "04",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-04-DIU",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-04-NOC",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2711-04-DIU",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2711-04-NOC",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2712-04-NOC",
+    "nombre": "TECNOLOGÍA EN ALIMENTOS",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2718-04-DIU",
+    "nombre": "TECNOLOGÍA EN LOGÍSTICA PORTUARIA Y DEL",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2719-04-NOC",
+    "nombre": "TECNOLOGÍA EN MANTENIMIENTO DE EQUIPO PO",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2724-04-NOC",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2724-04-DIU",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2725-04-DIU",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2725-04-NOC",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2727-04-DIU",
+    "nombre": "TECNOLOGÍA EN MANTENIMIENTO DE EQUIPOS I",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2727-04-NOC",
+    "nombre": "TECNOLOGÍA EN MANTENIMIENTO DE EQUIPOS I",
+    "sedeCodigo": "04",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2834-04-DIU",
+    "nombre": "TECNOLOGÍA EN GESTIÓN PORTUARIA",
+    "sedeCodigo": "04",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-04-DIU",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "04",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-04-NOC",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "04",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3845-04-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "04",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-04-NOC",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "04",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3857-04-DIU",
+    "nombre": "COMERCIO EXTERIOR",
+    "sedeCodigo": "04",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2133-05-DIU",
+    "nombre": "TECNOLOGÍA EN AGROFORESTERÍA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2133-05-NOC",
+    "nombre": "TECNOLOGÍA EN AGROFORESTERÍA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "1",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2135-05-DIU",
+    "nombre": "TECNOLOGÍA EN MANEJO DE LA PRODUCCIÓN AG",
+    "sedeCodigo": "05",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3252-05-DIU",
+    "nombre": "LICENCIATURA EN LITERATURA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3252-05-VES",
+    "nombre": "LICENCIATURA EN LITERATURA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "2",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3484-05-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN FÍSICA Y DEPOR",
+    "sedeCodigo": "05",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3490-05-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN FÍSICA Y DEPOR",
+    "sedeCodigo": "05",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3461-05-DIU",
+    "nombre": "PSICOLOGÍA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "4A",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-05-DIU",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2711-05-DIU",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2711-05-NOC",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2712-05-DIU",
+    "nombre": "TECNOLOGÍA EN ALIMENTOS",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2716-05-DIU",
+    "nombre": "TECNOLOGÍA AGROAMBIENTAL",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2721-05-DIU",
+    "nombre": "TECNOLOGÍA EN CONSTRUCCIONES SOLDADAS",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2722-05-DIU",
+    "nombre": "TECNOLOGÍA EN MANTENIMIENTO DE SISTEMAS",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2724-05-DIU",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2725-05-DIU",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2726-05-DIU",
+    "nombre": "TECNOLOGÍA DE PROCESAMIENTO DE ALIMENTOS",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2728-05-DIU",
+    "nombre": "TECNOLOGÍA EN PRODUCCIÓN AGROAMBIENTAL",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3751-05-DIU",
+    "nombre": "INGENIERÍA INDUSTRIAL",
+    "sedeCodigo": "05",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2839-05-DIU",
+    "nombre": "TECNOLOGÍA EN GESTIÓN LOGÍSTICA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2839-05-NOC",
+    "nombre": "TECNOLOGÍA EN GESTIÓN LOGÍSTICA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3841-05-DIU",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-05-NOC",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "05",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3845-05-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "05",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-05-NOC",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "05",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3150-06-DIU",
+    "nombre": "AGROINDUSTRIA",
+    "sedeCodigo": "06",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3249-06-DIU",
+    "nombre": "TRABAJO SOCIAL",
+    "sedeCodigo": "06",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2503-06-DIU",
+    "nombre": "TECNOLOGÍA EN CONSTRUCCIÓN DE EDIFICACIO",
+    "sedeCodigo": "06",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3554-06-DIU",
+    "nombre": "CONSTRUCCIÓN",
+    "sedeCodigo": "06",
+    "facultadCodigo": "5",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3643-06-DIU",
+    "nombre": "NUTRICIÓN Y DIETÉTICA",
+    "sedeCodigo": "06",
+    "facultadCodigo": "6",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-06-DIU",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-06-NOC",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2711-06-DIU",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2711-06-NOC",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2712-06-DIU",
+    "nombre": "TECNOLOGÍA EN ALIMENTOS",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2712-06-NOC",
+    "nombre": "TECNOLOGÍA EN ALIMENTOS",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2724-06-DIU",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2724-06-NOC",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2725-06-NOC",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3743-06-DIU",
+    "nombre": "INGENIERÍA DE SISTEMAS",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3753-06-DIU",
+    "nombre": "INGENIERÍA DE ALIMENTOS",
+    "sedeCodigo": "06",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-06-DIU",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "06",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-06-NOC",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "06",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3845-06-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "06",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3845-06-NOC",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "06",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3249-07-DIU",
+    "nombre": "TRABAJO SOCIAL",
+    "sedeCodigo": "07",
+    "facultadCodigo": "2",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3469-07-VES",
+    "nombre": "LICENCIATURA EN EDUCACIÓN BÁSICA CON ÉNF",
+    "sedeCodigo": "07",
+    "facultadCodigo": "4",
+    "jornada": "VES"
+  },
+  {
+    "codigo": "3490-07-DIU",
+    "nombre": "LICENCIATURA EN EDUCACIÓN FÍSICA Y DEPOR",
+    "sedeCodigo": "07",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3492-07-DIU",
+    "nombre": "LICENCIATURA EN MATEMÁTICAS",
+    "sedeCodigo": "07",
+    "facultadCodigo": "4",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-07-DIU",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-07-NOC",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2711-07-DIU",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2711-07-NOC",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2712-07-DIU",
+    "nombre": "TECNOLOGÍA EN ALIMENTOS",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2716-07-DIU",
+    "nombre": "TECNOLOGÍA AGROAMBIENTAL",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2724-07-DIU",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2724-07-NOC",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2725-07-DIU",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2725-07-NOC",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2726-07-DIU",
+    "nombre": "TECNOLOGÍA DE PROCESAMIENTO DE ALIMENTOS",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2728-07-DIU",
+    "nombre": "TECNOLOGÍA EN PRODUCCIÓN AGROAMBIENTAL",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3744-07-DIU",
+    "nombre": "INGENIERÍA ELECTRÓNICA",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3745-07-DIU",
+    "nombre": "INGENIERÍA AGRÍCOLA",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3751-07-DIU",
+    "nombre": "INGENIERÍA INDUSTRIAL",
+    "sedeCodigo": "07",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2835-07-DIU",
+    "nombre": "TECNOLOGÍA EN DIRECCIÓN DE EMPRESAS TURÍ",
+    "sedeCodigo": "07",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2840-07-NOC",
+    "nombre": "TECNOLOGÍA EN GESTIÓN DE ORGANIZACIONES",
+    "sedeCodigo": "07",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2840-07-DIU",
+    "nombre": "TECNOLOGÍA EN GESTIÓN DE ORGANIZACIONES",
+    "sedeCodigo": "07",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-07-DIU",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "07",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3841-07-NOC",
+    "nombre": "CONTADURÍA PÚBLICA",
+    "sedeCodigo": "07",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3845-07-NOC",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "07",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3845-07-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "07",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3857-07-DIU",
+    "nombre": "COMERCIO EXTERIOR",
+    "sedeCodigo": "07",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2131-14-DIU",
+    "nombre": "TECNOLOGÍA QUÍMICA",
+    "sedeCodigo": "14",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2133-14-DIU",
+    "nombre": "TECNOLOGÍA EN AGROFORESTERÍA",
+    "sedeCodigo": "14",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2134-14-DIU",
+    "nombre": "TECNOLOGÍA EN ANÁLISIS Y LABORATORIO QUÍ",
+    "sedeCodigo": "14",
+    "facultadCodigo": "1",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-14-DIU",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2710-14-NOC",
+    "nombre": "TECNOLOGÍA ELECTRÓNICA",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2711-14-DIU",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2711-14-NOC",
+    "nombre": "TECNOLOGÍA EN SISTEMAS DE INFORMACIÓN",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2722-14-DIU",
+    "nombre": "TECNOLOGÍA EN MANTENIMIENTO DE SISTEMAS",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2722-14-NOC",
+    "nombre": "TECNOLOGÍA EN MANTENIMIENTO DE SISTEMAS",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2724-14-DIU",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2724-14-NOC",
+    "nombre": "TECNOLOGÍA EN DESARROLLO DE SOFTWARE",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2725-14-DIU",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2725-14-NOC",
+    "nombre": "TECNOLOGÍA EN ELECTRÓNICA INDUSTRIAL",
+    "sedeCodigo": "14",
+    "facultadCodigo": "7",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "2839-14-DIU",
+    "nombre": "TECNOLOGÍA EN GESTIÓN LOGÍSTICA",
+    "sedeCodigo": "14",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "2839-14-NOC",
+    "nombre": "TECNOLOGÍA EN GESTIÓN LOGÍSTICA",
+    "sedeCodigo": "14",
+    "facultadCodigo": "8",
+    "jornada": "NOC"
+  },
+  {
+    "codigo": "3845-14-DIU",
+    "nombre": "ADMINISTRACIÓN DE EMPRESAS",
+    "sedeCodigo": "14",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  },
+  {
+    "codigo": "3857-14-DIU",
+    "nombre": "COMERCIO EXTERIOR",
+    "sedeCodigo": "14",
+    "facultadCodigo": "8",
+    "jornada": "DIU"
+  }
+]
