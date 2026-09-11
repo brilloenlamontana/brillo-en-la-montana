@@ -17,9 +17,11 @@ export const CharacterSelectionScreen: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(1); // Default to Elfa
   const [nickname, setNickname] = useState('');
 
-  // Si no está autenticado, volver a /login. Si ya configuró personaje, ir a /mundo.
+  // Si no está autenticado, no ha aceptado la Ley 1581 o no ha completado el registro estudiantil, volver a /login. Si ya configuró personaje, ir a /mundo.
   useEffect(() => {
     if (!user) {
+      navigate('/login');
+    } else if (!user.acceptedLaw1581 || !user.codigoEstudiantil) {
       navigate('/login');
     } else if (hasSelectedCharacter) {
       navigate('/mundo');
@@ -63,40 +65,47 @@ export const CharacterSelectionScreen: React.FC = () => {
   const currentChar = characters[currentIndex];
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-[100dvh] w-full bg-slate-100 text-gray-800 font-sans relative overflow-y-auto px-4 py-8 sm:py-12 select-none">
+    <div className="flex flex-col items-center justify-between min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-red-50/25 to-slate-100 text-slate-800 font-sans relative overflow-y-auto px-4 py-8 sm:py-10 select-none">
+      {/* Background ambient decorations in Univalle tones */}
+      <div className="absolute top-[-10%] left-[-10%] w-[60vw] max-w-[420px] h-[60vw] max-h-[420px] bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] max-w-[420px] h-[60vw] max-h-[420px] bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
       
-      {/* Background decorations */}
-      <div className="absolute top-[-15%] left-[-15%] w-[65vw] max-w-[450px] h-[65vw] max-h-[450px] bg-blue-200 rounded-full blur-3xl opacity-50 mix-blend-multiply pointer-events-none"></div>
-      <div className="absolute bottom-[-15%] right-[-15%] w-[65vw] max-w-[450px] h-[65vw] max-h-[450px] bg-purple-200 rounded-full blur-3xl opacity-50 mix-blend-multiply pointer-events-none"></div>
-      
-      {/* Spacer top for logout bar */}
-      <div className="h-8 sm:h-4" />
+      {/* Top spacer for HUD navigation bar */}
+      <div className="h-10 sm:h-6" />
 
       <div className="z-10 w-full max-w-4xl px-2 sm:px-4 flex flex-col items-center my-auto">
-        
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-1.5 sm:mb-2 text-center text-slate-800 tracking-tight">
+        {/* Institutional Pill */}
+        <div className="mb-2">
+          <span className="uv-badge-red">
+            <svg className="w-3 h-3 text-[#C8102E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Personalización de Avatar Institucional
+          </span>
+        </div>
+
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold mb-1.5 sm:mb-2 text-center text-slate-900 tracking-tight">
           Crea tu Aventurero
         </h1>
-        <p className="text-xs sm:text-base text-slate-500 mb-4 sm:mb-8 text-center max-w-md px-2">
-          Elige el personaje con el que explorarás este mundo y dale un nombre legendario.
+        <p className="text-xs sm:text-base text-slate-500 mb-6 sm:mb-8 text-center max-w-md px-2 leading-relaxed">
+          Elige el personaje con el que explorarás el campus virtual y dale un nickname legendario.
         </p>
 
         {/* Carousel */}
         <div className="relative flex items-center justify-center w-full max-w-2xl mb-4 sm:mb-8 h-56 sm:h-72 md:h-80">
-          
           <button 
+            type="button"
             onClick={handlePrev} 
-            className="absolute left-1 sm:left-2 z-20 p-2 sm:p-3 bg-white/90 backdrop-blur-md rounded-full shadow-md hover:bg-white active:scale-95 transition-all focus:outline-none cursor-pointer"
-            aria-label="Anterior"
+            className="absolute left-1 sm:left-3 z-20 p-2.5 sm:p-3 bg-white/90 hover:bg-white text-[#C8102E] backdrop-blur-md rounded-2xl shadow-md hover:shadow-lg border border-slate-200/80 active:scale-95 transition-all focus:outline-none cursor-pointer group"
+            aria-label="Anterior personaje"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           
           <div className="flex justify-center items-center overflow-hidden w-full h-full relative perspective-1000">
             {characters.map((char, index) => {
-              // Calculate relative position for the carousel effect
               let relativeIndex = index - currentIndex;
               if (relativeIndex < -Math.floor(characters.length / 2)) relativeIndex += characters.length;
               if (relativeIndex > Math.floor(characters.length / 2)) relativeIndex -= characters.length;
@@ -108,7 +117,7 @@ export const CharacterSelectionScreen: React.FC = () => {
 
               return (
                 <div 
-                  key={index}
+                  key={char.glbName}
                   className={`absolute transition-all duration-500 ease-out flex flex-col items-center justify-end
                     ${isCenter ? 'z-10 scale-100 opacity-100' : 'z-0 opacity-40'}
                   `}
@@ -120,8 +129,8 @@ export const CharacterSelectionScreen: React.FC = () => {
                   <img 
                     src={char.imagePath} 
                     alt={char.name} 
-                    className="object-contain max-h-[105%] w-auto drop-shadow-xl" 
-                    style={{ filter: isCenter ? 'none' : 'grayscale(40%)' }}
+                    className="object-contain max-h-[105%] w-auto drop-shadow-2xl" 
+                    style={{ filter: isCenter ? 'none' : 'grayscale(35%)' }}
                   />
                 </div>
               );
@@ -129,44 +138,52 @@ export const CharacterSelectionScreen: React.FC = () => {
           </div>
 
           <button 
+            type="button"
             onClick={handleNext} 
-            className="absolute right-1 sm:right-2 z-20 p-2 sm:p-3 bg-white/90 backdrop-blur-md rounded-full shadow-md hover:bg-white active:scale-95 transition-all focus:outline-none cursor-pointer"
-            aria-label="Siguiente"
+            className="absolute right-1 sm:right-3 z-20 p-2.5 sm:p-3 bg-white/90 hover:bg-white text-[#C8102E] backdrop-blur-md rounded-2xl shadow-md hover:shadow-lg border border-slate-200/80 active:scale-95 transition-all focus:outline-none cursor-pointer group"
+            aria-label="Siguiente personaje"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          
         </div>
 
-        {/* Selected Character Info */}
-        <div className="mb-4 sm:mb-6 text-center bg-white/80 backdrop-blur-md py-2 px-6 sm:py-3 sm:px-8 rounded-2xl shadow-sm border border-gray-100">
-          <h2 className="text-xl sm:text-2xl font-semibold text-slate-800">{currentChar.name}</h2>
-          <span className="text-xs sm:text-sm font-medium text-slate-500 uppercase tracking-widest">
+        {/* Selected Character Info Card */}
+        <div className="mb-5 sm:mb-7 text-center bg-white/95 backdrop-blur-md py-2.5 px-7 sm:py-3 sm:px-9 rounded-2xl shadow-sm border border-slate-200/80">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">{currentChar.name}</h2>
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             {currentChar.gender === 'male' ? 'Hombre' : 'Mujer'}
           </span>
         </div>
 
-        {/* Form */}
+        {/* Nickname Form */}
         <form onSubmit={handleSelect} className="flex flex-col sm:flex-row gap-3 w-full max-w-md items-stretch sm:items-center">
-          <input 
-            type="text" 
-            placeholder="Ingresa tu nickname..." 
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            className="w-full px-4 py-3 sm:py-3.5 rounded-xl shadow-sm border border-gray-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all text-base font-medium text-slate-700 placeholder:text-slate-400 bg-white"
-            maxLength={16}
-          />
+          <div className="relative flex-1">
+            <input 
+              type="text" 
+              placeholder="Ingresa tu nickname..." 
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              className="uv-input text-base sm:text-sm font-medium pr-14"
+              maxLength={16}
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-mono text-slate-400 pointer-events-none">
+              {nickname.length}/16
+            </span>
+          </div>
           <button 
             type="submit"
-            className="w-full sm:w-auto px-7 py-3 sm:py-3.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl shadow-md hover:shadow-lg font-semibold text-base transition-all active:scale-95 whitespace-nowrap cursor-pointer"
+            className="uv-btn-primary whitespace-nowrap text-sm sm:text-base py-3 px-7"
           >
-            Comenzar
+            <span>Comenzar Aventura</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </button>
         </form>
-
       </div>
+
       <Logout />
     </div>
   );
