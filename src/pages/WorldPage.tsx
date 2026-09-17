@@ -13,6 +13,7 @@ import { PlayerController } from '../components/models-3d/PlayerController';
 import { Ambience } from '../components/Ambience';
 import { MobileControls } from '../components/MobileControls';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { Imeri } from '../components/models-3d/Imeri';
 
 export const WorldPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -100,6 +101,7 @@ export const WorldPage: React.FC = () => {
           <Physics>
             <Map />
             <KeyboardControls map={keyboardMap}>
+              <Imeri position = {[9, -7, 3]}/>
               <PlayerController>
                 <Avatar />
               </PlayerController>
