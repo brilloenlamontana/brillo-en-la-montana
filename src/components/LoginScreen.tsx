@@ -3,6 +3,7 @@ import { signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, googleProvider, db } from '../firebase.config';
 import { useAuthStore } from '../store/authStore';
+import { SnowEffect } from './SnowEffect';
 
 export const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -40,18 +41,8 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <main style={{
-      width: '100vw',
-      height: '100vh',
-      background: 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)', 
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '40vw', height: '40vw', background: 'radial-gradient(circle, rgba(200,16,46,0.05) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%', zIndex: 0 }} />
-      <div style={{ position: 'absolute', bottom: '-15%', left: '-10%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(16,46,200,0.03) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%', zIndex: 0 }} />
+    <main className="w-screen h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-[#4a0d18] flex items-center justify-center relative overflow-hidden select-none">
+      <SnowEffect />
       
       <section style={{
         background: 'rgba(255, 255, 255, 0.95)',

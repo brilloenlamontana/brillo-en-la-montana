@@ -16,6 +16,8 @@ export interface UserData {
   programaCodigo?: string;
   programaNombre?: string;
   isRegistrationComplete?: boolean;
+  role?: 'admin' | 'student';
+  isAdmin?: boolean;
 }
 
 interface AuthState {

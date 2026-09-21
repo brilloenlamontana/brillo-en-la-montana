@@ -13,6 +13,8 @@ import { PlayerController } from '../components/models-3d/PlayerController';
 import { Ambience } from '../components/Ambience';
 import { MobileControls } from '../components/MobileControls';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { Imeri } from '../components/models-3d/Imeri';
+import { AnnouncementModal } from '../components/AnnouncementModal';
 
 export const WorldPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -100,6 +102,7 @@ export const WorldPage: React.FC = () => {
           <Physics>
             <Map />
             <KeyboardControls map={keyboardMap}>
+              <Imeri />
               <PlayerController>
                 <Avatar />
               </PlayerController>
@@ -107,11 +110,13 @@ export const WorldPage: React.FC = () => {
           </Physics>
         </Suspense>
       </Canvas>
-      
       <Logout />
 
       {/* Touch Joystick & Virtual Buttons on Mobile */}
       <MobileControls show={showMobileControls} />
+      
+      {/* 2D Overlay Modals */}
+      <AnnouncementModal />
     </main>
   );
 };

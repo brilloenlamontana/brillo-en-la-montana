@@ -8,7 +8,6 @@ import { ProfileModal } from './ProfileModal';
 export const Logout: React.FC = () => {
   const { user, setUser } = useAuthStore();
   const navigate = useNavigate();
-  const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -20,7 +19,6 @@ export const Logout: React.FC = () => {
 
   if (!user) return null;
 
-  const hasValidPhoto = Boolean(user.photoURL && failedPhotoUrl !== user.photoURL);
 
   return (
     <>
@@ -43,20 +41,14 @@ export const Logout: React.FC = () => {
             aria-label="Editar perfil y avatar"
             className="relative flex items-center justify-center rounded-full hover:scale-105 active:scale-95 transition-all outline-none cursor-pointer group focus-visible:ring-2 focus-visible:ring-[#C8102E]"
           >
-            {hasValidPhoto ? (
               <img 
                 key={user.photoURL}
                 src={user.photoURL} 
                 alt={user.name || "Perfil"} 
                 referrerPolicy="no-referrer"
-                onError={() => setFailedPhotoUrl(user.photoURL)}
                 className="w-8 h-8 rounded-full object-cover border border-red-200 shadow-xs"
               />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C8102E] to-[#E53E3E] text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
-                {(user.name && user.name[0]) || (user.email && user.email[0]) || 'U'}
-              </div>
-            )}
+      
 
             {/* Edit pencil mini-badge */}
             <span 
@@ -69,22 +61,7 @@ export const Logout: React.FC = () => {
               </svg>
             </span>
           </button>
-
-          {/* User Name Tag */}
-          <button
-            type="button"
-            onClick={() => setIsProfileModalOpen(true)}
-            className="hidden sm:flex flex-col text-left pl-1 pr-2 hover:opacity-80 transition cursor-pointer"
-            title="Abrir perfil institucional"
-          >
-            <span className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">
-              {user.name || 'Estudiante'}
-            </span>
-            <span className="text-[10px] font-medium text-[#C8102E] leading-none">
-              Univalle
-            </span>
-          </button>
-
+   
           {/* Divider */}
           <div className="w-px h-5 bg-slate-200" />
 

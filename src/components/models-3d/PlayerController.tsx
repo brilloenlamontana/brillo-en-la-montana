@@ -87,8 +87,9 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
         ref={ecctrlRef} 
         capsuleHalfHeight={capsuleHalfHeight} 
         capsuleRadius={capsuleRadius}
+        position={[0, 20, 0]}
       >
-        <group position={[0, -(capsuleHalfHeight + capsuleRadius), 0]}>
+        <group position={[0, -(capsuleHalfHeight + capsuleRadius + 0.1), 0]}>
           {children}
         </group>
       </Ecctrl>

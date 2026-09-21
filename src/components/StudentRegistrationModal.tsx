@@ -144,7 +144,11 @@ const StudentRegistrationModalContent: React.FC<{
 
   // Handle student digits input: strictly numeric, max 7 digits
   const handleStudentDigitsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const numericOnly = e.target.value.replace(/\D/g, '').slice(0, 7);
+    let raw = e.target.value.replace(/\D/g, '');
+    if (raw.startsWith('20') && raw.length > 7) {
+      raw = raw.slice(2);
+    }
+    const numericOnly = raw.slice(0, 7);
     setStudentDigits(numericOnly);
     setErrorMessage(null);
   };
@@ -222,9 +226,6 @@ const StudentRegistrationModalContent: React.FC<{
               />
             </div>
             <div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold bg-red-100 text-[#C8102E] tracking-wide mb-0.5">
-                Primer Ingreso • Registro Institucional
-              </span>
               <h2
                 id="student-registration-title"
                 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight"
@@ -252,13 +253,7 @@ const StudentRegistrationModalContent: React.FC<{
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
               <span>Nombres y Apellidos</span>
-              <span className="text-[10px] text-slate-400 font-normal flex items-center gap-1">
-                <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" strokeWidth="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" strokeWidth="2" />
-                </svg>
-                No modificable
-              </span>
+             
             </label>
             <div className="relative">
               <input
@@ -268,28 +263,16 @@ const StudentRegistrationModalContent: React.FC<{
                 disabled
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100/90 border border-slate-200 text-slate-700 text-sm font-medium cursor-not-allowed outline-none select-text"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
+              
             </div>
-            <p className="text-[10px] text-slate-400">
-              Datos obtenidos de tu cuenta institucional de Google.
-            </p>
+           
           </div>
 
           {/* 2. Correo Electrónico (Pre-filled, Read-only) */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
               <span>Correo Electrónico Institucional</span>
-              <span className="text-[10px] text-slate-400 font-normal flex items-center gap-1">
-                <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" strokeWidth="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" strokeWidth="2" />
-                </svg>
-                No modificable
-              </span>
+              
             </label>
             <div className="relative">
               <input
@@ -299,11 +282,7 @@ const StudentRegistrationModalContent: React.FC<{
                 disabled
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100/90 border border-slate-200 text-slate-700 text-sm font-medium cursor-not-allowed outline-none select-text"
               />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
+             
             </div>
           </div>
 
@@ -315,9 +294,9 @@ const StudentRegistrationModalContent: React.FC<{
               
             </label>
 
-            <div className="flex rounded-xl overflow-hidden border border-slate-300 focus-within:border-[#C8102E] focus-within:ring-2 focus-within:ring-red-100 transition-all bg-white shadow-sm">
+            <div className="flex items-center rounded-xl overflow-hidden border border-slate-300 focus-within:border-[#C8102E] focus-within:ring-2 focus-within:ring-red-100 transition-all bg-white shadow-sm">
               {/* Fixed unmodifiable '20' prefix */}
-              <div className="pl-3.5 py-2.5 flex items-center justify-center font-mono  text-slate-700 select-none text-sm">
+              <div className="pl-3.5 py-2.5 flex items-center text-slate-700 select-none text-sm font-medium">
                 <span>20</span>
               </div>
 
@@ -331,7 +310,7 @@ const StudentRegistrationModalContent: React.FC<{
                 value={studentDigits}
                 onChange={handleStudentDigitsChange}
                 disabled={isSubmitting}
-                className="flex-1 py-2.5 pr-3.5 text-slate-800 font-mono text-sm tracking-wider outline-none bg-transparent placeholder:text-slate-400 placeholder:font-sans"
+                className="flex-1 py-2.5 pr-3.5 text-slate-700 text-sm font-medium outline-none bg-transparent placeholder:text-slate-400 placeholder:font-normal"
               />
             </div>
             <p className="text-[10px] text-slate-500">
