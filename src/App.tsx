@@ -2,12 +2,14 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { WorldPage } from './pages/WorldPage';
+import { AdminPage } from './pages/AdminPage';
 import { CharacterSelectionScreen } from './components/CharacterSelectionScreen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase.config';
 import { useAuthStore, type UserData } from './store/authStore';
 import { useAvatarStore } from './store/avatarStore';
+import { useProgressStore } from './store/progressStore';
 import { findSedeByCodigo, findFacultadByCodigo, findProgramaByCodigo } from './data/univalleData';
 import './index.css';
 
@@ -50,26 +52,37 @@ const App: React.FC = () => {
             userData.programaCodigo = progCode;
             userData.programaNombre = programaObj ? programaObj.nombre : (data.programaNombre || '');
             userData.isRegistrationComplete = Boolean(data.codigoEstudiantil);
+            userData.role = data.role || (data.isAdmin ? 'admin' : 'student');
+            userData.isAdmin = data.role === 'admin' || !!data.isAdmin;
 
             if (data.nickname && data.avatarName) {
               useAvatarStore.getState().completeSetup(data.nickname, data.avatarName, data.gender || 'female');
             } else {
               useAvatarStore.getState().resetAvatar();
             }
+
+            if (data.progress) {
+              useProgressStore.getState().setProgress(data.progress);
+            } else {
+              useProgressStore.getState().resetProgress();
+            }
           } else {
             userData.acceptedLaw1581 = false;
             useAvatarStore.getState().resetAvatar();
+            useProgressStore.getState().resetProgress();
           }
         } catch (err) {
           console.error("Error fetching user data:", err);
           userData.acceptedLaw1581 = false;
           useAvatarStore.getState().resetAvatar();
+          useProgressStore.getState().resetProgress();
         } finally {
           setUser(userData);
           setAuthReady(true);
         }
       } else {
         useAvatarStore.getState().resetAvatar();
+        useProgressStore.getState().resetProgress();
         setUser(null);
         setAuthReady(true);
       }
@@ -89,6 +102,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/seleccion-personaje" element={<CharacterSelectionScreen />} />
         <Route path="/mundo" element={<WorldPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </Router>
   );

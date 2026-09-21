@@ -75,20 +75,13 @@ export const CharacterSelectionScreen: React.FC = () => {
 
       <div className="z-10 w-full max-w-4xl px-2 sm:px-4 flex flex-col items-center my-auto">
         {/* Institutional Pill */}
-        <div className="mb-2">
-          <span className="uv-badge-red">
-            <svg className="w-3 h-3 text-[#C8102E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Personalización de Avatar Institucional
-          </span>
-        </div>
+ 
 
         <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold mb-1.5 sm:mb-2 text-center text-slate-900 tracking-tight">
           Crea tu Aventurero
         </h1>
         <p className="text-xs sm:text-base text-slate-500 mb-6 sm:mb-8 text-center max-w-md px-2 leading-relaxed">
-          Elige el personaje con el que explorarás el campus virtual y dale un nickname legendario.
+          Elige el personaje con el que explorarás el mundo y dale un nickname legendario
         </p>
 
         {/* Carousel */}
