@@ -18,7 +18,7 @@ export function Imeri(props: any) {
     <RigidBody type='fixed'>
       <group ref={group} {...props} dispose={null}>
         <group name="Scene">
-          <group name="Imeri" position = {[0, 14.2, 15]} rotation-y={-Math.PI} scale={1.2}> 
+          <group name="Imeri"> 
             <skinnedMesh
               name="Body"
               geometry={(nodes.Body as THREE.SkinnedMesh).geometry}

@@ -1,10 +1,12 @@
 import { useGLTF, useAnimations } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 import { useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useAvatarStore } from '../../store/avatarStore'
 
 export function Avatar(props: any) {
   const avatarRef = useRef<THREE.Group>(null)
+  const lastLogTime = useRef(0)
   
   const { avatarName, gender, action } = useAvatarStore();
 
@@ -43,6 +45,21 @@ export function Avatar(props: any) {
     currentAction?.reset().fadeIn(0.2).play()
     return () => currentAction?.fadeOut(0.2) as any;
   }, [action, actions]);
+
+  // Update player position every frame without causing re-renders
+  useFrame((state) => {
+    if (avatarRef.current) {
+      const position = new THREE.Vector3();
+      avatarRef.current.getWorldPosition(position);
+      useAvatarStore.getState().playerPosition.copy(position);
+
+      // Log position every second
+      if (state.clock.elapsedTime - lastLogTime.current > 1) {
+       // console.log('Posición del Avatar:', { x: position.x.toFixed(2), y: position.y.toFixed(2), z: position.z.toFixed(2) });
+        lastLogTime.current = state.clock.elapsedTime;
+      }
+    }
+  });
 
   return (
     <group ref={avatarRef} dispose={null} {...props}>

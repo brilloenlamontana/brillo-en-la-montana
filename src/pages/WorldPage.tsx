@@ -8,17 +8,29 @@ import { Logout } from '../components/Logout';
 import { Map } from '../components/models-3d/Map';
 import { KeyboardControls } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
-import { Avatar } from '../components/models-3d/Avatar';  
+import { Avatar } from '../components/models-3d/Avatar';
 import { PlayerController } from '../components/models-3d/PlayerController';
 import { Ambience } from '../components/Ambience';
 import { MobileControls } from '../components/MobileControls';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Imeri } from '../components/models-3d/Imeri';
 import { AnnouncementModal } from '../components/AnnouncementModal';
+import { Golem } from '../components/models-3d/Golem';
+import { Mosquito } from '../components/models-3d/Mosquito';
+import { Aldeano } from '../components/models-3d/Aldeano';
+import { AldeanoModal } from '../components/AldeanoModal';
+import { useProgressStore } from '../store/progressStore';
+
+const mosquitoSwarmPositions = Array.from({ length: 10 }).map(() => ({
+  x: 42 + (Math.random() * 8 - 4),
+  y: 2 + Math.random() * 2,
+  z: -35 + (Math.random() * 8 - 4),
+}));
 
 export const WorldPage: React.FC = () => {
   const { user } = useAuthStore();
   const { hasSelectedCharacter } = useAvatarStore();
+  const { progress } = useProgressStore();
   const navigate = useNavigate();
   const detectedMobile = useIsMobile();
   const [manualControlsToggle, setManualControlsToggle] = useState<boolean | null>(null);
@@ -83,7 +95,7 @@ export const WorldPage: React.FC = () => {
         </button>
       </div>
 
-      <Canvas 
+      <Canvas
         camera={{ position: [0, 0, 2] }}
         gl={async (props) => {
           try {
@@ -101,8 +113,15 @@ export const WorldPage: React.FC = () => {
         <Suspense fallback={null}>
           <Physics>
             <Map />
+            <Imeri position={[0, 14.2, 15]} rotation-y={-Math.PI} scale={1.2} />
+            <group name="enemies-swamp">
+              <Golem position={[42, 0.2, -33]} scale={2} />
+              {mosquitoSwarmPositions.map((pos, i) => (
+                <Mosquito key={`mosquito-${i}`} position={[pos.x, pos.y, pos.z]} rotation-y={-Math.PI} scale={10} />
+              ))}
+            </group>
+            <Aldeano position={[-105, 14.26, 5]} rotation-y={-Math.PI} />
             <KeyboardControls map={keyboardMap}>
-              <Imeri />
               <PlayerController>
                 <Avatar />
               </PlayerController>
@@ -114,9 +133,10 @@ export const WorldPage: React.FC = () => {
 
       {/* Touch Joystick & Virtual Buttons on Mobile */}
       <MobileControls show={showMobileControls} />
-      
+
       {/* 2D Overlay Modals */}
       <AnnouncementModal />
+      <AldeanoModal />
     </main>
   );
 };
