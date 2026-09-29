@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAvatarStore } from '../store/avatarStore';
+import { useAvatarStore } from '../../store/avatarStore';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase.config';
-import { useAuthStore } from '../store/authStore';
+import { db } from '../../firebase.config';
+import { useAuthStore } from '../../store/authStore';
 import { useNavigate } from 'react-router-dom';
-import { Logout } from './Logout';
+import { Logout } from '../auth/Logout';
 
-import { CHARACTERS as characters } from '../data/characters';
+import { CHARACTERS as characters } from '../../data/characters';
 
 
 export const CharacterSelectionScreen: React.FC = () => {

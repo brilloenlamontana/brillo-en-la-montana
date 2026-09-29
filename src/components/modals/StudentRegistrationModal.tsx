@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { type UserData } from '../store/authStore';
+import { type UserData } from '../../store/authStore';
 import { Law1581ConsentModal } from './Law1581ConsentModal';
 import {
   getSedes,
   getFacultades,
   getProgramasAcademicos
-} from '../services/academicService';
+} from '../../services/academicService';
 import {
   type Sede,
   type Facultad,
   type ProgramaAcademico,
   formatFullName
-} from '../data/univalleData';
+} from '../../data/univalleData';
 
 export interface StudentRegistrationData {
   nombresApellidos: string;

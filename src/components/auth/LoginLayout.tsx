@@ -1,5 +1,5 @@
 import React from 'react';
-import { SnowEffect } from './SnowEffect';
+import { SnowEffect } from '../environment/SnowEffect';
 
 export interface LoginLayoutProps {
   accessType: 'admin' | 'student';

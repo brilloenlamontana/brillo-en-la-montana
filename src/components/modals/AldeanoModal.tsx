@@ -1,6 +1,6 @@
 import React from 'react';
-import { useUIStore } from '../store/uiStore';
-import { useProgressStore } from '../store/progressStore';
+import { useUIStore } from '../../store/uiStore';
+import { useProgressStore } from '../../store/progressStore';
 
 export const AldeanoModal: React.FC = () => {
   const { isAldeanoModalOpen, setAldeanoModalOpen } = useUIStore();

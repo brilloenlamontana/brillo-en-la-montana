@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase.config';
-import { useAuthStore } from '../store/authStore';
-import { useAvatarStore, type AvatarGender } from '../store/avatarStore';
-import { CHARACTERS, type CharacterOption } from '../data/characters';
+import { db } from '../../firebase.config';
+import { useAuthStore } from '../../store/authStore';
+import { useAvatarStore, type AvatarGender } from '../../store/avatarStore';
+import { CHARACTERS, type CharacterOption } from '../../data/characters';
 
 interface ProfileModalProps {
   isOpen: boolean;

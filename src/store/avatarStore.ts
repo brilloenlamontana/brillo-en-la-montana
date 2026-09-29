@@ -17,6 +17,7 @@ interface AvatarState {
   setAction: (action: AvatarAction) => void;
   setPlayerPosition: (position: THREE.Vector3) => void;
   takeDamage: (amount: number) => void;
+  restoreHealth: () => void;
   completeSetup: (nickname: string, avatarName: string, gender: AvatarGender) => void;
   resetAvatar: () => void;
 }
@@ -34,12 +35,14 @@ export const useAvatarStore = create<AvatarState>((set) => ({
   setAction: (action) => set({ action }),
   setPlayerPosition: (position) => set({ playerPosition: position }),
   takeDamage: (amount) => set((state) => {
-    const newHealth = Math.max(0, state.health - amount);
+    // We can ignore the specific 'amount' to ensure 3 hits always kill
+    const newHealth = Math.max(0, state.health - 34); 
     if (newHealth === 0 && state.health > 0) {
-      return { health: newHealth, action: 'Defeat' }; // Or some death action
+      return { health: newHealth, action: 'Defeat' }; 
     }
     return { health: newHealth };
   }),
+  restoreHealth: () => set((state) => ({ health: state.maxHealth })),
   completeSetup: (nickname, avatarName, gender) => set({ nickname, avatarName, gender, hasSelectedCharacter: true, health: 100 }),
   resetAvatar: () => set({
     avatarName: 'Elfa',

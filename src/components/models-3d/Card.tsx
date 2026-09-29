@@ -1,7 +1,7 @@
 import { Float, useGLTF } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
-import { useUIStore } from '../../../store/uiStore'
-import { saveProgressToDB } from '../../../services/progressService'
+import { useUIStore } from '../../store/uiStore'
+import { saveProgressToDB } from '../../services/progressService'
 import { useRef } from 'react'
 
 export function Card(props: any) {

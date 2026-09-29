@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useUIStore } from '../store/uiStore';
-import { saveProgressToDB } from '../services/progressService';
+import { useUIStore } from '../../store/uiStore';
+import { saveProgressToDB } from '../../services/progressService';
 
 export const AnnouncementModal: React.FC = () => {
   const { isAnnouncementOpen, setAnnouncementOpen } = useUIStore();

@@ -4,28 +4,23 @@ import { WebGPURenderer } from 'three/webgpu';
 import { useAuthStore } from '../store/authStore';
 import { useAvatarStore } from '../store/avatarStore';
 import { useNavigate } from 'react-router-dom';
-import { Logout } from '../components/Logout';
+import { Logout } from '../components/auth/Logout';
 import { Map } from '../components/models-3d/Map';
 import { KeyboardControls } from '@react-three/drei';
 import { Physics } from '@react-three/rapier';
 import { Avatar } from '../components/models-3d/Avatar';
 import { PlayerController } from '../components/models-3d/PlayerController';
-import { Ambience } from '../components/Ambience';
-import { MobileControls } from '../components/MobileControls';
+import { Ambience } from '../components/environment/Ambience';
+import { MobileControls } from '../components/ui/MobileControls';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Imeri } from '../components/models-3d/Imeri';
-import { AnnouncementModal } from '../components/AnnouncementModal';
+import { AnnouncementModal } from '../components/modals/AnnouncementModal';
 import { Golem } from '../components/models-3d/Golem';
-import { Mosquito } from '../components/models-3d/Mosquito';
+import { ZumbadorSwarm } from '../components/models-3d/ZumbadorSwarm';
 import { Aldeano } from '../components/models-3d/Aldeano';
-import { AldeanoModal } from '../components/AldeanoModal';
+import { AldeanoModal } from '../components/modals/AldeanoModal';
+import { HealthUI } from '../components/ui/HealthUI';
 import { useProgressStore } from '../store/progressStore';
-
-const mosquitoSwarmPositions = Array.from({ length: 10 }).map(() => ({
-  x: 42 + (Math.random() * 8 - 4),
-  y: 2 + Math.random() * 2,
-  z: -35 + (Math.random() * 8 - 4),
-}));
 
 export const WorldPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -116,9 +111,7 @@ export const WorldPage: React.FC = () => {
             <Imeri position={[0, 14.2, 15]} rotation-y={-Math.PI} scale={1.2} />
             <group name="enemies-swamp">
               <Golem position={[42, 0.2, -33]} scale={2} />
-              {mosquitoSwarmPositions.map((pos, i) => (
-                <Mosquito key={`mosquito-${i}`} position={[pos.x, pos.y, pos.z]} rotation-y={-Math.PI} scale={10} />
-              ))}
+              <ZumbadorSwarm />
             </group>
             <Aldeano position={[-105, 14.26, 5]} rotation-y={-Math.PI} />
             <KeyboardControls map={keyboardMap}>
@@ -137,6 +130,7 @@ export const WorldPage: React.FC = () => {
       {/* 2D Overlay Modals */}
       <AnnouncementModal />
       <AldeanoModal />
+      <HealthUI />
     </main>
   );
 };

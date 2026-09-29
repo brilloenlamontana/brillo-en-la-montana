@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, googleProvider, db } from '../firebase.config';
-import { useAuthStore } from '../store/authStore';
-import { SnowEffect } from './SnowEffect';
+import { auth, googleProvider, db } from '../../firebase.config';
+import { useAuthStore } from '../../store/authStore';
+import { SnowEffect } from '../environment/SnowEffect';
 
 export const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);

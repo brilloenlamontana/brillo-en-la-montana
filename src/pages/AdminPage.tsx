@@ -13,8 +13,8 @@ import {
   getEnvAdminEmails
 } from '../services/adminService';
 import { SEDES } from '../data/univalleData';
-import { SnowEffect } from '../components/SnowEffect';
-import { LoginLayout } from '../components/LoginLayout';
+import { SnowEffect } from '../components/environment/SnowEffect';
+import { LoginLayout } from '../components/auth/LoginLayout';
 
 export const AdminPage: React.FC = () => {
   const { user, setUser } = useAuthStore();

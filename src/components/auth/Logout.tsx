@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useAuthStore } from '../store/authStore';
-import { useAvatarStore } from '../store/avatarStore';
-import { auth } from '../firebase.config';
+import { useAuthStore } from '../../store/authStore';
+import { useAvatarStore } from '../../store/avatarStore';
+import { auth } from '../../firebase.config';
 import { useNavigate } from 'react-router-dom';
-import { ProfileModal } from './ProfileModal';
+import { ProfileModal } from '../modals/ProfileModal';
 
 export const Logout: React.FC = () => {
   const { user, setUser } = useAuthStore();

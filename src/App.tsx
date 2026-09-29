@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { LoginPage } from './pages/LoginPage';
 import { WorldPage } from './pages/WorldPage';
 import { AdminPage } from './pages/AdminPage';
-import { CharacterSelectionScreen } from './components/CharacterSelectionScreen';
+import { CharacterSelectionScreen } from './components/screens/CharacterSelectionScreen';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase.config';

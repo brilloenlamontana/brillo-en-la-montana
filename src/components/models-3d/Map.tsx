@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
-import { Card } from './assets/Card'
+import { Card } from './Card'
 
 type MapGLTF = {
   nodes: {

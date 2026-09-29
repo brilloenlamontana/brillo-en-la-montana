@@ -16,6 +16,22 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
   const cameraControls = useRef<EcctrlCameraControlsHandle>(null);
   const cameraUp = useRef(new THREE.Vector3());
   const { camera } = useThree();
+  const health = useAvatarStore(state => state.health);
+  const restoreHealth = useAvatarStore(state => state.restoreHealth);
+
+  React.useEffect(() => {
+    if (health <= 0) {
+      // Teleport player to origin when dead
+      const ecctrl = ecctrlRef.current;
+      if (ecctrl) {
+        ecctrl.body.setTranslation({ x: 0, y: 2, z: 0 }, true);
+      }
+      // Give a tiny delay before restoring health and removing defeat animation
+      setTimeout(() => {
+        restoreHealth();
+      }, 500);
+    }
+  }, [health, restoreHealth]);
 
   useFrame(() => {
     const { forward, backward, leftward, rightward, run, jump } = get() as any;
@@ -88,8 +104,7 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
         capsuleHalfHeight={capsuleHalfHeight} 
         capsuleRadius={capsuleRadius}
         //position={[0, 20, 0]}
-        //position={[-110, 20, 5]}
-        position={[44, 0.2, -33]} 
+        position={[-110, 20, 5]}
       >
         <group position={[0, -(capsuleHalfHeight + capsuleRadius + 0.1), 0]}>
           {children}
