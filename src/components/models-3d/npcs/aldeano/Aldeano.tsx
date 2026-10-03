@@ -2,20 +2,21 @@ import { useGLTF, useAnimations, Html } from '@react-three/drei'
 import { RigidBody, CylinderCollider, CapsuleCollider } from '@react-three/rapier'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { useUIStore } from '../../store/uiStore'
-import { useProgressStore } from '../../store/progressStore'
+import { useUIStore } from '../../../../store/uiStore'
+import { useProgressStore } from '../../../../store/progressStore'
+import { AldeanoModal } from './AldeanoModal'
 
 export function Aldeano(props: any) {
   const group = useRef<THREE.Group>(null)
   const { nodes, materials, animations } = useGLTF('/models-3d/avatars/Aldeano.glb')
   const { actions } = useAnimations(animations, group)
-  
+
   const { isAldeanoModalOpen, setAldeanoModalOpen } = useUIStore();
   const { progress } = useProgressStore();
-  
+
   const [showPrompt, setShowPrompt] = useState(false);
   const [isTalking, setIsTalking] = useState(false);
-  
+
   // Usamos una referencia para contar cuántos colliders del jugador entran/salen
   // y evitar que el texto parpadee causando re-renders.
   const intersectingCount = useRef(0);
@@ -23,8 +24,8 @@ export function Aldeano(props: any) {
   useEffect(() => {
     // Si ya respondió, vuelve a Idle
     if (progress.aldeanoHelp !== 'pending') {
-       setIsTalking(false);
-       setShowPrompt(false);
+      setIsTalking(false);
+      setShowPrompt(false);
     }
   }, [progress.aldeanoHelp]);
 
@@ -56,11 +57,11 @@ export function Aldeano(props: any) {
       <CapsuleCollider args={[1, 0.5]} position={[0, 1.5, 0]} />
 
       {/* Sensor de proximidad cilíndrico (radius 4, height 2) */}
-      <CylinderCollider 
-        args={[2, 4]} 
-        position={[0, 1, 0]} 
-        sensor 
-        onIntersectionEnter={(payload) => {
+      <CylinderCollider
+        args={[2, 4]}
+        position={[0, 1, 0]}
+        sensor
+        onIntersectionEnter={() => {
           // Aumentamos el contador cuando un collider del jugador entra
           intersectingCount.current += 1;
           if (intersectingCount.current > 0 && progress.aldeanoHelp === 'pending') {
@@ -76,9 +77,9 @@ export function Aldeano(props: any) {
           }
         }}
       />
-      <group 
-        ref={group} 
-        {...props} 
+      <group
+        ref={group}
+        {...props}
         dispose={null}
         onClick={(e) => {
           e.stopPropagation();
@@ -88,10 +89,10 @@ export function Aldeano(props: any) {
           }
         }}
         onPointerEnter={() => {
-            if (showPrompt) document.body.style.cursor = 'pointer';
+          if (showPrompt) document.body.style.cursor = 'pointer';
         }}
         onPointerLeave={() => {
-            document.body.style.cursor = 'default';
+          document.body.style.cursor = 'default';
         }}
       >
         {showPrompt && !isAldeanoModalOpen && progress.aldeanoHelp === 'pending' && (
@@ -101,6 +102,9 @@ export function Aldeano(props: any) {
             </div>
           </Html>
         )}
+        <Html fullscreen zIndexRange={[100, 0]}>
+          <AldeanoModal />
+        </Html>
         <group name="Aldeano">
           <skinnedMesh
             name="Body"

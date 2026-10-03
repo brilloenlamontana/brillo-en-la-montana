@@ -14,11 +14,11 @@ export const ZumbadorSwarm: React.FC = () => {
   return (
     <>
       {swarmPositions.map((pos, i) => (
-        <Zumbador 
-          key={`zumbador-${i}`} 
-          position={[pos.x, pos.y, pos.z]} 
-          rotation-y={-Math.PI} 
-          scale={10} 
+        <Zumbador
+          key={`zumbador-${i}`}
+          position={[pos.x, pos.y, pos.z]}
+          rotation-y={-Math.PI}
+          scale={10}
         />
       ))}
     </>

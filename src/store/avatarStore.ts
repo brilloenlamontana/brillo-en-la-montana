@@ -34,7 +34,7 @@ export const useAvatarStore = create<AvatarState>((set) => ({
   setAvatar: (name, gender) => set({ avatarName: name, gender }),
   setAction: (action) => set({ action }),
   setPlayerPosition: (position) => set({ playerPosition: position }),
-  takeDamage: (amount) => set((state) => {
+  takeDamage: (_amount) => set((state) => {
     // We can ignore the specific 'amount' to ensure 3 hits always kill
     const newHealth = Math.max(0, state.health - 34); 
     if (newHealth === 0 && state.health > 0) {

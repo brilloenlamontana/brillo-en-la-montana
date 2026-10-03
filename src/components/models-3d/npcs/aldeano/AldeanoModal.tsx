@@ -1,6 +1,6 @@
 import React from 'react';
-import { useUIStore } from '../../store/uiStore';
-import { useProgressStore } from '../../store/progressStore';
+import { useUIStore } from '../../../../store/uiStore';
+import { useProgressStore } from '../../../../store/progressStore';
 
 export const AldeanoModal: React.FC = () => {
   const { isAldeanoModalOpen, setAldeanoModalOpen } = useUIStore();
@@ -44,7 +44,7 @@ export const AldeanoModal: React.FC = () => {
         }}
       >
         <img
-          src="/sprites-2d/aseets-2d/preguntas-aldeanos.png"
+          src="/sprites-2d/aseets/preguntas-aldeanos.png"
           alt="Pregunta del Aldeano"
           style={{
             maxWidth: '100%',

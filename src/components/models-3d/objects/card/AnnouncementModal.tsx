@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useUIStore } from '../../store/uiStore';
-import { saveProgressToDB } from '../../services/progressService';
+import { useUIStore } from '../../../../store/uiStore';
+import { saveProgressToDB } from '../../../../services/progressService';
 
 export const AnnouncementModal: React.FC = () => {
   const { isAnnouncementOpen, setAnnouncementOpen } = useUIStore();
@@ -58,7 +58,7 @@ export const AnnouncementModal: React.FC = () => {
           &times;
         </button>
         <img
-          src="/sprites-2d/aseets-2d/mayor-announcement.png"
+          src="/sprites-2d/aseets/mayor-announcement.png"
           alt="Mayor Announcement"
           style={{
             maxWidth: '100%',

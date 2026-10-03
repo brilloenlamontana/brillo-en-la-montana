@@ -6,13 +6,13 @@ import { EcctrlCameraControls } from 'ecctrl/camera';
 import type { EcctrlHandle } from 'ecctrl';
 import type { EcctrlCameraControlsHandle } from 'ecctrl/camera';
 import * as THREE from 'three';
-import { useAvatarStore, type AvatarAction } from '../../store/avatarStore';
+import { useAvatarStore, type AvatarAction } from '../../../store/avatarStore';
 import { useJoystickStore, useButtonStore } from 'ecctrl/input';
 
 export const PlayerController = ({ children }: { children: React.ReactNode }) => {
   const [, get] = useKeyboardControls();
   const ecctrlRef = useRef<EcctrlHandle>(null);
-  
+
   const cameraControls = useRef<EcctrlCameraControlsHandle>(null);
   const cameraUp = useRef(new THREE.Vector3());
   const { camera } = useThree();
@@ -35,7 +35,7 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
 
   useFrame(() => {
     const { forward, backward, leftward, rightward, run, jump } = get() as any;
-    
+
     // Read mobile joystick
     const joystickState = useJoystickStore.getState().joysticks['default'];
     const joystickX = joystickState?.active ? joystickState.x : 0;
@@ -57,7 +57,7 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
       jump: isJumping,
       joystick: { x: joystickX, y: joystickY },
     });
-    
+
     const ecctrl = ecctrlRef.current;
     if (ecctrl) {
       let newAction: AvatarAction = 'Idle';
@@ -70,18 +70,18 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
         const shouldRun = isRunning || joyDistance > 0.75;
         newAction = shouldRun ? 'Running' : 'Walking';
       }
-      
+
       const currentAction = useAvatarStore.getState().action;
       if (currentAction !== newAction) {
         useAvatarStore.getState().setAction(newAction);
       }
     }
-    
+
     if (!ecctrlRef.current || !cameraControls.current) return;
-    
+
     const target = ecctrlRef.current.currPos;
     cameraControls.current.moveTo(target.x, target.y + 0.5, target.z, true);
-    
+
     cameraUp.current.copy(ecctrlRef.current.upAxis);
     camera.up.lerp(cameraUp.current, 0.1);
     cameraControls.current.setUp(camera.up);
@@ -92,19 +92,19 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
 
   return (
     <>
-      <EcctrlCameraControls 
-        ref={cameraControls} 
-        makeDefault 
-        smoothTime={0.1} 
-        minDistance={2} 
-        maxDistance={2} 
+      <EcctrlCameraControls
+        ref={cameraControls}
+        makeDefault
+        smoothTime={0.1}
+        minDistance={2}
+        maxDistance={2}
       />
-      <Ecctrl 
-        ref={ecctrlRef} 
-        capsuleHalfHeight={capsuleHalfHeight} 
+      <Ecctrl
+        ref={ecctrlRef}
+        capsuleHalfHeight={capsuleHalfHeight}
         capsuleRadius={capsuleRadius}
-        //position={[0, 20, 0]}
-        position={[-110, 20, 5]}
+        position={[0, 20, 0]}
+      //position={[-110, 20, 5]}
       >
         <group position={[0, -(capsuleHalfHeight + capsuleRadius + 0.1), 0]}>
           {children}

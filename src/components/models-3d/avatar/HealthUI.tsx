@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAvatarStore } from '../../store/avatarStore';
+import { useAvatarStore } from '../../../store/avatarStore';
 
 export const HealthUI: React.FC = () => {
   const { health, maxHealth } = useAvatarStore();

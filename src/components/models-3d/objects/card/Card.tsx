@@ -1,13 +1,14 @@
-import { Float, useGLTF } from '@react-three/drei'
+import { Float, useGLTF, Html } from '@react-three/drei'
+import { AnnouncementModal } from './AnnouncementModal'
 import { RigidBody } from '@react-three/rapier'
-import { useUIStore } from '../../store/uiStore'
-import { saveProgressToDB } from '../../services/progressService'
+import { useUIStore } from '../../../../store/uiStore'
+import { saveProgressToDB } from '../../../../services/progressService'
 import { useRef } from 'react'
 
 export function Card(props: any) {
     const cardRef = useRef(null)
-    const { scene } = useGLTF('/models-3d/assets-3d/Card.glb')
-    const setAnnouncementOpen = useUIStore(state => state.setAnnouncementOpen)
+    const { scene } = useGLTF('/models-3d/objetcs/Card.glb')
+    const setAnnouncementOpen = useUIStore((state: any) => state.setAnnouncementOpen)
 
     const handleOpen = () => {
         setAnnouncementOpen(true)
@@ -23,6 +24,9 @@ export function Card(props: any) {
         >
 
             <RigidBody type='fixed'>
+                <Html fullscreen zIndexRange={[100, 0]}>
+                    <AnnouncementModal />
+                </Html>
                 <group
                     ref={cardRef}
                     {...props}
@@ -42,4 +46,4 @@ export function Card(props: any) {
     )
 }
 
-useGLTF.preload('/models-3d/assets-3d/Card.glb')
+useGLTF.preload('/models-3d/objetcs/Card.glb')
