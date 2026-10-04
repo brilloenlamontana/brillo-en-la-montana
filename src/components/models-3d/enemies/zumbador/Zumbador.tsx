@@ -6,7 +6,7 @@ import { useFrame } from '@react-three/fiber'
 import { useAvatarStore } from '../../../../store/avatarStore'
 
 export function Zumbador(props: any) {
-    const { nodes, materials } = useGLTF('/models-3d/avatars/Zumbador.glb')
+    const { nodes, materials } = useGLTF('/models-3d/enemies/Zumbador.glb')
     const rb = useRef<RapierRigidBody>(null)
     const group = useRef<THREE.Group>(null)
     const lastAttackTime = useRef(0)
@@ -107,4 +107,4 @@ export function Zumbador(props: any) {
     )
 }
 
-useGLTF.preload('/models-3d/avatars/Zumbador.glb')
+useGLTF.preload('/models-3d/enemies/Zumbador.glb')

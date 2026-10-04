@@ -8,7 +8,7 @@ import { useAvatarStore } from '../../../../store/avatarStore'
 export function Golem(props: any) {
   const group = useRef<THREE.Group>(null)
   const rb = useRef<RapierRigidBody>(null)
-  const { nodes, materials, animations } = useGLTF('/models-3d/avatars/Golem.glb')
+  const { nodes, materials, animations } = useGLTF('/models-3d/enemies/Golem.glb')
   const { actions } = useAnimations(animations, group)
 
   const [health] = useState(100)
@@ -103,4 +103,4 @@ export function Golem(props: any) {
   )
 }
 
-useGLTF.preload('/models-3d/avatars/Golem.glb')
+useGLTF.preload('/models-3d/enemies/Golem.glb')

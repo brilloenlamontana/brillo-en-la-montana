@@ -1,5 +1,5 @@
-import { useGLTF, useAnimations, Html } from '@react-three/drei'
-import { HealthUI } from './HealthUI'
+import { useGLTF, useAnimations } from '@react-three/drei'
+
 import { useFrame } from '@react-three/fiber'
 import { useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
@@ -64,10 +64,7 @@ export function Avatar(props: any) {
 
   return (
     <group ref={avatarRef} dispose={null} {...props}>
-      <Html fullscreen zIndexRange={[100, 0]}>
-        <HealthUI />
-      </Html>
-      <group rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
+      <group rotation={[Math.PI / 2, 0 , 0]} scale={0.01}>
         <skinnedMesh
           geometry={nodes.Avatar.geometry}
           material={materials.AvatarMaterial}

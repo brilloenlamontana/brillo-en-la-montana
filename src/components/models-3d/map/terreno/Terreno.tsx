@@ -4,7 +4,7 @@ import { RigidBody } from '@react-three/rapier';
 export function Terreno(props: any) {
     const { scene } = useGLTF('/models-3d/map/Terreno.glb');
     return (
-        <RigidBody type="fixed" colliders="trimesh">
+        <RigidBody type="fixed" colliders="trimesh" friction={1}>
             <primitive object={scene} {...props} />
         </RigidBody>
     );

@@ -5,7 +5,7 @@ import * as THREE from 'three'
 
 export function Imeri(props: any) {
   const group = useRef<THREE.Group>(null)
-  const { nodes, materials, animations } = useGLTF('/models-3d/avatars/Imeri.glb')
+  const { nodes, materials, animations } = useGLTF('/models-3d/npcs/Imeri.glb')
   const { actions } = useAnimations(animations, group)
 
   useEffect(() => {
@@ -43,4 +43,4 @@ export function Imeri(props: any) {
   )
 }
 
-useGLTF.preload('/models-3d/avatars/Imeri.glb')
+useGLTF.preload('/models-3d/npcs/Imeri.glb')

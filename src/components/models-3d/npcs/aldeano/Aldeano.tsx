@@ -8,7 +8,7 @@ import { AldeanoModal } from './AldeanoModal'
 
 export function Aldeano(props: any) {
   const group = useRef<THREE.Group>(null)
-  const { nodes, materials, animations } = useGLTF('/models-3d/avatars/Aldeano.glb')
+  const { nodes, materials, animations } = useGLTF('/models-3d/npcs/Aldeano.glb')
   const { actions } = useAnimations(animations, group)
 
   const { isAldeanoModalOpen, setAldeanoModalOpen } = useUIStore();
@@ -120,4 +120,4 @@ export function Aldeano(props: any) {
   )
 }
 
-useGLTF.preload('/models-3d/avatars/Aldeano.glb')
+useGLTF.preload('/models-3d/npcs/Aldeano.glb')

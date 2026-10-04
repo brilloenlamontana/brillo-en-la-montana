@@ -7,7 +7,7 @@ import { useRef } from 'react'
 
 export function Card(props: any) {
     const cardRef = useRef(null)
-    const { scene } = useGLTF('/models-3d/objetcs/Card.glb')
+    const { scene } = useGLTF('/models-3d/objects/Card.glb')
     const setAnnouncementOpen = useUIStore((state: any) => state.setAnnouncementOpen)
 
     const handleOpen = () => {
@@ -30,7 +30,6 @@ export function Card(props: any) {
                 <group
                     ref={cardRef}
                     {...props}
-                    position={[0, 15, 3]}
                     dispose={null}
                     onClick={(e) => {
                         e.stopPropagation()
@@ -46,4 +45,4 @@ export function Card(props: any) {
     )
 }
 
-useGLTF.preload('/models-3d/objetcs/Card.glb')
+useGLTF.preload('/models-3d/objects/Card.glb')

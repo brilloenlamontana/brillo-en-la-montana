@@ -16,8 +16,8 @@ export const HealthUI: React.FC = () => {
     <div
       style={{
         position: 'absolute',
-        top: '20px',
-        left: '20px',
+        top: 'max(24px, env(safe-area-inset-bottom, 24px))',
+        left: 'max(24px, env(safe-area-inset-left, 24px))',
         zIndex: 50,
         display: 'flex',
         flexDirection: 'column',
