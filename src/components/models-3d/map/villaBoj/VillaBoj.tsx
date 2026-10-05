@@ -1,13 +1,13 @@
-import { useGLTF } from '@react-three/drei';
-import { RigidBody } from '@react-three/rapier';
+import { Empalizada } from './Empalizada';
+import { Porton } from './Porton';
+import { Villa } from './Villa';
 
 export function VillaBoj(props: any) {
-    const { scene } = useGLTF('/models-3d/map/VillaBoj.glb');
-    return (
-        <RigidBody type="fixed" colliders="trimesh">
-            <primitive object={scene} {...props} />
-        </RigidBody>
-    );
+  return (
+    <group name="VillaBoj" {...props}>
+      <Empalizada />
+      <Porton />
+      <Villa />
+    </group>
+  );
 }
-
-useGLTF.preload('/models-3d/map/VillaBoj.glb');

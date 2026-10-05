@@ -1,13 +1,10 @@
 import { useGLTF } from '@react-three/drei';
-import { RigidBody } from '@react-three/rapier';
 
 export function Pinares(props: any) {
-    const { scene } = useGLTF('/models-3d/map/Pinares.glb');
-    return (
-        <RigidBody type="fixed" colliders="trimesh">
-            <primitive object={scene} {...props} />
-        </RigidBody>
-    );
+  const { scene } = useGLTF('/models-3d/map/Pinares/Pinares.glb');
+  return (
+    <primitive object={scene} {...props} />
+  );
 }
 
-useGLTF.preload('/models-3d/map/Pinares.glb');
+useGLTF.preload('/models-3d/map/Pinares/Pinares.glb');

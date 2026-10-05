@@ -1,13 +1,11 @@
-import { useGLTF } from '@react-three/drei';
-import { RigidBody } from '@react-three/rapier';
+import { PantanoPozos } from './PantanoPozos';
+import { PantanoTapas } from './PantanoTapas';
 
 export function PantanoTristeza(props: any) {
-    const { scene } = useGLTF('/models-3d/map/PantanoTristeza.glb');
-    return (
-        <RigidBody type="fixed" colliders="trimesh">
-            <primitive object={scene} {...props} />
-        </RigidBody>
-    );
+  return (
+    <group name="PantanoTristeza" {...props}>
+      <PantanoPozos />
+      <PantanoTapas />
+    </group>
+  );
 }
-
-useGLTF.preload('/models-3d/map/PantanoTristeza.glb');

@@ -1,13 +1,13 @@
-import { useGLTF } from '@react-three/drei';
-import { RigidBody } from '@react-three/rapier';
+import { BosqueArboles } from './BosqueArboles';
+import { BosqueHongos } from './BosqueHongos';
+import { BosqueManzanas } from './BosqueManzanas';
 
 export function BosqueOscuridad(props: any) {
-    const { scene } = useGLTF('/models-3d/map/BosqueOscuridad.glb');
-    return (
-        <RigidBody type="fixed" colliders="trimesh">
-            <primitive object={scene} {...props} />
-        </RigidBody>
-    );
+  return (
+    <group name="BosqueOscuridad" {...props}>
+      <BosqueArboles />
+      <BosqueHongos />
+      <BosqueManzanas />
+    </group>
+  );
 }
-
-useGLTF.preload('/models-3d/map/BosqueOscuridad.glb');

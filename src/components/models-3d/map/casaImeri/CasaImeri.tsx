@@ -1,13 +1,25 @@
-import { useGLTF } from '@react-three/drei';
-import { RigidBody } from '@react-three/rapier';
+import { ImeriExterior } from './ImeriExterior';
+import { ImeriInterior } from './ImeriInterior';
+import { Gema } from './recogibles/Gema';
+import { PocionAmbar } from './recogibles/PocionAmbar';
+import { PocionHojas } from './recogibles/PocionHojas';
+import { PocionHongos } from './recogibles/PocionHongos';
+import { PocionPequena } from './recogibles/PocionPequena';
+import { PocionRoja } from './recogibles/PocionRoja';
+import { Soga } from './recogibles/Soga';
 
 export function CasaImeri(props: any) {
-    const { scene } = useGLTF('/models-3d/map/CasaImeri.glb');
-    return (
-        <RigidBody type="fixed" colliders="trimesh">
-            <primitive object={scene} {...props} />
-        </RigidBody>
-    );
+  return (
+    <group name="CasaImeri" {...props}>
+      <ImeriExterior />
+      <ImeriInterior />
+      <Gema />
+      <PocionAmbar />
+      <PocionHojas />
+      <PocionHongos />
+      <PocionPequena />
+      <PocionRoja />
+      <Soga />
+    </group>
+  );
 }
-
-useGLTF.preload('/models-3d/map/CasaImeri.glb');
