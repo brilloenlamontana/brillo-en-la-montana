@@ -52,7 +52,7 @@ export function Aldeano(props: any) {
   // El useFrame fue reemplazado por un CylinderCollider tipo sensor para mejor rendimiento
 
   return (
-    <RigidBody type='fixed' colliders={false}>
+    <RigidBody type='fixed' colliders={"cuboid"}>
       {/* Collider físico manual para el cuerpo del aldeano (evita que el auto-collider evalúe el SkinnedMesh) */}
       <CapsuleCollider args={[1, 0.5]} position={[0, 1.5, 0]} />
 

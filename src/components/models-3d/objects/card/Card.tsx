@@ -23,7 +23,7 @@ export function Card(props: any) {
             floatingRange={[-0.1, 0.1]} // Range of y-axis values the object will float within, defaults to [-0.1,0.1]
         >
 
-            <RigidBody type='fixed'>
+            <RigidBody type='fixed' colliders="cuboid">
                 <Html fullscreen zIndexRange={[100, 0]}>
                     <AnnouncementModal />
                 </Html>

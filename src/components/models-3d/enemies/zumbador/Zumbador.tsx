@@ -94,7 +94,7 @@ export function Zumbador(props: any) {
     });
 
     return (
-        <RigidBody ref={rb} type="dynamic" gravityScale={0} lockRotations colliders="hull" {...props}>
+        <RigidBody ref={rb} type="dynamic" gravityScale={0} lockRotations colliders="cuboid" {...props}>
             <group ref={group} dispose={null} scale={0.5}>
                 <mesh
                     castShadow

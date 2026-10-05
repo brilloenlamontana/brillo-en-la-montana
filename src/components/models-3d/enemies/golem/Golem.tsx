@@ -87,7 +87,7 @@ export function Golem(props: any) {
   });
 
   return (
-    <RigidBody ref={rb} lockRotations colliders="hull" {...props}>
+    <RigidBody ref={rb} lockRotations colliders="cuboid" {...props}>
       <group ref={group} dispose={null}>
         <group name="Golem">
           <skinnedMesh

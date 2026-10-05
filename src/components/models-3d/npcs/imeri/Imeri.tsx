@@ -15,7 +15,7 @@ export function Imeri(props: any) {
   }, [actions]);
 
   return (
-    <RigidBody type='fixed'>
+    <RigidBody type='fixed' colliders="cuboid">
       <group ref={group} {...props} dispose={null}>
         <group name="Scene">
           <group name="Imeri"> 

@@ -20,7 +20,7 @@ export const WorldScene: React.FC = () => {
     >
       <Ambience />
       <Suspense fallback={null}>
-        <Physics>
+        <Physics debug>
           <Map />
           <Npcs />
           <Enemies />
