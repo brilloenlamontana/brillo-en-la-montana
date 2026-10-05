@@ -3,7 +3,9 @@ import { create } from 'zustand';
 export interface GameProgress {
   openedMayorLetter: boolean;
   interactedWithImeri: boolean;
-  [key: string]: boolean | string | number; // For future extensibility
+  aldeanoHelp: 'pending' | 'accepted' | 'rejected';
+  collectedItems: string[];
+  [key: string]: boolean | string | number | string[]; // For future extensibility
 }
 
 interface ProgressState {
@@ -15,6 +17,8 @@ interface ProgressState {
 const defaultProgress: GameProgress = {
   openedMayorLetter: false,
   interactedWithImeri: false,
+  aldeanoHelp: 'pending',
+  collectedItems: [],
 };
 
 export const useProgressStore = create<ProgressState>((set) => ({

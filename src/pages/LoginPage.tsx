@@ -5,9 +5,9 @@ import { auth, googleProvider, db } from '../firebase.config';
 import { useAuthStore, type UserData } from '../store/authStore';
 import { useAvatarStore } from '../store/avatarStore';
 import { useNavigate } from 'react-router-dom';
-import { Law1581ConsentModal } from '../components/Law1581ConsentModal';
-import { StudentRegistrationModal, type StudentRegistrationData } from '../components/StudentRegistrationModal';
-import { LoginLayout } from '../components/LoginLayout';
+import { Law1581ConsentModal } from '../components/modals/Law1581ConsentModal';
+import { StudentRegistrationModal, type StudentRegistrationData } from '../components/modals/StudentRegistrationModal';
+import { LoginLayout } from '../components/auth/LoginLayout';
 import { findSedeByCodigo, findFacultadByCodigo, findProgramaByCodigo } from '../data/univalleData';
 
 export const LoginPage: React.FC = () => {
