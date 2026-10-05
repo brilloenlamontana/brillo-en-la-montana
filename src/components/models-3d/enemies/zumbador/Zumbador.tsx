@@ -1,110 +1,183 @@
 import { useGLTF } from '@react-three/drei'
-import { RigidBody, RapierRigidBody } from '@react-three/rapier'
+import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
-import { useRef, useMemo } from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useAvatarStore } from '../../../../store/avatarStore'
+import { useEnemyStore } from '../../../../store/enemyStore'
+import { useZoneStore } from '../../../../store/zoneStore'
+import { usePantanoWells } from '../../../../hooks/usePantanoWells'
+import { useTerrainHeight } from '../../../../hooks/useTerrainHeight'
+import { pickWell } from '../../../../utils/wells'
 
-export function Zumbador(props: any) {
-    const { nodes, materials } = useGLTF('/models-3d/enemies/Zumbador.glb')
-    const rb = useRef<RapierRigidBody>(null)
-    const group = useRef<THREE.Group>(null)
-    const lastAttackTime = useRef(0)
-    const behaviorState = useRef<'chasing' | 'retreating'>('chasing')
-    const retreatDir = useRef(new THREE.Vector3())
-    const retreatEndTime = useRef(0)
+type ZumbadorState = 'hidden' | 'emerging' | 'chasing' | 'retreating' | 'hovering' | 'dying' | 'dead'
 
-    // Offset aleatorio para que los mosquitos no se muevan exactamente igual
-    const randomOffset = useMemo(() => Math.random() * 100, []);
-    const speedOffset = useMemo(() => 0.8 + Math.random() * 0.5, []);
+const HIDDEN_Y = -60
+const CHASE_SPEED = 4
+const RETREAT_SPEED = 5
+const CLIMB_SPEED = 3
+const HOVER_ABOVE_RIM = 1.5
+const MIN_HEIGHT_ABOVE_GROUND = 0.5
+const STING_RANGE = 1.5
+const STING_DAMAGE = 2 // 10 picaduras vacían los 100 de vida
+const STING_COOLDOWN = 2
+const EMERGE_MIN_DISTANCE = 6
+const ZUMBADORES_PER_WELL = 2
+const DEATH_GRAVITY = 12
+const DEATH_SPIN = 9
+const DEATH_SECONDS = 1.8
 
-    useFrame((state, delta) => {
-        if (!rb.current || !group.current) return;
+// Igual que el golem: escondido en un pozo hasta que el jugador entra al pantano; cuando sale, se queda volando
+// donde está y vuelve a perseguirlo si regresa. `index` reparte el enjambre en pozos distintos (dos por pozo)
+// y desfasa el aleteo de cada uno. El insecticida de la mochila los mata: caen girando y desaparecen para siempre.
+export function Zumbador({ index, ...props }: { index: number } & Record<string, any>) {
+  const { nodes, materials } = useGLTF('/models-3d/enemies/Zumbador.glb')
+  const rb = useRef<RapierRigidBody>(null)
+  const group = useRef<THREE.Group>(null)
+  const wells = usePantanoWells()
+  const terrainHeight = useTerrainHeight()
 
-        const playerPos = useAvatarStore.getState().playerPosition;
-        if (!playerPos) return;
+  const brain = useRef<{ state: ZumbadorState; lastSting: number; retreatUntil: number; hoverY: number; diedAt: number; fallSpeed: number }>({
+    state: 'hidden', lastSting: -Infinity, retreatUntil: 0, hoverY: 0, diedAt: 0, fallSpeed: 0,
+  })
+  const position = useRef(new THREE.Vector3(0, HIDDEN_Y, 0))
+  const retreatDir = useRef(new THREE.Vector3())
+  const target = useRef(new THREE.Vector3())
+  const direction = useRef(new THREE.Vector3())
+  const lookHelper = useRef(new THREE.Object3D())
 
-        const mosquitoPos = rb.current.translation();
-        const currentPos = new THREE.Vector3(mosquitoPos.x, mosquitoPos.y, mosquitoPos.z);
+  const flapOffset = index * 12.7
+  const speedFactor = 0.8 + ((index * 7) % 10) / 20
 
-        // Objetivo: la cabeza/torso del avatar
-        const targetPos = new THREE.Vector3(playerPos.x, playerPos.y + 1.5, playerPos.z);
+  const flyTowards = (tx: number, ty: number, tz: number, speed: number, delta: number, wobble: number) => {
+    const p = position.current
+    target.current.set(tx, ty, tz)
+    const toTarget = direction.current.subVectors(target.current, p)
+    const distance = toTarget.length()
+    if (distance > 1e-3) p.addScaledVector(toTarget.divideScalar(distance), Math.min(distance, speed * delta))
+    p.y += wobble * delta
+    lookAt(target.current, delta)
+    return distance
+  }
 
-        const dist = currentPos.distanceTo(targetPos);
-        const now = Date.now();
+  const lookAt = (point: THREE.Vector3, delta: number) => {
+    if (!group.current) return
+    const helper = lookHelper.current
+    helper.position.copy(position.current)
+    helper.lookAt(point)
+    group.current.quaternion.slerp(helper.quaternion, Math.min(1, 10 * delta))
+  }
 
-        if (dist < 40) { // Radio de persecución
-            if (behaviorState.current === 'retreating') {
-                // Escapar temporalmente
-                if (now > retreatEndTime.current) {
-                    behaviorState.current = 'chasing';
-                } else {
-                    const flyY = Math.sin(state.clock.elapsedTime * 20 + randomOffset) * 0.5;
-                    const speed = 5 * speedOffset;
-                    rb.current.setLinvel({
-                        x: retreatDir.current.x * speed,
-                        y: retreatDir.current.y * speed + flyY,
-                        z: retreatDir.current.z * speed
-                    }, true);
+  const keepAboveGround = () => {
+    const p = position.current
+    const ground = terrainHeight(p.x, p.z, p.y + 5, 15)
+    if (ground !== null && p.y < ground + MIN_HEIGHT_ABOVE_GROUND) p.y = ground + MIN_HEIGHT_ABOVE_GROUND
+  }
 
-                    // Mirar hacia donde huye
-                    const lookPos = new THREE.Vector3().copy(currentPos).add(retreatDir.current);
-                    const dummy = new THREE.Object3D();
-                    dummy.position.copy(currentPos);
-                    dummy.lookAt(lookPos);
-                    group.current.quaternion.slerp(dummy.quaternion, 10 * delta);
-                }
-            } else {
-                // Perseguir al jugador
-                if (dist < 1.5) {
-                    // Picar y empezar a huir
-                    if (now - lastAttackTime.current > 2000) {
-                        useAvatarStore.getState().takeDamage(2);
-                        lastAttackTime.current = now;
-                    }
-                    behaviorState.current = 'retreating';
-                    retreatEndTime.current = now + 1000 + Math.random() * 1500; // Huir durante 1 a 2.5 seg
+  useFrame((state, rawDelta) => {
+    if (!rb.current || !group.current) return
+    const delta = Math.min(rawDelta, 0.1)
+    const now = state.clock.elapsedTime
+    const brainState = brain.current
+    const p = position.current
+    const player = useAvatarStore.getState().playerPosition
+    const playerInPantano = useZoneStore.getState().insidePantano
+    const wobble = Math.sin(now * 15 + flapOffset) * 0.8
+    const enemies = useEnemyStore.getState()
+    const alive = brainState.state !== 'dying' && brainState.state !== 'dead'
+    if (alive && brainState.state !== 'hidden' && enemies.deadZumbadores.includes(index)) {
+      brainState.state = 'dying'
+      brainState.diedAt = now
+      brainState.fallSpeed = 0
+    }
 
-                    // Escoger una dirección aleatoria para huir (a los lados y un poco hacia arriba)
-                    const angle = Math.random() * Math.PI * 2;
-                    retreatDir.current.set(Math.cos(angle), 0.5 + Math.random(), Math.sin(angle)).normalize();
-                } else {
-                    // Volar hacia el jugador
-                    const direction = new THREE.Vector3().subVectors(targetPos, currentPos).normalize();
-                    const flyY = Math.sin(state.clock.elapsedTime * 15 + randomOffset) * 0.8;
-                    const speed = 4 * speedOffset;
-                    rb.current.setLinvel({
-                        x: direction.x * speed,
-                        y: direction.y * speed + flyY,
-                        z: direction.z * speed
-                    }, true);
+    switch (brainState.state) {
+      case 'dead':
+        break
 
-                    // Mirar al jugador suavemente
-                    const dummy = new THREE.Object3D();
-                    dummy.position.copy(currentPos);
-                    dummy.lookAt(targetPos);
-                    group.current.quaternion.slerp(dummy.quaternion, 10 * delta);
-                }
-            }
-        } else {
-            // Si está lejos, solo flota tranquilamente
-            const flyY = Math.sin(state.clock.elapsedTime * 5 + randomOffset) * 0.3;
-            rb.current.setLinvel({ x: 0, y: flyY, z: 0 }, true);
+      case 'dying': {
+        brainState.fallSpeed += DEATH_GRAVITY * delta
+        p.y -= brainState.fallSpeed * delta
+        group.current.rotation.z += DEATH_SPIN * delta
+        const ground = terrainHeight(p.x, p.z, p.y + 5, 15)
+        if ((ground !== null && p.y <= ground) || now - brainState.diedAt > DEATH_SECONDS) {
+          p.set(p.x, HIDDEN_Y, p.z)
+          brainState.state = 'dead'
         }
-    });
+        break
+      }
 
-    return (
-        <RigidBody ref={rb} type="dynamic" gravityScale={0} lockRotations colliders="cuboid" {...props}>
-            <group ref={group} dispose={null} scale={0.5}>
-                <mesh
-                    castShadow
-                    receiveShadow
-                    geometry={(nodes.Mosquito as THREE.Mesh).geometry}
-                    material={materials.MosquitoMaterial}
-                />
-            </group>
-        </RigidBody>
-    )
+      case 'hidden':
+        if (playerInPantano) {
+          const well = pickWell(wells, player.x, player.z, { minDistance: EMERGE_MIN_DISTANCE, rank: Math.floor(index / ZUMBADORES_PER_WELL) })
+          const side = index % ZUMBADORES_PER_WELL === 0 ? -1 : 1
+          brainState.hoverY = well.rimY + HOVER_ABOVE_RIM + (index % 3) * 0.4
+          p.set(well.x + side * well.innerRadius * 0.4, well.bottomY + 0.5, well.z)
+          brainState.state = 'emerging'
+        }
+        break
+
+      case 'emerging':
+        p.y = Math.min(p.y + CLIMB_SPEED * delta, brainState.hoverY)
+        if (p.y >= brainState.hoverY) brainState.state = playerInPantano ? 'chasing' : 'hovering'
+        break
+
+      case 'hovering':
+        if (playerInPantano) { brainState.state = 'chasing'; break }
+        p.y += Math.sin(now * 5 + flapOffset) * 0.3 * delta
+        keepAboveGround()
+        break
+
+      case 'chasing': {
+        if (!playerInPantano) { brainState.state = 'hovering'; break }
+        const distance = flyTowards(player.x, player.y + 1.5, player.z, CHASE_SPEED * speedFactor, delta, wobble)
+        if (distance < STING_RANGE) {
+          if (now - brainState.lastSting > STING_COOLDOWN) {
+            useAvatarStore.getState().takeDamage(STING_DAMAGE)
+            brainState.lastSting = now
+          }
+          // Después de picar se aleja un momento hacia un lado y hacia arriba.
+          const angle = Math.random() * Math.PI * 2
+          retreatDir.current.set(Math.cos(angle), 0.5 + Math.random(), Math.sin(angle)).normalize()
+          brainState.retreatUntil = now + 1 + Math.random() * 1.5
+          brainState.state = 'retreating'
+        }
+        keepAboveGround()
+        break
+      }
+
+      case 'retreating':
+        if (!playerInPantano) { brainState.state = 'hovering'; break }
+        p.addScaledVector(retreatDir.current, RETREAT_SPEED * speedFactor * delta)
+        p.y += Math.sin(now * 20 + flapOffset) * 0.5 * delta
+        target.current.copy(p).add(retreatDir.current)
+        lookAt(target.current, delta)
+        keepAboveGround()
+        if (now > brainState.retreatUntil) brainState.state = 'chasing'
+        break
+    }
+
+    rb.current.setNextKinematicTranslation(p)
+    group.current.visible = brainState.state !== 'hidden' && brainState.state !== 'dead'
+    const tracker = enemies.zumbadores[index]
+    if (tracker) {
+      tracker.position.copy(p)
+      tracker.active = ['emerging', 'chasing', 'retreating', 'hovering'].includes(brainState.state)
+    }
+  })
+
+  return (
+    <RigidBody ref={rb} type="kinematicPosition" colliders="cuboid" includeInvisible position={[0, HIDDEN_Y, 0]} {...props}>
+      <group ref={group} dispose={null} scale={0.5} visible={false}>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={(nodes.Mosquito as THREE.Mesh).geometry}
+          material={materials.MosquitoMaterial}
+        />
+      </group>
+    </RigidBody>
+  )
 }
 
 useGLTF.preload('/models-3d/enemies/Zumbador.glb')

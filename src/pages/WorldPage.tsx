@@ -5,6 +5,9 @@ import { MobileControlsToggle } from '../components/ui/MobileControlsToggle';
 import { WorldScene } from '../components/scene/WorldScene';
 import { HealthUI } from '../components/models-3d/avatar/HealthUI';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { BackpackButton } from '../components/ui/backpack/BackpackButton';
+import { Toast } from '../components/ui/Toast';
+import { QuickItemBar } from '../components/ui/backpack/QuickItemBar';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useAuthGuard } from '../hooks/useAuthGuard';
 
@@ -28,8 +31,10 @@ export const WorldPage: React.FC = () => {
         />
       )}
       <WorldScene />
-      <Logout />
+      <Logout leading={<BackpackButton />} />
       <MobileControls show={showMobileControls} />
+      <QuickItemBar raised={showMobileControls} />
+      <Toast />
       <HealthUI />
       <LoadingScreen />
     </main>

@@ -6,5 +6,3 @@ export function ImeriInterior(props: any) {
     <primitive object={scene} {...props} />
   );
 }
-
-useGLTF.preload('/models-3d/map/CasaImeri/ImeriInterior.glb');

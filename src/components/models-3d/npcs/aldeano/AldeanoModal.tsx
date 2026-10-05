@@ -1,31 +1,28 @@
 import React from 'react';
 import { useUIStore } from '../../../../store/uiStore';
-import { useProgressStore } from '../../../../store/progressStore';
+import { saveProgressToDB } from '../../../../services/progressService';
 
 export const AldeanoModal: React.FC = () => {
   const { isAldeanoModalOpen, setAldeanoModalOpen } = useUIStore();
-  const { setProgress } = useProgressStore();
 
   if (!isAldeanoModalOpen) return null;
 
+  // Se guarda en Firestore para que la decisión sobreviva a recargar la página.
   const handleYes = () => {
-    setProgress({ aldeanoHelp: 'accepted' });
+    saveProgressToDB(undefined, 'aldeanoHelp', 'accepted');
     setAldeanoModalOpen(false);
   };
 
   const handleNo = () => {
-    setProgress({ aldeanoHelp: 'rejected' });
+    saveProgressToDB(undefined, 'aldeanoHelp', 'rejected');
     setAldeanoModalOpen(false);
   };
 
   return (
     <div
       style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
+        position: 'fixed',
+        inset: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         display: 'flex',
         justifyContent: 'center',

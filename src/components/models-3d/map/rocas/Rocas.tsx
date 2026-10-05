@@ -1,10 +1,14 @@
 import { useGLTF } from '@react-three/drei';
+import { useLodScene } from '../../../../hooks/useLodScene';
+
+const ROCAS_URLS = ['/models-3d/map/Rocas/Rocas.glb'];
+const ROCAS_DISTANCES = [0, 120];
 
 export function Rocas(props: any) {
-  const { scene } = useGLTF('/models-3d/map/Rocas/Rocas.glb');
+  const lodScene = useLodScene(ROCAS_URLS, ROCAS_DISTANCES);
   return (
-    <primitive object={scene} {...props} />
+    <primitive object={lodScene} {...props} />
   );
 }
 
-useGLTF.preload('/models-3d/map/Rocas/Rocas.glb');
+useGLTF.preload(ROCAS_URLS);

@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber'
 import { useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useAvatarStore } from '../../../store/avatarStore'
+import { playOnceAndHold } from '../../../utils/animation'
 
 export function Avatar(props: any) {
   const avatarRef = useRef<THREE.Group>(null)
@@ -18,6 +19,7 @@ export function Avatar(props: any) {
   const { animations: idleAnim } = useGLTF(`/models-3d/animations/${genderFolder}/Idle.glb`) as any
   const { animations: walkAnim } = useGLTF(`/models-3d/animations/${genderFolder}/Walking.glb`) as any
   const { animations: runAnim } = useGLTF(`/models-3d/animations/${genderFolder}/Running.glb`) as any
+  const { animations: deathAnim } = useGLTF(`/models-3d/animations/${genderFolder}/Death.glb`) as any
 
   const allAnimations = useMemo(() => {
     const clips: THREE.AnimationClip[] = [];
@@ -36,10 +38,19 @@ export function Avatar(props: any) {
       clip.name = 'Running';
       clips.push(clip);
     }
+    if (deathAnim?.length) {
+      const clip = deathAnim[0].clone();
+      clip.name = 'Death';
+      clips.push(clip);
+    }
     return clips;
-  }, [idleAnim, walkAnim, runAnim]);
+  }, [idleAnim, walkAnim, runAnim, deathAnim]);
 
   const { actions } = useAnimations(allAnimations, avatarRef)
+
+  useEffect(() => {
+    if (actions.Death) playOnceAndHold(actions.Death);
+  }, [actions]);
 
   useEffect(() => {
     const currentAction = actions[action];

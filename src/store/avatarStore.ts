@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import * as THREE from 'three';
 
 export type AvatarGender = 'male' | 'female';
-export type AvatarAction = 'Idle' | 'Walking' | 'Running' | 'Jumping' | 'Defeat';
+export type AvatarAction = 'Idle' | 'Walking' | 'Running' | 'Jumping' | 'Death';
 
 interface AvatarState {
   avatarName: string;
@@ -13,6 +13,11 @@ interface AvatarState {
   health: number;
   maxHealth: number;
   playerPosition: THREE.Vector3;
+  // Caído en un pozo con la soga en la mochila: espera ahí hasta usarla (climbRequested) para salir junto al pozo.
+  trappedInWell: boolean;
+  climbRequested: boolean;
+  setTrappedInWell: (trapped: boolean) => void;
+  requestClimb: () => void;
   setAvatar: (name: string, gender: AvatarGender) => void;
   setAction: (action: AvatarAction) => void;
   setPlayerPosition: (position: THREE.Vector3) => void;
@@ -31,14 +36,17 @@ export const useAvatarStore = create<AvatarState>((set) => ({
   health: 100,
   maxHealth: 100,
   playerPosition: new THREE.Vector3(0, 0, 0),
+  trappedInWell: false,
+  climbRequested: false,
+  setTrappedInWell: (trapped) => set({ trappedInWell: trapped, climbRequested: false }),
+  requestClimb: () => set({ climbRequested: true }),
   setAvatar: (name, gender) => set({ avatarName: name, gender }),
   setAction: (action) => set({ action }),
   setPlayerPosition: (position) => set({ playerPosition: position }),
-  takeDamage: (_amount) => set((state) => {
-    // We can ignore the specific 'amount' to ensure 3 hits always kill
-    const newHealth = Math.max(0, state.health - 34); 
+  takeDamage: (amount) => set((state) => {
+    const newHealth = Math.max(0, state.health - amount);
     if (newHealth === 0 && state.health > 0) {
-      return { health: newHealth, action: 'Defeat' }; 
+      return { health: newHealth, action: 'Death' };
     }
     return { health: newHealth };
   }),

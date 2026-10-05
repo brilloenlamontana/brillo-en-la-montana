@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProgress } from '@react-three/drei';
 
 export const LoadingScreen: React.FC = () => {
   const { progress, active } = useProgress();
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-  if (!active) return null;
+  // Las cargas diferidas posteriores (p. ej. el interior de la casa de Imeri) no deben volver a tapar el mundo.
+  if (!initialLoadDone && !active && progress === 100) setInitialLoadDone(true);
+
+  if (!active || initialLoadDone) return null;
 
   return (
     <div style={{

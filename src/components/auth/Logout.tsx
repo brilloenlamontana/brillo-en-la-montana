@@ -5,7 +5,8 @@ import { auth } from '../../firebase.config';
 import { useNavigate } from 'react-router-dom';
 import { ProfileModal } from '../modals/ProfileModal';
 
-export const Logout: React.FC = () => {
+// `leading` va a la izquierda del perfil dentro de la misma barra (p. ej. el botón de la mochila).
+export const Logout: React.FC<{ leading?: React.ReactNode }> = ({ leading }) => {
   const { user, setUser } = useAuthStore();
   const navigate = useNavigate();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -33,6 +34,7 @@ export const Logout: React.FC = () => {
         aria-label="Menú de usuario"
       >
         <div className="flex items-center gap-2 bg-white/90 hover:bg-white backdrop-blur-md px-2.5 py-1.5 rounded-full border border-slate-200/90 shadow-md transition-all">
+          {leading}
           {/* Clickable Profile Avatar Button */}
           <button
             type="button"
