@@ -64,25 +64,8 @@ export function Imeri(props: any) {
         )}
         {/* <Html fullscreen> sigue la posición en pantalla de Imeri; el portal deja el modal fijo sobre toda la pantalla. */}
         <Html>{createPortal(<ImeriModal />, document.body)}</Html>
-        <group name="Scene">
-          <group name="Imeri">
-            <skinnedMesh
-              name="Body"
-              geometry={(nodes.Body as THREE.SkinnedMesh).geometry}
-              material={materials.Material}
-              skeleton={(nodes.Body as THREE.SkinnedMesh).skeleton}
-            />
-            <primitive object={nodes['MCH-foot_ikparentL']} />
-            <primitive object={nodes['MCH-foot_ikparentR']} />
-            <primitive object={nodes['MCH-hand_ikparentL']} />
-            <primitive object={nodes['MCH-hand_ikparentR']} />
-            <primitive object={nodes['MCH-thigh_ik_targetparentL']} />
-            <primitive object={nodes['MCH-thigh_ik_targetparentR']} />
-            <primitive object={nodes['MCH-torsoparent']} />
-            <primitive object={nodes['MCH-upper_arm_ik_targetparentL']} />
-            <primitive object={nodes['MCH-upper_arm_ik_targetparentR']} />
-            <primitive object={nodes.root} />
-          </group>
+        <group {...props} dispose={null}>
+          <mesh geometry={(nodes.Body as THREE.Mesh).geometry} material={materials.ImeriMaterial} />
         </group>
       </group>
     </RigidBody>

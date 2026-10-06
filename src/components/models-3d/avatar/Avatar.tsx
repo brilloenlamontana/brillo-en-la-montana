@@ -67,7 +67,7 @@ export function Avatar(props: any) {
 
       // Log position every second
       if (state.clock.elapsedTime - lastLogTime.current > 1) {
-        // console.log('Posición del Avatar:', { x: position.x.toFixed(2), y: position.y.toFixed(2), z: position.z.toFixed(2) });
+        console.log('Posición del Avatar:', { x: position.x.toFixed(2), y: position.y.toFixed(2), z: position.z.toFixed(2) });
         lastLogTime.current = state.clock.elapsedTime;
       }
     }

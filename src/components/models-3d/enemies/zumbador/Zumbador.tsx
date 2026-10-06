@@ -172,8 +172,8 @@ export function Zumbador({ index, ...props }: { index: number } & Record<string,
         <mesh
           castShadow
           receiveShadow
-          geometry={(nodes.Mosquito as THREE.Mesh).geometry}
-          material={materials.MosquitoMaterial}
+          geometry={(nodes.Zumbador as THREE.Mesh).geometry}
+          material={materials.ZumbadorMaterial}
         />
       </group>
     </RigidBody>

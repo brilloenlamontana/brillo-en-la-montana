@@ -185,7 +185,6 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
         capsuleRadius={capsuleRadius}
         position={PLAYER_START_POSITION}
         friction={1}
-        // Correr = mantener Shift (o el botón), sin importar si se presiona antes o después de moverse.
         enableToggleRun={false}
         userData={PLAYER_USER_DATA}
       >
