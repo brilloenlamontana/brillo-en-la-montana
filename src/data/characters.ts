@@ -1,10 +1,8 @@
 import type { AvatarGender } from '../store/avatarStore';
 
 export interface CharacterOption {
-  name: string;
-  gender: AvatarGender;
-  imagePath: string;
-  glbName: string;
+  name: string; gender: AvatarGender; imagePath: string;
+  glbName: string; 
 }
 
 export const CHARACTERS: CharacterOption[] = [
@@ -14,7 +12,6 @@ export const CHARACTERS: CharacterOption[] = [
   { name: 'Gnoma', gender: 'female', imagePath: '/sprites-2d/woman/Gnomo.png', glbName: 'Gnoma' },
   { name: 'Humana', gender: 'female', imagePath: '/sprites-2d/woman/Humana.png', glbName: 'Humana' },
   { name: 'Tiflin (Mujer)', gender: 'female', imagePath: '/sprites-2d/woman/Tiflin.png', glbName: 'TiflinMujer' },
-  
   { name: 'Draconiano', gender: 'male', imagePath: '/sprites-2d/man/Draconiano.png', glbName: 'Draconiano' },
   { name: 'Elfo', gender: 'male', imagePath: '/sprites-2d/man/Elfo.png', glbName: 'Elfo' },
   { name: 'Enano', gender: 'male', imagePath: '/sprites-2d/man/Enano.png', glbName: 'Enano' },
