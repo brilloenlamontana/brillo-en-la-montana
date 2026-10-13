@@ -15,7 +15,7 @@ import './index.css';
 
 const App: React.FC = () => {
   const { setAuthReady, setUser, isAuthReady } = useAuthStore();
-
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {

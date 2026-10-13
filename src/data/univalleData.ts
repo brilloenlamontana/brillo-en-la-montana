@@ -30,7 +30,7 @@ export const PROGRAMAS_ACADEMICOS: ProgramaAcademico[] = programasData as Progra
  * Example: "JUAN CARLOS PÉREZ" -> "Juan Carlos Pérez"
  */
 export function formatFullName(name: string): string {
-  if (!name) return '';
+  if (!name) return ''
   return name
     .toLowerCase()
     .split(/\s+/)
