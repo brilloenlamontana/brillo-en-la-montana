@@ -24,13 +24,7 @@ export const Logout: React.FC<{ leading?: React.ReactNode }> = ({ leading }) => 
   return (
     <>
       <nav 
-        style={{
-          position: 'absolute',
-          top: 'max(0.75rem, env(safe-area-inset-top, 0.75rem))',
-          right: 'max(0.75rem, env(safe-area-inset-right, 0.75rem))',
-          zIndex: 20,
-        }}
-        className="select-none"
+        className="absolute top-[max(12px,env(safe-area-inset-top,12px))] right-[max(12px,env(safe-area-inset-right,12px))] z-20 select-none"
         aria-label="Menú de usuario"
       >
         <div className="flex items-center gap-2 bg-white/90 hover:bg-white backdrop-blur-md px-2.5 py-1.5 rounded-full border border-slate-200/90 shadow-md transition-all">

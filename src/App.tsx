@@ -12,10 +12,11 @@ import { useAvatarStore } from './store/avatarStore';
 import { useProgressStore } from './store/progressStore';
 import { findSedeByCodigo, findFacultadByCodigo, findProgramaByCodigo } from './data/univalleData';
 import './index.css';
+import { LoadingScreen } from './components/ui/LoadingScreen';
 
 const App: React.FC = () => {
   const { setAuthReady, setUser, isAuthReady } = useAuthStore();
-  
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -61,11 +62,8 @@ const App: React.FC = () => {
               useAvatarStore.getState().resetAvatar();
             }
 
-            if (data.progress) {
-              useProgressStore.getState().setProgress(data.progress);
-            } else {
-              useProgressStore.getState().resetProgress();
-            }
+            // Completa los campos que no existían en partidas guardadas antes (p. ej. la respuesta a Imeri).
+            useProgressStore.getState().loadProgress(data.progress);
           } else {
             userData.acceptedLaw1581 = false;
             useAvatarStore.getState().resetAvatar();
@@ -92,7 +90,9 @@ const App: React.FC = () => {
   }, [setUser, setAuthReady]);
 
   if (!isAuthReady) {
-    return <div style={{ width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Cargando...</div>;
+    return (
+      <LoadingScreen />
+    );
   }
 
   return (

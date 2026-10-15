@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import {
   fetchAllUsers,
+  subscribeToUsers,
   checkIsAdmin,
   checkHasAnyAdmin,
   exportUsersToCSV,
@@ -13,6 +14,7 @@ import {
   getEnvAdminEmails
 } from '../services/adminService';
 import { SEDES } from '../data/univalleData';
+import { getMissionSummary } from '../constants/mission';
 import { SnowEffect } from '../components/environment/SnowEffect';
 import { LoginLayout } from '../components/auth/LoginLayout';
 
@@ -30,7 +32,10 @@ export const AdminPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<AdminUserRecord | null>(null);
+  // Se guarda el uid y no el registro: así la ficha abierta se actualiza en vivo con el progreso del jugador.
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const selectedUser = useMemo(() => users.find((u) => u.uid === selectedUserId) ?? null, [users, selectedUserId]);
+  const setSelectedUser = (record: AdminUserRecord | null) => setSelectedUserId(record?.uid ?? null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,10 +66,10 @@ export const AdminPage: React.FC = () => {
 
         if (isAdmin) {
           if (isMounted) {
+            setLoadingUsers(true);
             setIsAdminUser(true);
             setAuthError(null);
           }
-          await loadUsers();
         } else {
           // Check if there are ANY admins in the database (bootstrap mode)
           const anyAdmin = await checkHasAnyAdmin();
@@ -90,6 +95,18 @@ export const AdminPage: React.FC = () => {
       isMounted = false;
     };
   }, [user]);
+
+  // Con permisos de administrador, la lista de jugadores y su progreso se escuchan en tiempo real.
+  useEffect(() => {
+    if (!isAdminUser) return;
+    return subscribeToUsers(
+      (list) => {
+        setUsers(list);
+        setLoadingUsers(false);
+      },
+      () => setLoadingUsers(false),
+    );
+  }, [isAdminUser]);
 
   const loadUsers = async () => {
     try {
@@ -175,9 +192,9 @@ export const AdminPage: React.FC = () => {
         isAdmin: true,
       }, { merge: true });
 
+      setLoadingUsers(true);
       setIsAdminUser(true);
       setAuthError(null);
-      await loadUsers();
     } catch (err) {
       console.error('Error claiming admin role:', err);
       alert('Error al asignar rol de administrador inicial.');
@@ -232,6 +249,15 @@ export const AdminPage: React.FC = () => {
       return true;
     });
   }, [users, searchQuery, sedeFilter, roleFilter]);
+
+  // Resumen de la Misión 1 entre los usuarios filtrados (los administradores que juegan también cuentan).
+  const missionStats = useMemo(() => {
+    const summaries = filteredUsers.map((u) => getMissionSummary(u.progress));
+    const completed = summaries.filter((m) => m.completed).length;
+    const started = summaries.filter((m) => m.done > 0).length;
+    const average = summaries.length ? Math.round(summaries.reduce((sum, m) => sum + m.percent, 0) / summaries.length) : 0;
+    return { players: filteredUsers.length, completed, started, average };
+  }, [filteredUsers]);
 
 
   // 1. STATE: NOT AUTHENTICATED -> Show Admin Login
@@ -392,6 +418,21 @@ export const AdminPage: React.FC = () => {
 
 
 
+        {/* Mission 1 summary (en vivo) */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { label: 'Jugadores', value: missionStats.players },
+            { label: 'Han empezado la Misión 1', value: missionStats.started },
+            { label: 'Completaron la Misión 1', value: missionStats.completed },
+            { label: 'Avance promedio', value: `${missionStats.average}%` },
+          ].map(({ label, value }) => (
+            <div key={label} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+              <p className="text-xs uppercase tracking-wider font-semibold text-slate-500">{label}</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
+            </div>
+          ))}
+        </section>
+
         {/* Toolbar & Filters Card */}
         <section className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col lg:flex-row items-center justify-between gap-4">
           {/* Search Box */}
@@ -484,6 +525,7 @@ export const AdminPage: React.FC = () => {
                   <th className="py-4 px-5">Código</th>
                   <th className="py-4 px-5">Sede y Programa</th>
                   <th className="py-4 px-5">Personaje</th>
+                  <th className="py-4 px-5 min-w-[180px]">Misión 1</th>
                   <th className="py-4 px-5 text-center">Datos Ley 1581</th>
                   <th className="py-4 px-5 text-center">Rol</th>
                   <th className="py-4 px-5 text-right">Ficha</th>
@@ -492,7 +534,7 @@ export const AdminPage: React.FC = () => {
               <tbody className="divide-y divide-slate-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-14 text-center text-slate-400">
+                    <td colSpan={8} className="py-14 text-center text-slate-400">
                       <div className="flex flex-col items-center justify-center gap-2.5">
                         <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -569,6 +611,32 @@ export const AdminPage: React.FC = () => {
                           ) : (
                             <span className="text-sm text-slate-400 italic">No seleccionado</span>
                           )}
+                        </td>
+
+                        {/* Mission 1 progress */}
+                        <td className="py-4 px-5">
+                          {(() => {
+                            const mission = getMissionSummary(u.progress);
+                            return (
+                              <div className="min-w-[160px]">
+                                <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                                  <span className={mission.completed ? 'text-emerald-700' : 'text-slate-700'}>
+                                    {mission.completed ? 'Completada' : `${mission.done} de ${mission.total} pasos`}
+                                  </span>
+                                  <span className="text-slate-500">{mission.percent}%</span>
+                                </div>
+                                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full ${mission.completed ? 'bg-emerald-500' : mission.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
+                                    style={{ width: `${mission.percent}%` }}
+                                  />
+                                </div>
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                  {u.progressUpdatedAt ? `Activo: ${new Date(u.progressUpdatedAt).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}` : 'Sin actividad'}
+                                </p>
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         {/* Law 1581 Consent */}
@@ -724,92 +792,63 @@ export const AdminPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Section 3: Game Progress Details */}
-              <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    Progreso en las Actividades de Inducción
-                  </h4>
-                  {(() => {
-                    const completed = (selectedUser.progress?.openedMayorLetter ? 1 : 0) + (selectedUser.progress?.interactedWithImeri ? 1 : 0);
-                    const pct = Math.round((completed / 2) * 100);
-                    return (
-                      <span className="text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
-                        {completed} de 2 actividades ({pct}%)
+              {/* Section 3: Mission 1 progress (se actualiza en vivo) */}
+              {(() => {
+                const mission = getMissionSummary(selectedUser.progress);
+                return (
+                  <div>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        Misión 1: El Pantano de la Tristeza
+                      </h4>
+                      <span className={`text-xs sm:text-sm font-bold px-3 py-1 rounded-full ${mission.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>
+                        {mission.completed ? 'Completada' : `${mission.done} de ${mission.total} pasos`} ({mission.percent}%)
                       </span>
-                    );
-                  })()}
-                </div>
+                    </div>
 
-                {/* Visual Progress Bar */}
-                {(() => {
-                  const completed = (selectedUser.progress?.openedMayorLetter ? 1 : 0) + (selectedUser.progress?.interactedWithImeri ? 1 : 0);
-                  const pct = Math.round((completed / 2) * 100);
-                  return (
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-3.5">
+                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-2">
                       <div
-                        className={`h-full rounded-full transition-all duration-500 ${pct === 100 ? 'bg-emerald-500' : pct > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
-                        style={{ width: `${pct}%` }}
+                        className={`h-full rounded-full transition-all duration-500 ${mission.completed ? 'bg-emerald-500' : mission.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
+                        style={{ width: `${mission.percent}%` }}
                       />
                     </div>
-                  );
-                })()}
+                    <p className="text-xs text-slate-500 mb-3.5">
+                      {selectedUser.progressUpdatedAt
+                        ? `Última actividad: ${new Date(selectedUser.progressUpdatedAt).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' })}`
+                        : 'Todavía no ha jugado.'}
+                      {mission.completed && selectedUser.progress?.mision1CompletadaEn
+                        ? ` · Completada el ${new Date(selectedUser.progress.mision1CompletadaEn).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' })}`
+                        : ''}
+                    </p>
 
-                <div className="space-y-2.5">
-                  {/* Activity 1: Mayor Letter */}
-                  <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/70">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl shrink-0">
-                        📜
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900 text-sm">Lectura de la Carta del Alcalde</p>
-                        <p className="text-xs sm:text-sm text-slate-500">Mensaje de bienvenida en el pergamino de la plaza</p>
-                      </div>
-                    </div>
-                    {selectedUser.progress?.openedMayorLetter ? (
-                      <span className="px-3.5 py-1.5 bg-emerald-100 text-emerald-800 rounded-full font-bold text-xs sm:text-sm flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Leída
-                      </span>
-                    ) : (
-                      <span className="px-3.5 py-1.5 bg-slate-100 text-slate-500 rounded-full text-xs sm:text-sm font-medium">
-                        Pendiente
-                      </span>
-                    )}
+                    <ol className="space-y-2">
+                      {mission.steps.map((step, index) => (
+                        <li key={step.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-100 bg-slate-50/70">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${step.done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}
+                            >
+                              {step.done ? '✓' : index + 1}
+                            </span>
+                            <div>
+                              <p className="font-semibold text-slate-900 text-sm">{step.label}</p>
+                              <p className="text-xs text-slate-500">{step.detail}</p>
+                            </div>
+                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${step.done ? 'bg-emerald-100 text-emerald-800' : step.status === 'Rechazó la ayuda' ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-500'}`}
+                          >
+                            {step.status ?? (step.done ? 'Hecho' : 'Pendiente')}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
-
-                  {/* Activity 2: Imeri Interaction */}
-                  <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/70">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-xl shrink-0">
-                        🧙‍♂️
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900 text-sm">Orientación con el Guía Imeri</p>
-                        <p className="text-xs sm:text-sm text-slate-500">Diálogo introductorio de acogida universitaria</p>
-                      </div>
-                    </div>
-                    {selectedUser.progress?.interactedWithImeri ? (
-                      <span className="px-3.5 py-1.5 bg-purple-100 text-purple-800 rounded-full font-bold text-xs sm:text-sm flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Completada
-                      </span>
-                    ) : (
-                      <span className="px-3.5 py-1.5 bg-slate-100 text-slate-500 rounded-full text-xs sm:text-sm font-medium">
-                        Pendiente
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Section 4: Consent & Authorization */}
               <div>

@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Box3, Vector3, type Group } from 'three';
-import { countPociones, hasMochilaItem, MOCHILA_ITEMS, POCION_IDS } from '../../../constants/recogibles';
+import { countPocionesFrom, getMochilaItemState } from '../../../constants/mission';
+import { MOCHILA_ITEMS, POCION_IDS } from '../../../constants/recogibles';
 import { useProgressStore } from '../../../store/progressStore';
 import { BackpackIcon } from './BackpackIcon';
 
@@ -38,9 +39,10 @@ function SpinningItem({ url, slot }: { url: string; slot: SlotRect }) {
 }
 
 export function BackpackPanel({ onClose }: { onClose: () => void }) {
-  const collected = useProgressStore((state) => state.progress.collectedItems ?? []);
-  const owned = MOCHILA_ITEMS.map((item) => hasMochilaItem(item.id, collected));
-  const pociones = countPociones(collected);
+  const progress = useProgressStore((state) => state.progress);
+  const states = MOCHILA_ITEMS.map((item) => getMochilaItemState(item.id, progress));
+  const owned = states.map((state) => state === 'owned');
+  const pociones = countPocionesFrom(progress);
   const gridRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [slots, setSlots] = useState<SlotRect[]>([]);
@@ -80,28 +82,19 @@ export function BackpackPanel({ onClose }: { onClose: () => void }) {
   return createPortal(
     <div
       onClick={onClose}
-      style={{ position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4"
     >
       <div
         role="dialog"
         aria-labelledby="mochila-titulo"
         onClick={(event) => event.stopPropagation()}
-        style={{
-          width: 'min(560px, 100%)',
-          background: '#f4e4bc',
-          border: '3px solid #5c3a21',
-          borderRadius: '14px',
-          boxShadow: '0 12px 32px rgba(0,0,0,0.55)',
-          padding: '18px 20px 20px',
-          color: '#3e2723',
-          fontFamily: 'system-ui, sans-serif',
-        }}
+        className="w-full max-w-lg bg-[#f4e4bc] border-2 sm:border-[3px] border-[#5c3a21] rounded-2xl shadow-2xl p-4 sm:p-6 text-[#3e2723] font-sans max-h-[92vh] overflow-y-auto"
       >
-        <header style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-          <BackpackIcon className="w-9 h-9" />
-          <div style={{ flex: 1 }}>
-            <h2 id="mochila-titulo" style={{ margin: 0, fontSize: '1.35rem', fontFamily: 'Georgia, serif' }}>Mochila</h2>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: '#5c3a21' }}>
+        <header className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
+          <BackpackIcon className="w-8 h-8 sm:w-9 sm:h-9" />
+          <div className="flex-1">
+            <h2 id="mochila-titulo" className="text-xl sm:text-2xl font-serif font-bold text-[#3e2723]">Mochila</h2>
+            <p className="text-xs sm:text-sm text-[#5c3a21]">
               {owned.filter(Boolean).length} de {MOCHILA_ITEMS.length} objetos
             </p>
           </div>
@@ -109,39 +102,35 @@ export function BackpackPanel({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={onClose}
             aria-label="Cerrar mochila"
-            style={{ border: '2px solid #5c3a21', background: '#5c3a21', color: '#f4d03f', borderRadius: '8px', padding: '6px 12px', fontWeight: 'bold', cursor: 'pointer' }}
+            className="border-2 border-[#5c3a21] bg-[#5c3a21] text-[#f4d03f] hover:bg-[#4a2e1a] rounded-lg px-3 py-1 sm:px-4 sm:py-1.5 text-xs sm:text-sm font-bold cursor-pointer transition-all active:scale-95"
           >
             Cerrar
           </button>
         </header>
 
-        <div ref={gridRef} style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${MOCHILA_ITEMS.length}, minmax(0, 1fr))`, gap: '14px' }}>
+        <div ref={gridRef} className="relative grid grid-cols-3 gap-2.5 sm:gap-4">
           {MOCHILA_ITEMS.map((item, i) => {
             const isCollected = owned[i];
-            const missingLabel = item.id === 'insecticida' ? `Pociones ${pociones}/${POCION_IDS.length}` : 'Sin recoger';
+            // Gastado: ya cumplió su función y salió de la mochila.
+            const missingLabel =
+              states[i] === 'spent' ? 'Ya lo usaste' : item.id === 'insecticida' ? `Pociones ${pociones}/${POCION_IDS.length}` : 'Sin recoger';
             return (
-              <div key={item.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+              <div key={item.id} className="flex flex-col items-center gap-1.5">
                 <div
                   ref={(element) => {
                     slotRefs.current[i] = element;
                   }}
-                  style={{
-                    width: '100%',
-                    aspectRatio: '1 / 1',
-                    borderRadius: '10px',
-                    border: isCollected ? '2px solid #5c3a21' : '2px dashed rgba(92,58,33,0.45)',
-                    background: isCollected ? 'rgba(92,58,33,0.14)' : 'rgba(92,58,33,0.05)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'rgba(92,58,33,0.45)',
-                    fontSize: '1.6rem',
-                    fontWeight: 'bold',
-                  }}
+                  className={`w-full aspect-square rounded-xl flex items-center justify-center font-bold text-xl sm:text-2xl transition-all ${
+                    isCollected
+                      ? 'border-2 border-[#5c3a21] bg-[#5c3a21]/15'
+                      : 'border-2 border-dashed border-[#5c3a21]/40 bg-[#5c3a21]/5 text-[#5c3a21]/45'
+                  }`}
                 >
-                  {!isCollected && '?'}
+                  {!isCollected && (states[i] === 'spent' ? '✓' : '?')}
                 </div>
-                <span style={{ fontSize: '0.8rem', textAlign: 'center', lineHeight: 1.15, color: isCollected ? '#3e2723' : 'rgba(62,39,35,0.55)' }}>
+                <span className={`text-[11px] sm:text-xs text-center leading-tight line-clamp-2 ${
+                  isCollected ? 'text-[#3e2723] font-semibold' : 'text-[#3e2723]/60'
+                }`}>
                   {isCollected ? item.name : missingLabel}
                 </span>
               </div>
@@ -150,7 +139,7 @@ export function BackpackPanel({ onClose }: { onClose: () => void }) {
           <Canvas
             orthographic
             camera={{ zoom: 1, position: [0, 0, 500], near: 0.1, far: 2000 }}
-            style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+            className="absolute inset-0 pointer-events-none"
           >
             <ambientLight intensity={1.4} />
             <directionalLight position={[200, 300, 400]} intensity={2} />

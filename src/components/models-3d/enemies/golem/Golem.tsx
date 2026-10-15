@@ -1,13 +1,16 @@
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useAvatarStore } from '../../../../store/avatarStore'
 import { useEnemyStore } from '../../../../store/enemyStore'
+import { useProgressStore } from '../../../../store/progressStore'
+import { useWorldStore } from '../../../../store/worldStore'
 import { useZoneStore } from '../../../../store/zoneStore'
 import { usePantanoWells } from '../../../../hooks/usePantanoWells'
 import { useTerrainHeight } from '../../../../hooks/useTerrainHeight'
+import { useLodGeometry } from '../../../../hooks/useLodGeometry'
 import { playOnceAndHold } from '../../../../utils/animation'
 import { pickWell, type Well } from '../../../../utils/wells'
 
@@ -15,6 +18,10 @@ type GolemState = 'hidden' | 'emerging' | 'chasing' | 'idle' | 'defeated'
 type GolemAction = 'Walking' | 'Attack' | 'Knock' | "Idle"
 
 const HIDDEN_Y = -60
+// El original (~200 mil triángulos) solo es la fuente de `npm run lods`: cerca se usa el LOD1 (~40 mil, se ve igual)
+// y de lejos el LOD2 (~10 mil); comparten esqueleto, animaciones y textura.
+const GOLEM_LOD_URLS = ['/models-3d/enemies/Golem_LOD1.glb', '/models-3d/enemies/Golem_LOD2.glb']
+const GOLEM_LOD_DISTANCES = [0, 20]
 const WALK_SPEED = 2.5
 const CLIMB_SPEED = 2.5
 const ATTACK_RANGE = 2.5 // distancia para empezar un golpe
@@ -29,12 +36,16 @@ const UP = new THREE.Vector3(0, 1, 0)
 
 // Escondido en un pozo del pantano hasta que el jugador entra: sale del pozo más cercano a él y lo persigue.
 // Cuando el jugador sale del pantano se queda quieto donde está (Idle) y retoma la persecución si vuelve.
-// La gema de la mochila lo desactiva: cae con la animación Knock y se queda tendido.
+// La gema de la mochila lo desactiva: cae con la animación Knock y se queda tendido. Si ya estaba desactivado en una
+// partida anterior (progreso guardado), no vuelve a salir de su pozo.
 export function Golem(props: any) {
   const group = useRef<THREE.Group>(null)
   const rb = useRef<RapierRigidBody>(null)
-  const { nodes, materials, animations } = useGLTF('/models-3d/enemies/Golem.glb')
+  const [{ nodes, materials, animations }, lod2] = useGLTF(GOLEM_LOD_URLS)
   const { actions } = useAnimations(animations, group)
+  const bodyRef = useRef<THREE.SkinnedMesh>(null)
+  const lodGeometries = useMemo(() => [(nodes.Body as THREE.SkinnedMesh).geometry, (lod2.nodes.Body as THREE.SkinnedMesh).geometry], [nodes, lod2])
+  useLodGeometry(bodyRef, lodGeometries, GOLEM_LOD_DISTANCES)
   const wells = usePantanoWells()
   const terrainHeight = useTerrainHeight()
 
@@ -88,7 +99,13 @@ export function Golem(props: any) {
     const playerInPantano = useZoneStore.getState().insidePantano
     let action: GolemAction | null = 'Walking'
     const enemies = useEnemyStore.getState()
-    if (enemies.golemDefeated && brainState.state !== 'hidden') brainState.state = 'defeated'
+    const golemDefeated = useProgressStore.getState().progress.golemDefeated
+    if (golemDefeated && brainState.state !== 'hidden') brainState.state = 'defeated'
+    // Si el progreso se reinicia (otro jugador, misión reiniciada), vuelve a esconderse en su pozo.
+    if (!golemDefeated && brainState.state === 'defeated') {
+      brainState.state = 'hidden'
+      p.set(0, HIDDEN_Y, 0)
+    }
 
     switch (brainState.state) {
       case 'defeated':
@@ -97,7 +114,7 @@ export function Golem(props: any) {
 
       case 'hidden':
         action = 'Idle'
-        if (playerInPantano) {
+        if (playerInPantano && !golemDefeated) {
           brainState.well = pickWell(wells, player.x, player.z, { minDistance: EMERGE_MIN_DISTANCE, minInnerRadius: MIN_WELL_RADIUS })
           p.set(brainState.well.x, brainState.well.bottomY, brainState.well.z)
           brainState.state = 'emerging'
@@ -155,7 +172,8 @@ export function Golem(props: any) {
     }
 
     rb.current.setNextKinematicTranslation(p)
-    group.current.visible = brainState.state !== 'hidden'
+    // Al cargar se dibuja una vez aunque esté escondido, para compilar su material detrás de la pantalla de carga.
+    group.current.visible = brainState.state !== 'hidden' || useWorldStore.getState().warming
     enemies.golem.position.copy(p)
     enemies.golem.active = brainState.state !== 'hidden' && brainState.state !== 'defeated'
     playAction(action)
@@ -166,8 +184,9 @@ export function Golem(props: any) {
       <group ref={group} dispose={null} visible={false}>
         <group name="Golem">
           <skinnedMesh
+            ref={bodyRef}
             name="Body"
-            geometry={(nodes.Body as THREE.SkinnedMesh).geometry}
+            geometry={lodGeometries[0]}
             material={materials.GolemMaterial}
             skeleton={(nodes.Body as THREE.SkinnedMesh).skeleton}
           />
@@ -178,4 +197,4 @@ export function Golem(props: any) {
   )
 }
 
-useGLTF.preload('/models-3d/enemies/Golem.glb')
+useGLTF.preload(GOLEM_LOD_URLS)

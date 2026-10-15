@@ -7,7 +7,7 @@ export const RECOGIBLES = [
   { id: 'pocionAmbar', name: 'Poción ámbar', url: `${RECOGIBLES_DIR}PocionAmbar.glb` },
   { id: 'pocionHojas', name: 'Poción de hojas', url: `${RECOGIBLES_DIR}PocionHojas.glb` },
   { id: 'pocionHongos', name: 'Poción de hongos', url: `${RECOGIBLES_DIR}PocionHongos.glb` },
-  { id: 'pocionPequena', name: 'Poción pequeña', url: `${RECOGIBLES_DIR}PocionPequeña.glb` },
+  { id: 'pocionPequena', name: 'Poción pequeña', url: `${RECOGIBLES_DIR}PocionPequena.glb` },
   { id: 'pocionRoja', name: 'Poción roja', url: `${RECOGIBLES_DIR}PocionRoja.glb` },
 ] as const;
 
@@ -27,10 +27,4 @@ export const MOCHILA_ITEMS = [
 
 export type MochilaItemId = (typeof MOCHILA_ITEMS)[number]['id'];
 
-export function countPociones(collected: readonly string[]): number {
-  return POCION_IDS.filter((id) => collected.includes(id)).length;
-}
-
-export function hasMochilaItem(id: MochilaItemId, collected: readonly string[]): boolean {
-  return id === 'insecticida' ? countPociones(collected) === POCION_IDS.length : collected.includes(id);
-}
+// Si está en la mochila o no lo decide hasMochilaItem (constants/mission.ts): cada objeto se gasta al derrotar a su enemigo.

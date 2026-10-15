@@ -9,8 +9,10 @@ import * as THREE from 'three';
 import { useAvatarStore, type AvatarAction } from '../../../store/avatarStore';
 import { useProgressStore } from '../../../store/progressStore';
 import { useCameraColliderStore } from '../../../store/cameraColliderStore';
+import { useUIStore } from '../../../store/uiStore';
 import { useJoystickStore, useButtonStore } from 'ecctrl/input';
-import { VILLA_BOJ_RESPAWN } from '../../../constants/zones';
+import { areWellsSafe, getMochilaItemState } from '../../../constants/mission';
+import { PLAYER_START, PLAYER_START_CAMERA_AZIMUTH, VILLA_BOJ_RESPAWN } from '../../../constants/zones';
 import { PLAYER_BODY_NAME } from '../../../constants/bodies';
 import { usePantanoWells } from '../../../hooks/usePantanoWells';
 import { useIsMobile } from '../../../hooks/useIsMobile';
@@ -18,8 +20,8 @@ import { useMouseLook } from '../../../hooks/useMouseLook';
 import { findWellExit, findWellUnder, type Well } from '../../../utils/wells';
 
 const CAMERA_DISTANCE = 2;
-// Ángulo inicial de la cámara: detrás de la avatar (+z) y un poco por encima (polar medido desde arriba).
-const CAMERA_START_AZIMUTH = 0;
+// Ángulo inicial de la cámara: detrás de la avatar, mirando al portón de Villa Boj, y un poco por encima
+// (polar medido desde arriba).
 const CAMERA_START_POLAR = Math.PI * 0.42;
 const CAMERA_MIN_POLAR = Math.PI * 0.15;
 const CAMERA_MAX_POLAR = Math.PI * 0.55;
@@ -30,7 +32,15 @@ const STAND_STILL = { forward: false, backward: false, leftward: false, rightwar
 // Debe ser un objeto estable: si cambia entre renders, @react-three/rapier vuelve a poner el cuerpo en la posición
 // de su objeto 3D (aún sin actualizar) y deshace cualquier teletransporte, como reaparecer en Villa Boj.
 const PLAYER_USER_DATA = { name: PLAYER_BODY_NAME };
-const PLAYER_START_POSITION: [number, number, number] = [0, 20, 0];
+const PLAYER_START_POSITION: [number, number, number] = [PLAYER_START.x, PLAYER_START.y, PLAYER_START.z];
+// La avatar mira hacia +z en su modelo; girada -90° queda mirando a -x, hacia el anuncio y el portón.
+const PLAYER_START_ROTATION: [number, number, number] = [0, -Math.PI / 2, 0];
+
+// Mientras hay un diálogo o la mochila abiertos la avatar se queda quieta (las teclas no la mueven).
+const isDialogOpen = () => {
+  const ui = useUIStore.getState();
+  return ui.isAnnouncementOpen || ui.isAldeanoModalOpen || ui.isImeriModalOpen || ui.isBackpackOpen;
+};
 
 export const PlayerController = ({ children }: { children: React.ReactNode }) => {
   const [, get] = useKeyboardControls();
@@ -76,7 +86,7 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
     if (!cameraPlaced.current) {
       cameraPlaced.current = true;
       cameraControls.current.moveTo(target.x, target.y + 0.5, target.z, false);
-      cameraControls.current.rotateTo(CAMERA_START_AZIMUTH, CAMERA_START_POLAR, false);
+      cameraControls.current.rotateTo(PLAYER_START_CAMERA_AZIMUTH, CAMERA_START_POLAR, false);
       cameraControls.current.dollyTo(CAMERA_DISTANCE, false);
     }
     cameraControls.current.moveTo(target.x, target.y + 0.5, target.z, true);
@@ -95,6 +105,13 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
         useAvatarStore.getState().restoreHealth();
         diedAt.current = null;
       }
+      followWithCamera();
+      return;
+    }
+
+    if (isDialogOpen()) {
+      ecctrlRef.current?.setMovement(STAND_STILL);
+      if (useAvatarStore.getState().action !== 'Idle') useAvatarStore.getState().setAction('Idle');
       followWithCamera();
       return;
     }
@@ -143,8 +160,10 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
 
       // Caída en un pozo trampa: la cámara se pega al personaje (sin atravesar paredes). Sin soga es muerte
       // instantánea (animación Death y regreso a Villa Boj); con la soga queda atrapado hasta usarla desde la mochila.
+      // Con el golem y los zumbadores derrotados los pozos quedan tapados (PantanoPozos) y ya no se cae.
       const { currPos } = ecctrl;
-      if (wellFallen.current === null) {
+      const progress = useProgressStore.getState().progress;
+      if (wellFallen.current === null && !areWellsSafe(progress)) {
         const well = findWellUnder(wells, currPos.x, currPos.y, currPos.z, WELL_FALL_DEPTH);
         if (well) {
           wellFallen.current = well;
@@ -154,10 +173,11 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
             controls.dollyTo(WELL_CAMERA_DISTANCE, true);
           }
           const avatar = useAvatarStore.getState();
-          if (useProgressStore.getState().progress.collectedItems?.includes('soga')) avatar.setTrappedInWell(true);
+          if (getMochilaItemState('soga', progress) === 'owned') avatar.setTrappedInWell(true);
           else avatar.takeDamage(avatar.maxHealth);
         }
-      } else if (useAvatarStore.getState().climbRequested) {
+      } else if (wellFallen.current !== null && (useAvatarStore.getState().climbRequested || areWellsSafe(progress))) {
+        // Si el último enemigo cae estando dentro de un pozo, la tapa lo dejaría encerrado: sale como con la soga.
         teleportTo(findWellExit(wellFallen.current, wells));
       }
     }
@@ -184,6 +204,7 @@ export const PlayerController = ({ children }: { children: React.ReactNode }) =>
         capsuleHalfHeight={capsuleHalfHeight}
         capsuleRadius={capsuleRadius}
         position={PLAYER_START_POSITION}
+        rotation={PLAYER_START_ROTATION}
         friction={1}
         enableToggleRun={false}
         userData={PLAYER_USER_DATA}

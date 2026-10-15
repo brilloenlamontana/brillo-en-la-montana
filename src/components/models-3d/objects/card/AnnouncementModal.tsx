@@ -1,71 +1,30 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useUIStore } from '../../../../store/uiStore';
-import { saveProgressToDB } from '../../../../services/progressService';
 
+export const MAYOR_ANNOUNCEMENT_IMAGE_URL = '/sprites-2d/aseets/mayor-announcement.png';
+
+// Se dibuja en WorldPage, fuera del <Canvas>. Card.tsx guarda en el progreso que se leyó al abrirlo.
 export const AnnouncementModal: React.FC = () => {
-  const { isAnnouncementOpen, setAnnouncementOpen } = useUIStore();
-
-  useEffect(() => {
-    if (isAnnouncementOpen) {
-      saveProgressToDB(undefined, 'openedMayorLetter', true);
-    }
-  }, [isAnnouncementOpen]);
+  const isAnnouncementOpen = useUIStore((state) => state.isAnnouncementOpen);
+  const setAnnouncementOpen = useUIStore((state) => state.setAnnouncementOpen);
 
   if (!isAnnouncementOpen) return null;
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 100, // Make sure it's above everything
-      }}
-    >
-      <div
-        style={{
-          position: 'relative',
-          maxWidth: '90%',
-          maxHeight: '90%',
-        }}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 sm:p-4 select-none">
+      <div className="relative max-w-full max-h-[90vh] flex items-center justify-center">
         <button
+          type="button"
           onClick={() => setAnnouncementOpen(false)}
-          style={{
-            position: 'absolute',
-            top: '0px',
-            right: '0px',
-            background: 'transparent',
-            border: 'none',
-            color: 'white',
-            fontSize: '2rem',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            textShadow: '0 2px 4px rgba(0,0,0,0.8)',
-            zIndex: 10,
-          }}
-          className="hover:scale-110 transition-transform"
+          className="absolute -top-2 -right-2 sm:top-2 sm:right-2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold cursor-pointer drop-shadow-md hover:scale-110 active:scale-95 transition-all"
+          aria-label="Cerrar anuncio"
         >
           &times;
         </button>
         <img
-          src="/sprites-2d/aseets/mayor-announcement.png"
+          src={MAYOR_ANNOUNCEMENT_IMAGE_URL}
           alt="Mayor Announcement"
-          style={{
-            maxWidth: '100%',
-            maxHeight: '90vh',
-            objectFit: 'contain',
-            filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.5))',
-          }}
+          className="max-w-full max-h-[82vh] object-contain drop-shadow-2xl pointer-events-none"
         />
       </div>
     </div>

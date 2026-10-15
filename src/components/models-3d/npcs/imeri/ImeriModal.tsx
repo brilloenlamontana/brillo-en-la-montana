@@ -1,7 +1,8 @@
 import React from 'react';
 import { useUIStore } from '../../../../store/uiStore';
 import { useProgressStore } from '../../../../store/progressStore';
-import { saveProgressToDB } from '../../../../services/progressService';
+import { useToastStore } from '../../../../store/toastStore';
+import { saveProgress } from '../../../../services/progressService';
 
 // Texto de la "Audio explicación de Imeri" (docs/cronograma-de-escenas.md).
 const IMERI_EXPLICACION = [
@@ -11,76 +12,77 @@ const IMERI_EXPLICACION = [
   'Entre las amenazas más temidas por los cazadores hay algo particularmente amenazante: un Golem Gigante, una feroz criatura creada hace cientos de años por un mago que ya murió. El secreto de cómo desactivarlo o controlarlo murió con su creador. Se cuenta que el Golem emite una gran luz roja en el centro del pecho.',
 ];
 
+
+// Se dibuja en WorldPage, fuera del <Canvas>. Imeri cuenta los peligros del pantano y ofrece su ayuda: solo si el jugador
+// la acepta se abre la puerta de su casa (para recoger la gema, la soga y las pociones) y se activa la mochila.
 export const ImeriModal: React.FC = () => {
-  const { isImeriModalOpen, setImeriModalOpen } = useUIStore();
-  const alreadyTalked = useProgressStore((state) => state.progress.interactedWithImeri === true);
+  const isImeriModalOpen = useUIStore((state) => state.isImeriModalOpen);
+  const setImeriModalOpen = useUIStore((state) => state.setImeriModalOpen);
+  const accepted = useProgressStore((state) => state.progress.imeriHelp === 'accepted');
 
   if (!isImeriModalOpen) return null;
 
-  const handleContinue = () => {
-    if (!alreadyTalked) saveProgressToDB(undefined, 'interactedWithImeri', true);
+  const answer = (help: 'accepted' | 'rejected') => {
+    saveProgress({ interactedWithImeri: true, imeriHelp: help });
     setImeriModalOpen(false);
+    useToastStore
+      .getState()
+      .showToast(
+        help === 'accepted'
+          ? 'Imeri abrió su casa y se activó tu mochila: entra y recoge lo que te sirva.'
+          : 'La puerta de la casa de Imeri seguirá cerrada. Puedes volver a hablar con ella.',
+      );
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 100,
-        padding: '16px',
-      }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 sm:p-4 select-none">
       <div
         role="dialog"
         aria-labelledby="imeri-titulo"
-        style={{
-          width: 'min(640px, 100%)',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          background: '#f4e4bc',
-          color: '#3e2723',
-          border: '3px solid #5c3a21',
-          borderRadius: '12px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
-          padding: '24px 28px',
-          fontFamily: 'Georgia, serif',
-        }}
+        className="w-full max-w-xl max-h-[90vh] overflow-y-auto bg-[#f4e4bc] text-[#3e2723] border-2 sm:border-[3px] border-[#5c3a21] rounded-2xl shadow-2xl p-4 sm:p-7 font-serif"
       >
-        <h2 id="imeri-titulo" style={{ margin: '0 0 4px', fontSize: '1.6rem' }}>Imeri</h2>
-        <p style={{ margin: '0 0 16px', fontStyle: 'italic', color: '#5c3a21' }}>La cazadora que mejor conoce el pantano</p>
-        {IMERI_EXPLICACION.map((paragraph) => (
-          <p key={paragraph.slice(0, 24)} style={{ margin: '0 0 12px', lineHeight: 1.5 }}>{paragraph}</p>
-        ))}
-        {!alreadyTalked && (
-          <p style={{ margin: '16px 0 0', padding: '10px 12px', background: 'rgba(92,58,33,0.12)', borderRadius: '8px', fontFamily: 'system-ui, sans-serif', fontSize: '0.95rem' }}>
-            🎒 Se activó tu <b>mochila</b>: entra a la casa de Imeri y recoge lo que creas que te servirá.
-          </p>
-        )}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-          <button
-            type="button"
-            onClick={handleContinue}
-            className="hover:scale-105 transition-transform"
-            style={{
-              padding: '10px 28px',
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              borderRadius: '8px',
-              background: '#5c3a21',
-              color: '#f4d03f',
-              border: '2px solid #3e2723',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.4)',
-            }}
-          >
-            Entendido
-          </button>
+        <h2 id="imeri-titulo" className="text-xl sm:text-2xl font-bold mb-1 text-[#3e2723]">Imeri</h2>
+        <p className="italic text-[#5c3a21] text-xs sm:text-sm mb-4">La cazadora que mejor conoce el pantano</p>
+        
+        <div className="space-y-3 text-xs sm:text-sm leading-relaxed font-sans">
+          {IMERI_EXPLICACION.map((paragraph) => (
+            <p key={paragraph.slice(0, 24)}>{paragraph}</p>
+          ))}
         </div>
+
+        {accepted ? (
+          <div className="flex justify-end mt-5">
+            <button
+              type="button"
+              onClick={() => setImeriModalOpen(false)}
+              className="px-5 py-2 sm:px-6 sm:py-2.5 text-sm sm:text-base font-bold cursor-pointer rounded-lg bg-[#5c3a21] text-[#f4d03f] border-2 border-[#3e2723] shadow-md hover:scale-105 active:scale-95 transition-transform"
+            >
+              Entendido
+            </button>
+          </div>
+        ) : (
+          <div className="mt-5 pt-3 border-t border-[#5c3a21]/20">
+            <p className="font-bold text-sm sm:text-base text-[#3e2723] mb-3">
+              ¿Quieres que te ayude? En mi casa tengo lo que necesitas para cruzar el pantano.
+            </p>
+            <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => answer('rejected')}
+                className="px-4 py-2 sm:px-5 sm:py-2.5 text-sm sm:text-base font-bold cursor-pointer rounded-lg bg-[#5c3a21] text-[#ff6b6b] border-2 border-[#3e2723] shadow-md hover:scale-105 active:scale-95 transition-transform"
+              >
+                No, gracias
+              </button>
+              <button
+                type="button"
+                onClick={() => answer('accepted')}
+                className="px-4 py-2 sm:px-5 sm:py-2.5 text-sm sm:text-base font-bold cursor-pointer rounded-lg bg-[#5c3a21] text-[#f4d03f] border-2 border-[#3e2723] shadow-md hover:scale-105 active:scale-95 transition-transform"
+              >
+                Sí, ayúdame
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

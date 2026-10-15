@@ -3,6 +3,9 @@ export type Zone = { center: readonly [number, number]; enterRadius: number; exi
 
 export const VILLA_BOJ_ZONE: Zone = { center: [-86.93, 14.89], enterRadius: 32, exitRadius: 34 };
 
+// Claro de la casa de Imeri: llegar aquí es "estar en la casa" (se deja de dibujar al aldeano).
+export const CASA_IMERI_ZONE: Zone = { center: [18, 42], enterRadius: 26, exitRadius: 29 };
+
 export const CASA_IMERI_INTERIOR_ZONE: Zone = { center: [20.01, 45.2], enterRadius: 20, exitRadius: 23 };
 
 // Centro de la puerta de Imeri: se abre a 5 m y no se cierra mientras el jugador siga dentro de la casa (8 m).
@@ -12,6 +15,18 @@ export const VILLA_BOJ_GATE_ZONE: Zone = { center: [-53.9, 14.9], enterRadius: 7
 
 // Plaza de Villa Boj, libre de edificios; y queda un poco sobre el terreno (10.7) para que el jugador caiga suave.
 export const VILLA_BOJ_RESPAWN = { x: -84, y: 12.5, z: 12 } as const;
+
+// Inicio de la partida: en el camino frente al portón de Villa Boj, mirando hacia el anuncio del alcalde.
+// El terreno ahí está a ~10.7; el cuerpo aparece un poco más arriba y se asienta solo.
+export const PLAYER_START = { x: -39, y: 12.4, z: 18 } as const;
+// Hacia dónde mira la cámara al empezar (azimut de camera-controls: 0 = cámara en +z). π/2 la deja en +x,
+// detrás del jugador, mirando hacia el portón (-x).
+export const PLAYER_START_CAMERA_AZIMUTH = Math.PI / 2;
+
+// Anuncio del alcalde: flota junto al camino, delante del portón y de cara a quien llega (+x).
+export const MAYOR_CARD_POSITION: [number, number, number] = [-46, 11.8, 16.6];
+export const MAYOR_CARD_ROTATION_Y = -Math.PI / 2;
+export const MAYOR_CARD_ZONE: Zone = { center: [MAYOR_CARD_POSITION[0], MAYOR_CARD_POSITION[2]], enterRadius: 3.5, exitRadius: 4.5 };
 
 // Contorno (XZ del mundo) de la mancha café de la textura del terreno: el Pantano de la Tristeza.
 export const PANTANO_POLYGON: ReadonlyArray<readonly [number, number]> = [
@@ -25,3 +40,11 @@ export const PANTANO_POLYGON: ReadonlyArray<readonly [number, number]> = [
 
 // Al salir del pantano hay que alejarse este margen del borde para que los enemigos vuelvan a sus pozos.
 export const PANTANO_EXIT_MARGIN = 4;
+
+// La región del pantano incluye la orilla que lo rodea (hasta las paredes del valle).
+export const PANTANO_REGION_MARGIN = { enter: 18, exit: 21 } as const;
+
+// Bosque de la Oscuridad: la franja norte del mapa. Colina: la hondonada del este y su sendero en zigzag.
+export const BOSQUE_REGION_MAX_Z = { enter: -178, exit: -175 } as const;
+export const BOSQUE_REGION_MAX_X = 80;
+export const COLINA_REGION = { minX: 72, maxZ: -95 } as const;

@@ -1,15 +1,18 @@
 import { create } from 'zustand';
+import type { Region } from '../utils/regions';
 
 interface ZoneState {
-  insideVillaBoj: boolean;
+  // Región del mapa (villa, camino, casa, pantano, bosque o colina): decide qué se dibuja.
+  region: Region;
+  // Pisando el lodo del pantano: es lo que despierta al golem y a los zumbadores.
   insidePantano: boolean;
-  setInsideVillaBoj: (inside: boolean) => void;
+  setRegion: (region: Region) => void;
   setInsidePantano: (inside: boolean) => void;
 }
 
 export const useZoneStore = create<ZoneState>((set) => ({
-  insideVillaBoj: false,
+  region: 'camino',
   insidePantano: false,
-  setInsideVillaBoj: (insideVillaBoj) => set({ insideVillaBoj }),
+  setRegion: (region) => set({ region }),
   setInsidePantano: (insidePantano) => set({ insidePantano }),
 }));

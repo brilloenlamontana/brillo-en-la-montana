@@ -1,5 +1,5 @@
 import React from 'react';
-import { ZUMBADOR_COUNT } from '../../../../store/enemyStore';
+import { ZUMBADOR_COUNT } from '../../../../constants/mission';
 import { Zumbador } from './Zumbador';
 
 export const ZumbadorSwarm: React.FC = () => {

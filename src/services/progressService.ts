@@ -1,42 +1,39 @@
 import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase.config';
 import { useAuthStore } from '../store/authStore';
-import { useProgressStore } from '../store/progressStore';
+import { useProgressStore, type GameProgress } from '../store/progressStore';
 
+// Guarda en el store al instante y en Firestore (users/{uid}.progress) en segundo plano: el juego nunca espera a la red.
+// progressUpdatedAt deja ver en el administrador cuándo fue la última actividad de cada jugador.
 export const saveProgressToDB = async (uid?: string, progressKey?: string, value?: any) => {
-  const targetUid = uid || useAuthStore.getState().user?.uid || auth.currentUser?.uid;
   if (!progressKey) {
-    console.warn("saveProgressToDB: progressKey no válido", { targetUid, progressKey });
+    console.warn('saveProgressToDB: progressKey no válido', { progressKey });
     return;
   }
+  return saveProgress({ [progressKey]: value }, uid);
+};
 
-  // Update in-memory Zustand progress store immediately
-  useProgressStore.getState().setProgress({ [progressKey]: value });
+export async function saveProgress(changes: Partial<GameProgress>, uid?: string) {
+  useProgressStore.getState().setProgress(changes);
 
+  const targetUid = uid || useAuthStore.getState().user?.uid || auth.currentUser?.uid;
   if (!targetUid) {
-    console.warn("saveProgressToDB: UID no disponible aún", { targetUid, progressKey });
+    console.warn('saveProgress: UID no disponible aún', changes);
     return;
   }
 
+  const userRef = doc(db, 'users', targetUid);
+  const progressUpdatedAt = new Date().toISOString();
+  const fields = Object.fromEntries(Object.entries(changes).map(([key, value]) => [`progress.${key}`, value]));
   try {
-    const userRef = doc(db, 'users', targetUid);
-    // Use dot notation to update specific field in progress map
-    await updateDoc(userRef, {
-      [`progress.${progressKey}`]: value
-    });
-    console.log(`Progreso '${progressKey}' actualizado con éxito en Firestore para ${targetUid}`);
-  } catch (error: any) {
-    console.warn("updateDoc falló, intentando setDoc con merge:", error);
+    // La notación con punto actualiza solo esos campos del mapa progress.
+    await updateDoc(userRef, { ...fields, progressUpdatedAt });
+  } catch (error) {
+    console.warn('updateDoc falló, intentando setDoc con merge:', error);
     try {
-      const userRef = doc(db, 'users', targetUid);
-      await setDoc(userRef, {
-        progress: {
-          [progressKey]: value
-        }
-      }, { merge: true });
-      console.log(`Progreso '${progressKey}' guardado con éxito vía setDoc fallback para ${targetUid}`);
+      await setDoc(userRef, { progress: changes, progressUpdatedAt }, { merge: true });
     } catch (e) {
-      console.error("Error al guardar progreso en la base de datos:", e);
+      console.error('Error al guardar progreso en la base de datos:', e);
     }
   }
-};
+}

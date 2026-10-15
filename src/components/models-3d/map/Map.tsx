@@ -1,4 +1,3 @@
-import { useZoneStore } from '../../../store/zoneStore';
 import { BosqueOscuridad } from './bosqueOscuridad/BosqueOscuridad';
 import { CasaImeri } from './casaImeri/CasaImeri';
 import { PantanoTristeza } from './pantanoTristeza/PantanoTristeza';
@@ -7,21 +6,18 @@ import { Rocas } from './rocas/Rocas';
 import { Terreno } from './terreno/Terreno';
 import { VillaBoj } from './villaBoj/VillaBoj';
 
-export function Map(props: any) {
-  const insideVillaBoj = useZoneStore((state) => state.insideVillaBoj);
-
+// Cada parte decide qué dibujar según la región del jugador (constants/regionVisibility.ts) y su distancia a la cámara.
+// Ocultar con `visible` conserva los colliders y evita volver a subir las mallas a la GPU al regresar.
+export function Map() {
   return (
-    <group {...props}>
+    <group name="mapa">
       <Terreno />
       <Pinares />
+      <Rocas />
       <VillaBoj />
-      {/* Ocultar con visible conserva los colliders y evita volver a subir las mallas a la GPU al salir de la villa. */}
-      <group visible={!insideVillaBoj}>
-        <CasaImeri />
-        <BosqueOscuridad />
-        <PantanoTristeza />
-        <Rocas />
-      </group>
+      <CasaImeri />
+      <PantanoTristeza />
+      <BosqueOscuridad />
     </group>
   );
 }

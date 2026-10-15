@@ -2,8 +2,14 @@ import { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import { Euler, Mesh, Object3D, Quaternion, Vector3, type Material } from 'three';
+import { InstancedField } from '../InstancedField';
 
 const PINARES_URL = '/models-3d/map/Pinares/Pinares.glb';
+// Niveles de detalle generados con `npm run lods`.
+const PINARES_LOD_URLS = [PINARES_URL, '/models-3d/map/Pinares/Pinares_LOD1.glb', '/models-3d/map/Pinares/Pinares_LOD2.glb'];
+const PINARES_LOD_DISTANCES = [0, 150, 200]
+// Más lejos que esto la niebla ya los borra: no se dibujan.
+const PINARES_MAX_DISTANCE = 170;
 const TRUNK_MATERIAL = 'PinoCorteza';
 
 type TrunkCollider = {
@@ -41,13 +47,15 @@ function getTrunkColliders(scene: Object3D): TrunkCollider[] {
   return colliders;
 }
 
-export function Pinares(props: any) {
+// Los pinos se dibujan instanciados: solo los que están dentro de la vista y a menos de PINARES_MAX_DISTANCE,
+// con menos detalle mientras más lejos estén.
+export function Pinares() {
   const { scene } = useGLTF(PINARES_URL);
   const trunkColliders = useMemo(() => getTrunkColliders(scene), [scene]);
 
   return (
     <>
-      <primitive object={scene} {...props} />
+      <InstancedField urls={PINARES_LOD_URLS} distances={PINARES_LOD_DISTANCES} maxDistance={PINARES_MAX_DISTANCE} />
       <RigidBody type="fixed" colliders={false}>
         {trunkColliders.map(({ key, position, rotation, args }) => (
           <CuboidCollider key={key} position={position} rotation={rotation} args={args} />
@@ -57,4 +65,4 @@ export function Pinares(props: any) {
   );
 }
 
-useGLTF.preload(PINARES_URL);
+useGLTF.preload(PINARES_LOD_URLS);

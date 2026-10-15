@@ -1,6 +1,8 @@
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, onSnapshot, updateDoc, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '../firebase.config';
+import { getMissionSummary } from '../constants/mission';
 import type { UserData } from '../store/authStore';
+import { normalizeProgress, type GameProgress } from '../store/progressStore';
 
 export interface AdminUserRecord {
   id: string;
@@ -24,11 +26,9 @@ export interface AdminUserRecord {
   gender?: string;
   role?: 'admin' | 'student';
   isAdmin?: boolean;
-  progress?: {
-    openedMayorLetter?: boolean;
-    interactedWithImeri?: boolean;
-    [key: string]: any;
-  };
+  progress?: GameProgress;
+  // Última vez que el jugador avanzó en el juego (lo escribe saveProgress).
+  progressUpdatedAt?: string;
   createdAt?: string;
   updatedAt?: string;
   [key: string]: any;
@@ -70,32 +70,46 @@ export const checkIsAdmin = (user: UserData | null, firestoreData?: any): boolea
   return false;
 };
 
+const toRecord = (docSnap: QueryDocumentSnapshot): AdminUserRecord => {
+  const data = docSnap.data();
+  return {
+    id: docSnap.id,
+    uid: docSnap.id,
+    ...data,
+    email: data.email || '',
+    // Mismos valores por defecto que en el juego, así un jugador sin progreso se ve como "pendiente" y no falla nada.
+    progress: normalizeProgress(data.progress),
+    role: data.role || (data.isAdmin ? 'admin' : 'student'),
+  } as AdminUserRecord;
+};
+
+const byName = (a: AdminUserRecord, b: AdminUserRecord) => {
+  const nameA = (a.nombresApellidos || a.name || a.email).toLowerCase();
+  const nameB = (b.nombresApellidos || b.name || b.email).toLowerCase();
+  return nameA.localeCompare(nameB);
+};
+
+/**
+ * Escucha la colección 'users' en tiempo real: el panel se actualiza solo cada vez que un jugador avanza en la misión.
+ * Devuelve la función para dejar de escuchar.
+ */
+export const subscribeToUsers = (onChange: (users: AdminUserRecord[]) => void, onError: (error: Error) => void): (() => void) =>
+  onSnapshot(
+    collection(db, 'users'),
+    (snapshot) => onChange(snapshot.docs.map(toRecord).sort(byName)),
+    (error) => {
+      console.error('Error escuchando usuarios para el administrador:', error);
+      onError(error);
+    },
+  );
+
 /**
  * Fetches all registered users from Firestore 'users' collection.
  */
 export const fetchAllUsers = async (): Promise<AdminUserRecord[]> => {
   try {
-    const usersCollection = collection(db, 'users');
-    const snapshot = await getDocs(usersCollection);
-    
-    const records: AdminUserRecord[] = snapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
-      return {
-        id: docSnap.id,
-        uid: docSnap.id,
-        ...data,
-        email: data.email || '',
-        progress: data.progress || {},
-        role: data.role || (data.isAdmin ? 'admin' : 'student'),
-      } as AdminUserRecord;
-    });
-
-    // Sort by name or creation
-    return records.sort((a, b) => {
-      const nameA = (a.nombresApellidos || a.name || a.email).toLowerCase();
-      const nameB = (b.nombresApellidos || b.name || b.email).toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
+    const snapshot = await getDocs(collection(db, 'users'));
+    return snapshot.docs.map(toRecord).sort(byName);
   } catch (error) {
     console.error('Error fetching all users for admin:', error);
     throw error;
@@ -149,8 +163,17 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
     'Programa Académico',
     'Personaje en el Juego',
     'Nombre del Personaje',
-    'Mensaje del Alcalde (Leído)',
-    'Orientación Imeri (Completado)',
+    'Misión 1 (Avance)',
+    'Misión 1 (Completada)',
+    'Anuncio del Alcalde (Leído)',
+    'Ayuda del Aldeano',
+    'Ayuda de Imeri',
+    'Gema',
+    'Soga',
+    'Pociones',
+    'Zumbadores Derrotados',
+    'Golem Desactivado',
+    'Última Actividad',
     'Autorización de Datos',
     'Fecha de Autorización',
     'Tipo de Usuario',
@@ -162,6 +185,25 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
     return `"${str}"`;
   };
 
+  const missionColumns = (u: AdminUserRecord) => {
+    const { steps, percent, completed } = getMissionSummary(u.progress);
+    const step = (id: string) => steps.find((s) => s.id === id)!;
+    const yesNo = (done: boolean) => (done ? 'Sí' : 'No');
+    return [
+      escapeCSV(`${percent}%`),
+      escapeCSV(completed ? `Sí (${u.progress?.mision1CompletadaEn ? new Date(u.progress.mision1CompletadaEn).toLocaleString('es-CO') : 'sin fecha'})` : 'No'),
+      escapeCSV(yesNo(step('carta').done)),
+      escapeCSV(step('aldeano').status),
+      escapeCSV(step('imeri').status),
+      escapeCSV(yesNo(step('gema').done)),
+      escapeCSV(yesNo(step('soga').done)),
+      escapeCSV(step('insecticida').status),
+      escapeCSV(step('zumbadores').status),
+      escapeCSV(yesNo(step('golem').done)),
+      escapeCSV(u.progressUpdatedAt ? new Date(u.progressUpdatedAt).toLocaleString('es-CO') : 'Sin actividad'),
+    ];
+  };
+
   const rows = users.map((u) => [
     escapeCSV(u.codigoEstudiantil || 'Pendiente'),
     escapeCSV(u.nombresApellidos || u.name || 'Sin especificar'),
@@ -171,8 +213,7 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
     escapeCSV(u.programaNombre || u.programaCodigo || 'No especificado'),
     escapeCSV(u.avatarName || 'Pendiente'),
     escapeCSV(u.nickname || 'Sin alias'),
-    escapeCSV(u.progress?.openedMayorLetter ? 'Sí' : 'No'),
-    escapeCSV(u.progress?.interactedWithImeri ? 'Sí' : 'No'),
+    ...missionColumns(u),
     escapeCSV(u.acceptedLaw1581 ? 'Autorizado' : 'Pendiente'),
     escapeCSV(u.acceptedLaw1581Date ? new Date(u.acceptedLaw1581Date).toLocaleString('es-CO') : 'Sin fecha'),
     escapeCSV(u.role === 'admin' ? 'Administrador' : 'Estudiante'),

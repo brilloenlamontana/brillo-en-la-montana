@@ -41,93 +41,32 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <main className="w-screen h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-[#4a0d18] flex items-center justify-center relative overflow-hidden select-none">
+    <main className="w-screen h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-[#4a0d18] flex flex-col items-center justify-center relative overflow-hidden select-none p-4">
       <SnowEffect />
       
-      <section style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.4)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08), 0 0 20px rgba(0,0,0,0.03)',
-        borderRadius: '24px',
-        padding: '3.5rem 3rem',
-        width: '100%',
-        maxWidth: '460px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        color: '#1a202c',
-        zIndex: 10
-      }}>
-        
-        <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <img src="/univalle.svg" alt="logo univalle" style={{ width: '120px', height: 'auto', objectFit: 'contain' }} />
+      <section className="bg-white/95 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-6 sm:p-12 w-full max-w-md flex flex-col items-center text-center text-slate-800 z-10">
+        <header className="flex flex-col items-center">
+          <div className="mb-5 sm:mb-6">
+            <img src="/univalle.svg" alt="logo univalle" className="w-24 sm:w-28 h-auto object-contain" />
           </div>
 
-          <h1 style={{ 
-            fontSize: '1.6rem', 
-            fontWeight: 700, 
-            margin: '0 0 2rem 0',
-            background: 'linear-gradient(90deg, #C8102E 0%, #E53E3E 100%)', 
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            letterSpacing: '1.5px'
-          }}>
+          <h1 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8 bg-gradient-to-r from-[#C8102E] to-[#E53E3E] bg-clip-text text-transparent tracking-wide">
             Brillo en la Montaña
           </h1>
         </header>
 
         <button 
+          type="button"
           onClick={handleGoogleSignIn}
           disabled={loading}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            width: '100%',
-            padding: '16px',
-            backgroundColor: '#fff',
-            color: '#2d3748',
-            border: '1px solid #e2e8f0',
-            borderRadius: '12px',
-            fontSize: '1rem',
-            fontWeight: 600,
-            textTransform: 'none',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = '#f7fafc';
-            e.currentTarget.style.borderColor = '#cbd5e0';
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.08)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = '#fff';
-            e.currentTarget.style.borderColor = '#e2e8f0';
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)';
-          }}
+          className="flex items-center justify-center gap-3 w-full p-3.5 sm:p-4 bg-white hover:bg-slate-50 active:scale-98 text-slate-700 border border-slate-200 hover:border-slate-300 rounded-xl text-sm sm:text-base font-semibold shadow-sm hover:shadow-md transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <img src="/univalle.svg" alt="Google" style={{ width: '22px', height: '22px' }} />
+          <img src="/univalle.svg" alt="Google" className="w-5 h-5 sm:w-6 sm:h-6" />
           {loading ? 'Iniciando sesión...' : 'Continuar con Google'}
         </button>
       </section>
 
-      <footer style={{
-        position: 'absolute',
-        bottom: '2.5rem',
-        textAlign: 'center',
-        color: '#718096',
-        fontSize: '0.75rem',
-        letterSpacing: '1px',
-        lineHeight: '1.8',
-        zIndex: 10
-      }}>
+      <footer className="absolute bottom-3 sm:bottom-6 text-center text-slate-400 text-[10px] sm:text-xs leading-relaxed z-10 px-4">
         Desarrollado por Dirección de Desarrollo Estudiantil y Éxito Académico - DEXIA<br/>
         © 2026 Universidad del Valle
       </footer>
