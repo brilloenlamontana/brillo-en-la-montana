@@ -12,16 +12,6 @@ const IMERI_EXPLICACION = [
   'Entre las amenazas más temidas por los cazadores hay algo particularmente amenazante: un Golem Gigante, una feroz criatura creada hace cientos de años por un mago que ya murió. El secreto de cómo desactivarlo o controlarlo murió con su creador. Se cuenta que el Golem emite una gran luz roja en el centro del pecho.',
 ];
 
-const buttonStyle: React.CSSProperties = {
-  padding: '10px 24px',
-  fontSize: '1.05rem',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  borderRadius: '8px',
-  background: '#5c3a21',
-  border: '2px solid #3e2723',
-  boxShadow: '0 4px 6px rgba(0,0,0,0.4)',
-};
 
 // Se dibuja en WorldPage, fuera del <Canvas>. Imeri cuenta los peligros del pantano y ofrece su ayuda: solo si el jugador
 // la acepta se abre la puerta de su casa (para recoger la gema, la soga y las pociones) y se activa la mochila.

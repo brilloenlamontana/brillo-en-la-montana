@@ -1,4 +1,3 @@
-import React from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 export function InteractionPrompt({ action, onActivate }: { action: string; onActivate: () => void }) {
