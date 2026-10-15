@@ -1,0 +1,21 @@
+# docker compose -f docker-compose.prod.yml down --rmi all && docker compose -f docker-compose.dev.yml up --build -d
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: brillo-en-la-montana:dev
+    container_name: brillo-en-la-montana-dev
+    ports:
+      - "${DEV_PORT:-5174}:5174"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    env_file:
+      - path: .env
+        required: false
+    command: npm run dev -- --port 5174
+    restart: unless-stopped

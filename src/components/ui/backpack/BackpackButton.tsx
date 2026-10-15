@@ -1,22 +1,23 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { hasMochilaItem, MOCHILA_ITEMS } from '../../../constants/recogibles';
+import { hasMochilaItem, isBackpackActive } from '../../../constants/mission';
+import { MOCHILA_ITEMS } from '../../../constants/recogibles';
 import { useProgressStore } from '../../../store/progressStore';
 import { useToastStore } from '../../../store/toastStore';
 import { useUIStore } from '../../../store/uiStore';
 import { BackpackIcon } from './BackpackIcon';
 import { BackpackPanel } from './BackpackPanel';
 
-// Aparece al lado del perfil cuando Imeri activa la mochila (después de hablar con ella). La tecla B la abre y cierra,
+// Aparece al lado del perfil cuando Imeri activa la mochila (al aceptar su ayuda). La tecla B la abre y cierra,
 // útil para usar la soga rápido al quedar atrapado en un pozo.
 export function BackpackButton() {
-  const active = useProgressStore((state) => state.progress.interactedWithImeri === true);
-  const collected = useProgressStore((state) => state.progress.collectedItems ?? []);
+  const progress = useProgressStore((state) => state.progress);
+  const active = isBackpackActive(progress);
   const open = useUIStore((state) => state.isBackpackOpen);
   const setOpen = useUIStore((state) => state.setBackpackOpen);
   const close = useCallback(() => setOpen(false), [setOpen]);
 
-  const ownedCount = MOCHILA_ITEMS.filter((item) => hasMochilaItem(item.id, collected)).length;
-  const hasInsecticida = hasMochilaItem('insecticida', collected);
+  const ownedCount = MOCHILA_ITEMS.filter((item) => hasMochilaItem(item.id, progress)).length;
+  const hasInsecticida = hasMochilaItem('insecticida', progress);
 
   // Aviso solo cuando el insecticida se prepara en esta partida (al recoger la quinta poción), no al cargar el progreso.
   const hadInsecticida = useRef(hasInsecticida);

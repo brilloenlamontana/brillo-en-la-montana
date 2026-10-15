@@ -19,23 +19,7 @@ export function Toast() {
   return (
     <div
       role="status"
-      style={{
-        position: 'fixed',
-        top: '72px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 95,
-        maxWidth: 'calc(100% - 32px)',
-        background: '#f4e4bc',
-        color: '#3e2723',
-        border: '2px solid #5c3a21',
-        borderRadius: '10px',
-        padding: '10px 16px',
-        boxShadow: '0 6px 16px rgba(0,0,0,0.4)',
-        fontFamily: 'system-ui, sans-serif',
-        fontWeight: 600,
-        textAlign: 'center',
-      }}
+      className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[95] max-w-[calc(100%-32px)] sm:max-w-md bg-[#f4e4bc] text-[#3e2723] border-2 border-[#5c3a21] rounded-xl px-4 py-2.5 shadow-xl text-center font-semibold text-xs sm:text-sm pointer-events-none transition-all"
     >
       {message}
     </div>

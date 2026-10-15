@@ -1,18 +1,24 @@
 import { useGLTF } from '@react-three/drei'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useAvatarStore } from '../../../../store/avatarStore'
 import { useEnemyStore } from '../../../../store/enemyStore'
+import { useProgressStore } from '../../../../store/progressStore'
+import { useWorldStore } from '../../../../store/worldStore'
 import { useZoneStore } from '../../../../store/zoneStore'
 import { usePantanoWells } from '../../../../hooks/usePantanoWells'
 import { useTerrainHeight } from '../../../../hooks/useTerrainHeight'
+import { useLodGeometry } from '../../../../hooks/useLodGeometry'
 import { pickWell } from '../../../../utils/wells'
 
 type ZumbadorState = 'hidden' | 'emerging' | 'chasing' | 'retreating' | 'hovering' | 'dying' | 'dead'
 
 const HIDDEN_Y = -60
+// Niveles generados con `npm run lods` (el original tiene ~14 mil triángulos para un mosquito de medio metro).
+const ZUMBADOR_LOD_URLS = ['/models-3d/enemies/Zumbador_LOD1.glb', '/models-3d/enemies/Zumbador_LOD2.glb']
+const ZUMBADOR_LOD_DISTANCES = [0, 10]
 const CHASE_SPEED = 4
 const RETREAT_SPEED = 5
 const CLIMB_SPEED = 3
@@ -29,9 +35,13 @@ const DEATH_SECONDS = 1.8
 
 // Igual que el golem: escondido en un pozo hasta que el jugador entra al pantano; cuando sale, se queda volando
 // donde está y vuelve a perseguirlo si regresa. `index` reparte el enjambre en pozos distintos (dos por pozo)
-// y desfasa el aleteo de cada uno. El insecticida de la mochila los mata: caen girando y desaparecen para siempre.
+// y desfasa el aleteo de cada uno. El insecticida de la mochila los mata: caen girando y desaparecen para siempre
+// (quedan en el progreso guardado, así que tampoco vuelven al recargar).
 export function Zumbador({ index, ...props }: { index: number } & Record<string, any>) {
-  const { nodes, materials } = useGLTF('/models-3d/enemies/Zumbador.glb')
+  const [{ nodes, materials }, lod2] = useGLTF(ZUMBADOR_LOD_URLS)
+  const bodyRef = useRef<THREE.Mesh>(null)
+  const lodGeometries = useMemo(() => [(nodes.Zumbador as THREE.Mesh).geometry, (lod2.nodes.Zumbador as THREE.Mesh).geometry], [nodes, lod2])
+  useLodGeometry(bodyRef, lodGeometries, ZUMBADOR_LOD_DISTANCES)
   const rb = useRef<RapierRigidBody>(null)
   const group = useRef<THREE.Group>(null)
   const wells = usePantanoWells()
@@ -84,8 +94,12 @@ export function Zumbador({ index, ...props }: { index: number } & Record<string,
     const playerInPantano = useZoneStore.getState().insidePantano
     const wobble = Math.sin(now * 15 + flapOffset) * 0.8
     const enemies = useEnemyStore.getState()
+    const defeated = useProgressStore.getState().progress.zumbadoresDefeated.includes(index)
+    if (defeated && brainState.state === 'hidden') brainState.state = 'dead'
+    // Si el progreso se reinicia (otro jugador, misión reiniciada), vuelve a esconderse en su pozo.
+    if (!defeated && brainState.state === 'dead') brainState.state = 'hidden'
     const alive = brainState.state !== 'dying' && brainState.state !== 'dead'
-    if (alive && brainState.state !== 'hidden' && enemies.deadZumbadores.includes(index)) {
+    if (alive && brainState.state !== 'hidden' && defeated) {
       brainState.state = 'dying'
       brainState.diedAt = now
       brainState.fallSpeed = 0
@@ -158,7 +172,7 @@ export function Zumbador({ index, ...props }: { index: number } & Record<string,
     }
 
     rb.current.setNextKinematicTranslation(p)
-    group.current.visible = brainState.state !== 'hidden' && brainState.state !== 'dead'
+    group.current.visible = (brainState.state !== 'hidden' && brainState.state !== 'dead') || useWorldStore.getState().warming
     const tracker = enemies.zumbadores[index]
     if (tracker) {
       tracker.position.copy(p)
@@ -172,7 +186,8 @@ export function Zumbador({ index, ...props }: { index: number } & Record<string,
         <mesh
           castShadow
           receiveShadow
-          geometry={(nodes.Zumbador as THREE.Mesh).geometry}
+          ref={bodyRef}
+          geometry={lodGeometries[0]}
           material={materials.ZumbadorMaterial}
         />
       </group>
@@ -180,4 +195,4 @@ export function Zumbador({ index, ...props }: { index: number } & Record<string,
   )
 }
 
-useGLTF.preload('/models-3d/enemies/Zumbador.glb')
+useGLTF.preload(ZUMBADOR_LOD_URLS)

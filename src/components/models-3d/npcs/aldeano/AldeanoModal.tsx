@@ -1,90 +1,53 @@
 import React from 'react';
 import { useUIStore } from '../../../../store/uiStore';
+import { useToastStore } from '../../../../store/toastStore';
 import { saveProgressToDB } from '../../../../services/progressService';
 
+export const ALDEANO_IMAGE_URL = '/sprites-2d/aseets/preguntas-aldeanos.png';
+
+// Se dibuja en WorldPage, fuera del <Canvas>: abrirlo no toca la escena 3D.
 export const AldeanoModal: React.FC = () => {
-  const { isAldeanoModalOpen, setAldeanoModalOpen } = useUIStore();
+  const isAldeanoModalOpen = useUIStore((state) => state.isAldeanoModalOpen);
+  const setAldeanoModalOpen = useUIStore((state) => state.setAldeanoModalOpen);
 
   if (!isAldeanoModalOpen) return null;
 
-  // Se guarda en Firestore para que la decisión sobreviva a recargar la página.
+  // Se guarda en Firestore para que la decisión sobreviva a recargar la página. Con SÍ, Imeri pasa a esperar frente a
+  // su casa; con NO, no está y su puerta sigue cerrada (se le puede volver a hablar al aldeano para cambiar de opinión).
   const handleYes = () => {
     saveProgressToDB(undefined, 'aldeanoHelp', 'accepted');
     setAldeanoModalOpen(false);
+    useToastStore.getState().showToast('Imeri, la cazadora, te espera frente a su casa siguiendo el camino.');
   };
 
   const handleNo = () => {
     saveProgressToDB(undefined, 'aldeanoHelp', 'rejected');
     setAldeanoModalOpen(false);
+    useToastStore.getState().showToast('Sin la ayuda del aldeano, Imeri no estará en su casa y su puerta seguirá cerrada.');
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 100,
-      }}
-    >
-      <div
-        style={{
-          position: 'relative',
-          maxWidth: '90%',
-          maxHeight: '90%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 sm:p-4 select-none">
+      <div className="relative max-w-full max-h-[90vh] flex flex-col items-center justify-center">
         <img
-          src="/sprites-2d/aseets/preguntas-aldeanos.png"
+          src={ALDEANO_IMAGE_URL}
           alt="Pregunta del Aldeano"
-          style={{
-            maxWidth: '100%',
-            maxHeight: '80vh',
-            objectFit: 'contain',
-          }}
+          className="max-w-full max-h-[70vh] sm:max-h-[80vh] object-contain drop-shadow-2xl pointer-events-none"
         />
         
         {/* Buttons overlay */}
-        <div style={{ position: 'absolute', bottom: '20%', display: 'flex', gap: '40px' }}>
+        <div className="absolute bottom-[14%] sm:bottom-[18%] flex gap-4 sm:gap-10">
           <button 
+            type="button"
             onClick={handleYes}
-            style={{ 
-              padding: '10px 40px', 
-              fontSize: '1.8rem', 
-              fontWeight: 'bold', 
-              cursor: 'pointer', 
-              borderRadius: '8px', 
-              background: '#5c3a21', // Wood brown
-              color: '#f4d03f', // Gold/Yellowish text for "Yes"
-              border: '2px solid #3e2723',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.5)',
-              textShadow: '1px 1px 2px black'
-            }}
-            className="hover:scale-105 transition-transform"
+            className="px-6 py-1.5 sm:px-10 sm:py-2.5 text-lg sm:text-3xl font-bold cursor-pointer rounded-lg bg-[#5c3a21] text-[#f4d03f] border-2 border-[#3e2723] shadow-lg text-shadow hover:scale-105 active:scale-95 transition-transform"
           >
             SÍ
           </button>
           <button 
+            type="button"
             onClick={handleNo}
-            style={{ 
-              padding: '10px 40px', 
-              fontSize: '1.8rem', 
-              fontWeight: 'bold', 
-              cursor: 'pointer', 
-              borderRadius: '8px', 
-              background: '#5c3a21', // Same wood brown
-              color: '#ff6b6b', // Reddish text for "No"
-              border: '2px solid #3e2723',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.5)',
-              textShadow: '1px 1px 2px black'
-            }}
-            className="hover:scale-105 transition-transform"
+            className="px-6 py-1.5 sm:px-10 sm:py-2.5 text-lg sm:text-3xl font-bold cursor-pointer rounded-lg bg-[#5c3a21] text-[#ff6b6b] border-2 border-[#3e2723] shadow-lg text-shadow hover:scale-105 active:scale-95 transition-transform"
           >
             NO
           </button>

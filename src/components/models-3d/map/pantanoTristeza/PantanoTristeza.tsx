@@ -1,9 +1,9 @@
 import { PantanoPozos } from './PantanoPozos';
 import { PantanoTapas } from './PantanoTapas';
 
-export function PantanoTristeza(props: any) {
+export function PantanoTristeza() {
   return (
-    <group name="PantanoTristeza" {...props}>
+    <group name="PantanoTristeza">
       <PantanoPozos />
       <PantanoTapas />
     </group>

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { hasMochilaItem, MOCHILA_ITEMS, type MochilaItemId } from '../../../constants/recogibles';
+import { hasMochilaItem, isBackpackActive } from '../../../constants/mission';
+import { MOCHILA_ITEMS, type MochilaItemId } from '../../../constants/recogibles';
 import { useProgressStore } from '../../../store/progressStore';
 import { activateMochilaItem } from '../../../utils/mochilaActions';
 import { MochilaItemIcon } from './MochilaItemIcon';
@@ -8,11 +9,12 @@ import { MochilaItemIcon } from './MochilaItemIcon';
 const ITEM_KEYS: Record<MochilaItemId, string> = { gema: '1', soga: '2', insecticida: '3' };
 
 // Acceso rápido abajo a la derecha: los objetos que ya tienes se usan con un clic (o tocándolos) o con su tecla.
+// Un objeto gastado (la gema tras apagar al golem, el insecticida tras el último zumbador, la soga al final) desaparece.
 // En celular sube para no tapar los botones de saltar y correr.
 export function QuickItemBar({ raised }: { raised: boolean }) {
-  const active = useProgressStore((state) => state.progress.interactedWithImeri === true);
-  const collected = useProgressStore((state) => state.progress.collectedItems ?? []);
-  const owned = MOCHILA_ITEMS.filter((item) => hasMochilaItem(item.id, collected));
+  const progress = useProgressStore((state) => state.progress);
+  const active = isBackpackActive(progress);
+  const owned = MOCHILA_ITEMS.filter((item) => hasMochilaItem(item.id, progress));
   const ownedKey = owned.map((item) => item.id).join(',');
 
   useEffect(() => {
@@ -31,14 +33,11 @@ export function QuickItemBar({ raised }: { raised: boolean }) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        right: 'max(24px, env(safe-area-inset-right, 24px))',
-        bottom: raised ? 'max(190px, calc(env(safe-area-inset-bottom, 30px) + 160px))' : 'max(24px, env(safe-area-inset-bottom, 24px))',
-        zIndex: 30,
-        display: 'flex',
-        gap: '10px',
-      }}
+      className={`fixed right-[max(16px,env(safe-area-inset-right,16px))] z-30 flex gap-2 sm:gap-2.5 transition-all duration-200 ${
+        raised
+          ? 'bottom-[max(180px,calc(env(safe-area-inset-bottom,24px)+150px))]'
+          : 'bottom-[max(16px,env(safe-area-inset-bottom,16px))]'
+      }`}
     >
       {owned.map((item) => (
         <button
@@ -47,35 +46,12 @@ export function QuickItemBar({ raised }: { raised: boolean }) {
           onClick={() => activateMochilaItem(item.id)}
           title={`Usar ${item.name} (${ITEM_KEYS[item.id]})`}
           aria-label={`Usar ${item.name}`}
-          className="relative flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f4d03f]"
-          style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '14px',
-            background: 'rgba(244,228,188,0.92)',
-            border: '3px solid #5c3a21',
-            boxShadow: '0 6px 16px rgba(0,0,0,0.45)',
-          }}
+          className="relative flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#f4e4bc]/95 border-2 sm:border-[3px] border-[#5c3a21] shadow-xl hover:scale-110 active:scale-95 transition-transform cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f4d03f]"
         >
-          <MochilaItemIcon id={item.id} className="w-10 h-10" />
+          <MochilaItemIcon id={item.id} className="w-7 h-7 sm:w-10 sm:h-10" />
           <span
             aria-hidden="true"
-            style={{
-              position: 'absolute',
-              top: '-8px',
-              left: '-8px',
-              width: '22px',
-              height: '22px',
-              borderRadius: '6px',
-              background: '#5c3a21',
-              color: '#f4d03f',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px solid #f4e4bc',
-            }}
+            className="absolute -top-1.5 -left-1.5 sm:-top-2 sm:-left-2 w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#5c3a21] text-[#f4d03f] text-[10px] sm:text-xs font-bold flex items-center justify-center border sm:border-2 border-[#f4e4bc]"
           >
             {ITEM_KEYS[item.id]}
           </span>

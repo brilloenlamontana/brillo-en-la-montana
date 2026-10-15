@@ -1,14 +1,17 @@
+import { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { useLodScene } from '../../../../hooks/useLodScene';
+import { VISIBLE_FROM } from '../../../../constants/regionVisibility';
+import { useVisibleFrom } from '../../../../hooks/useRegion';
+import { mergeStaticMeshes } from '../../../../utils/mergeStaticMeshes';
 
-const PANTANO_TAPAS_URLS = ['/models-3d/map/PantanoTristeza/PantanoTapas.glb'];
-const PANTANO_TAPAS_DISTANCES = [0, 120];
+const PANTANO_TAPAS_URL = '/models-3d/map/PantanoTristeza/PantanoTapas.glb';
 
-export function PantanoTapas(props: any) {
-  const lodScene = useLodScene(PANTANO_TAPAS_URLS, PANTANO_TAPAS_DISTANCES);
-  return (
-    <primitive object={lodScene} {...props} />
-  );
+// Las tapas cubren los huecos del suelo sobre cada pozo. Juntas por material son 2 llamadas de dibujo en vez de 128.
+export function PantanoTapas() {
+  const { scene } = useGLTF(PANTANO_TAPAS_URL);
+  const merged = useMemo(() => mergeStaticMeshes(scene), [scene]);
+  const visible = useVisibleFrom(VISIBLE_FROM.tapas);
+  return <primitive object={merged} visible={visible} />;
 }
 
-useGLTF.preload(PANTANO_TAPAS_URLS);
+useGLTF.preload(PANTANO_TAPAS_URL);

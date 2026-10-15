@@ -1,8 +1,12 @@
-import { Suspense, useMemo } from 'react';
+import { useMemo } from 'react';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
+import { isHouseUnlocked } from '../../../../constants/mission';
+import { VISIBLE_FROM } from '../../../../constants/regionVisibility';
 import { CASA_IMERI_DOOR_ZONE, CASA_IMERI_INTERIOR_ZONE } from '../../../../constants/zones';
 import { usePlayerNear } from '../../../../hooks/usePlayerNear';
+import { useVisibleFrom } from '../../../../hooks/useRegion';
 import { useProgressStore } from '../../../../store/progressStore';
+import { useWorldStore } from '../../../../store/worldStore';
 import { CameraColliderBoxes, type ColliderBox } from '../../CameraColliderBoxes';
 import { HOUSE_POSITION, HOUSE_ROTATION_Y } from './houseFrame';
 import { ImeriExterior } from './ImeriExterior';
@@ -46,15 +50,18 @@ const CLOSED_DOOR_BOX: ColliderBox = { id: 'puerta-cerrada', position: [-2.88, 1
 // La cámara solo choca con paredes, techo y puerta; los muebles y macetas la acercarían de golpe sin necesidad.
 const isCameraBlocker = ({ id }: ColliderBox) => /^(pared|dintel|cielo|puerta-cerrada)/.test(id);
 
-export function CasaImeri(props: any) {
-  // La puerta solo se abre después de hablar con Imeri; desde entonces se abre y se cierra sola al acercarse.
-  const houseUnlocked = useProgressStore(
-    (state) => state.progress.aldeanoHelp === 'accepted' && state.progress.interactedWithImeri === true,
-  );
+// La puerta queda cerrada hasta que el jugador aceptó la ayuda del aldeano (Imeri espera en casa) y luego la de Imeri;
+// desde entonces se abre y se cierra sola al acercarse. Sin eso no se puede entrar.
+// El interior solo se dibuja estando en la casa con la puerta desbloqueada; desde la villa o el pantano nunca.
+export function CasaImeri() {
+  const houseUnlocked = useProgressStore((state) => isHouseUnlocked(state.progress));
   const playerNearHouse = usePlayerNear(CASA_IMERI_INTERIOR_ZONE);
   const playerAtDoor = usePlayerNear(CASA_IMERI_DOOR_ZONE);
+  const exteriorVisible = useVisibleFrom(VISIBLE_FROM.casaExterior);
+  const inCasaRegion = useVisibleFrom(VISIBLE_FROM.casaInterior);
+  const warming = useWorldStore((state) => state.warming);
   const doorOpen = houseUnlocked && playerAtDoor;
-  const showInterior = houseUnlocked && playerNearHouse;
+  const showInterior = warming || (houseUnlocked && playerNearHouse && inCasaRegion);
 
   const { houseBoxes, cameraBoxes } = useMemo(() => {
     const boxes = [...SHELL_BOXES, ...(houseUnlocked ? INTERIOR_BOXES : []), doorOpen ? OPEN_DOOR_BOX : CLOSED_DOOR_BOX];
@@ -62,14 +69,15 @@ export function CasaImeri(props: any) {
   }, [houseUnlocked, doorOpen]);
 
   return (
-    <group name="CasaImeri" {...props}>
-      <ImeriExterior doorOpen={doorOpen} />
-      {showInterior && (
-        <Suspense fallback={null}>
-          <ImeriInterior />
-          <Recogibles />
-        </Suspense>
-      )}
+    <group name="CasaImeri">
+      <group visible={exteriorVisible}>
+        <ImeriExterior doorOpen={doorOpen} />
+      </group>
+      {/* Montado siempre (se precarga y se compila al cargar el mundo): mostrarlo después no provoca tirones. */}
+      <group visible={showInterior}>
+        <ImeriInterior />
+        <Recogibles active={showInterior && !warming} />
+      </group>
       <RigidBody type="fixed" colliders={false} position={HOUSE_POSITION} rotation={[0, HOUSE_ROTATION_Y, 0]}>
         {houseBoxes.map(({ id, position, args, rotation }) => (
           <CuboidCollider key={id} position={position} args={args} rotation={rotation} />

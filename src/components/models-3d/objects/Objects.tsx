@@ -1,12 +1,14 @@
-import { useZoneStore } from '../../../store/zoneStore';
+import { VISIBLE_FROM } from '../../../constants/regionVisibility';
+import { MAYOR_CARD_POSITION, MAYOR_CARD_ROTATION_Y } from '../../../constants/zones';
+import { useVisibleFrom } from '../../../hooks/useRegion';
 import { Card } from './card/Card';
 
-export function Objects(props: any) {
-    const insideVillaBoj = useZoneStore((state) => state.insideVillaBoj);
+export function Objects() {
+    const visible = useVisibleFrom(VISIBLE_FROM.mayorCard);
 
     return (
-        <group name="objects" {...props} visible={!insideVillaBoj}>
-            <Card position={[0, 11, -5]} rotation-y={-Math.PI}/>
+        <group name="objects" visible={visible}>
+            <Card position={MAYOR_CARD_POSITION} rotation-y={MAYOR_CARD_ROTATION_Y} />
         </group>
     );
 }

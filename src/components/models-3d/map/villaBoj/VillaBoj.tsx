@@ -1,4 +1,6 @@
 import { CuboidCollider, CylinderCollider, RigidBody } from '@react-three/rapier';
+import { VISIBLE_FROM } from '../../../../constants/regionVisibility';
+import { useVisibleFrom } from '../../../../hooks/useRegion';
 import { Empalizada } from './Empalizada';
 import { Porton } from './Porton';
 import { Villa } from './Villa';
@@ -63,12 +65,16 @@ const PALISADE_BOXES: Box[] = (() => {
   });
 })();
 
-export function VillaBoj(props: any) {
+// Desde el pantano, el bosque o la colina la villa queda detrás de las montañas: no se dibuja (los colliders siguen).
+export function VillaBoj() {
+  const visible = useVisibleFrom(VISIBLE_FROM.villaBoj);
   return (
-    <group name="VillaBoj" {...props}>
-      <Empalizada />
-      <Porton />
-      <Villa />
+    <group name="VillaBoj">
+      <group visible={visible}>
+        <Empalizada />
+        <Porton />
+        <Villa />
+      </group>
       <RigidBody type="fixed" colliders={false}>
         {[...VILLA_BOXES, ...PALISADE_BOXES].map(({ id, position, args, rotation }) => (
           <CuboidCollider key={id} position={position} args={args} rotation={rotation} />

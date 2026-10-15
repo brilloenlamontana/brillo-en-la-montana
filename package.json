@@ -7,7 +7,15 @@
     "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:dev:clean": "docker compose -f docker-compose.dev.yml down --rmi all && docker compose -f docker-compose.dev.yml up --build",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up --build -d",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down",
+    "docker:prod:clean": "docker compose -f docker-compose.prod.yml down --rmi all && docker compose -f docker-compose.prod.yml up --build -d",
+    "docker:prune": "docker image prune -f",
+    "lods": "node scripts/generate-lods.mjs"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.5.1",

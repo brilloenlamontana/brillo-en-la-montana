@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { Html, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Box3, Vector3 } from 'three';
+import { isBackpackActive } from '../../../../../constants/mission';
 import { RECOGIBLES, RECOGIBLE_URLS, type RecogibleId } from '../../../../../constants/recogibles';
 import { useAvatarStore } from '../../../../../store/avatarStore';
 import { useProgressStore } from '../../../../../store/progressStore';
@@ -13,11 +14,11 @@ import { InteractionPrompt } from '../../../../ui/InteractionPrompt';
 const PICKUP_RANGE = 1.3;
 
 // Los recogibles están casi juntos sobre la mesa: solo el más cercano al jugador muestra el letrero y responde a E,
-// así una pulsación nunca guarda dos objetos a la vez.
-export function Recogibles() {
+// así una pulsación nunca guarda dos objetos a la vez. `active` = el interior de la casa está a la vista.
+export function Recogibles({ active }: { active: boolean }) {
   const gltfs = useGLTF(RECOGIBLE_URLS);
-  const collected = useProgressStore((state) => state.progress.collectedItems ?? []);
-  const backpackActive = useProgressStore((state) => state.progress.interactedWithImeri === true);
+  const collected = useProgressStore((state) => state.progress.collectedItems);
+  const backpackActive = useProgressStore((state) => isBackpackActive(state.progress));
 
   const items = useMemo(
     () =>
@@ -34,7 +35,7 @@ export function Recogibles() {
 
   useFrame(() => {
     let nearest: RecogibleId | null = null;
-    if (backpackActive) {
+    if (active && backpackActive) {
       const player = useAvatarStore.getState().playerPosition;
       let nearestDistance = PICKUP_RANGE;
       for (const item of items) {
