@@ -8,6 +8,11 @@ export const VISIBLE_FROM = {
   elfo: visibleFrom(['pantano', 'valle']),
 } as const;
 
+// Where the third-person camera collides with Challenge 2 geometry: the elf's house from its valley and from inside.
+export const CAMERA_BLOCKS_IN = {
+  casaElfo: visibleFrom(['valle'], ['elfo']),
+} as const;
+
 type BosquePart = 'arboles' | 'hongos' | 'manzanas';
 
 // Farthest distance from the camera (m) each part of the Dark Forest is drawn at, per region; unlisted = not drawn.

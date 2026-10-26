@@ -1,3 +1,4 @@
+import { listText } from '@/game/challenges/listText';
 import type { ItemState, MissionStep } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { ELFO_COLLECTIBLES, type ElfoItemId } from './items';
@@ -16,6 +17,16 @@ export const isElfoHouseUnlocked = (progress: Progress) => progress?.elfoHelp ==
 export const isBackpackActive = isElfoHouseUnlocked;
 
 export const getItemState = (id: ElfoItemId, progress: Progress): ItemState => (collected(progress).includes(id) ? 'owned' : 'missing');
+
+// How each tool is named in a sentence.
+const ITEM_LABEL: Record<ElfoItemId, string> = { espada: 'la espada élfica', lente: 'el lente revelador', mapa: 'el mapa del bosque' };
+
+// What the player has to do now (shown in the backpack).
+export function getGoal(progress: Progress): string {
+  const missing = ELFO_COLLECTIBLES.filter(({ id }) => !collected(progress).includes(id)).map(({ id }) => ITEM_LABEL[id]);
+  if (missing.length) return `Sube a la casa del elfo, en la copa del árbol gigante, y recoge ${listText(missing)}.`;
+  return 'Tienes las herramientas del elfo: adéntrate en el Bosque de la Oscuridad.';
+}
 
 const answerLabel = (help: string) => (help === 'accepted' ? 'Aceptó la ayuda' : help === 'rejected' ? 'Rechazó la ayuda' : 'Pendiente');
 

@@ -1,3 +1,4 @@
+import { listText } from '@/game/challenges/listText';
 import type { ItemState, MissionStep } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { POTION_IDS, type BackpackItemId } from './items';
@@ -34,6 +35,25 @@ export function getItemState(id: BackpackItemId, progress: Progress): ItemState 
 }
 
 export const hasItem = (id: BackpackItemId, progress: Progress) => getItemState(id, progress) === 'owned';
+
+// What the player has to do now (shown in the backpack): first what is left to pick up in Imeri's house, then what
+// is left to defeat in the swamp.
+export function getGoal(progress: Progress): string {
+  if (progress?.mision1Completada) return '¡Atravesaste el pantano! Busca la casa del elfo, suspendida de un árbol al otro lado.';
+  const items = collected(progress);
+  const pociones = POTION_IDS.length - countPociones(progress);
+  const missing = [...(items.includes('gema') ? [] : ['la gema']), ...(items.includes('soga') ? [] : ['la soga'])];
+  if (pociones > 0) missing.push(pociones === POTION_IDS.length ? 'las 5 pociones' : pociones === 1 ? 'la última poción' : `${pociones} pociones más`);
+  if (missing.length) {
+    return `Recoge en la casa de Imeri: ${listText(missing)}.${pociones > 0 ? ' Con las pociones preparas el insecticida.' : ''}`;
+  }
+  const zumbadores = ZUMBADOR_COUNT - defeatedZumbadores(progress);
+  const tasks = [
+    ...(progress?.golemDefeated ? [] : ['apaga al Golem con la gema']),
+    ...(zumbadores > 0 ? [`acaba con ${zumbadores === ZUMBADOR_COUNT ? 'los zumbadores' : `los ${zumbadores} zumbadores que quedan`} con el insecticida`] : []),
+  ];
+  return `En el Pantano de la Tristeza, ${listText(tasks)}. Si caes en un pozo, usa la soga para salir.`;
+}
 
 const answerLabel = (help: string) => (help === 'accepted' ? 'Aceptó la ayuda' : help === 'rejected' ? 'Rechazó la ayuda' : 'Pendiente');
 

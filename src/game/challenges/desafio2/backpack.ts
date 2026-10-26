@@ -4,7 +4,7 @@ import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { EspadaIcon, LenteIcon, MapaIcon } from './ItemIcons';
 import { ELFO_COLLECTIBLES, type ElfoItemId } from './items';
-import { getItemState, isBackpackActive } from './mission';
+import { getGoal, getItemState, isBackpackActive } from './mission';
 
 const toast = (message: string) => useToastStore.getState().showToast(message);
 const MODEL = Object.fromEntries(ELFO_COLLECTIBLES.map(({ id, url }) => [id, url])) as Record<ElfoItemId, string>;
@@ -34,6 +34,7 @@ export const DESAFIO2_BACKPACK: Backpack = {
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as ElfoItemId, progress),
   hint: () => 'En la casa del elfo',
+  goal: getGoal,
   use: (id) => {
     if (getItemState(id as ElfoItemId, useProgressStore.getState().progress) === 'owned') toast(PURPOSE[id as ElfoItemId]);
   },

@@ -129,7 +129,8 @@ Completar un desafío también las renueva. El panel de admin muestra estrellas,
 - **Colisiones:** solo cuboides y solo donde el avatar camina o choca (`CuboidColliders`). El único GLB de colisión es
   `LimiteMapa`. El terreno es una sola malla trimesh.
 - **Puertas** (`PhysicsDoor`): cuerpos cinemáticos. Nada las mueve salvo el avatar al chocar con la hoja; giran hacia el
-  lado contrario a él y se quedan donde las dejó. Bloqueadas (`locked`) quedan cerradas y no ceden.
+  lado contrario a él y se quedan donde las dejó. Bloqueadas (`locked`) quedan cerradas y no ceden. La caja de cada hoja
+  se mide con sus vértices en su dirección real (`doorLeaf.ts`), aunque el nodo esté modelado en diagonal.
 - **Calidad de imagen** (`engine/rendering/resolution.ts`): la resolución sigue al `PerformanceMonitor` (factor gradual,
   solo después de cargar), con MSAA y supermuestreo en escritorio y filtrado anisotrópico en todas las texturas.
 - **Rendimiento:**

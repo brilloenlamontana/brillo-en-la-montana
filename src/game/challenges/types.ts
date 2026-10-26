@@ -24,8 +24,10 @@ export interface Backpack {
   // The backpack shows this challenge's items from this point on (e.g. once its helper's offer was accepted).
   isActive: (progress: GameProgress) => boolean;
   stateOf: (id: string, progress: GameProgress) => ItemState;
-  // Caption under an empty slot ("Sin recoger", "Pociones 3/5"...).
+  // Caption under a slot that is not carried ("En la casa de Imeri", "Pociones 3/5"...).
   hint: (id: string, progress: GameProgress) => string;
+  // What the player has to do now: what is left to pick up and where, then what to use it on.
+  goal: (progress: GameProgress) => string;
   use: (id: string) => void;
 }
 

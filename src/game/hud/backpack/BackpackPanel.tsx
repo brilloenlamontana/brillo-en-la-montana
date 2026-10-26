@@ -11,6 +11,7 @@ import { BackpackIcon } from './BackpackIcon';
 type SlotRect = { x: number; y: number; size: number };
 
 const SPIN_SPEED = 1.2;
+const CANVAS_OVER_GRID = { position: 'absolute', inset: 0, pointerEvents: 'none' } as const;
 // Share of the slot the model fills.
 const MODEL_FILL = 0.62;
 
@@ -41,7 +42,8 @@ function SpinningItem({ url, slot }: { url: string; slot: SlotRect }) {
 
 type BackpackPanelProps = { backpack: Backpack; progress: GameProgress; onClose: () => void };
 
-// The open backpack: one slot per item of the active challenge, carried ones spinning in 3D (WebGPU, like the world).
+// The open backpack of the active challenge: what to do now, and one slot per item; carried ones spin in 3D (WebGPU,
+// like the world), the rest show their icon faded with where to find them.
 export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProps) {
   const states = backpack.items.map((item) => backpack.stateOf(item.id, progress));
   const ownedCount = states.filter((state) => state === 'owned').length;
@@ -109,24 +111,29 @@ export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProp
           </button>
         </header>
 
+        <div className="mb-3 sm:mb-4 rounded-xl border border-[#5c3a21]/30 bg-[#5c3a21]/10 px-3 py-2 sm:px-4 sm:py-2.5">
+          <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#5c3a21]">Qué debes hacer</p>
+          <p className="text-xs sm:text-sm leading-snug">{backpack.goal(progress)}</p>
+        </div>
+
         <div ref={gridRef} className="relative grid grid-cols-3 gap-2.5 sm:gap-4">
-          {backpack.items.map((item, i) => {
+          {backpack.items.map(({ id, name, Icon }, i) => {
             const owned = states[i] === 'owned';
             return (
-              <div key={item.id} className="flex flex-col items-center gap-1.5">
+              <div key={id} className="flex flex-col items-center gap-1">
                 <div
                   ref={(element) => {
                     slotRefs.current[i] = element;
                   }}
-                  className={`w-full aspect-square rounded-xl flex items-center justify-center font-bold text-xl sm:text-2xl transition-all ${
-                    owned ? 'border-2 border-[#5c3a21] bg-[#5c3a21]/15' : 'border-2 border-dashed border-[#5c3a21]/40 bg-[#5c3a21]/5 text-[#5c3a21]/45'
+                  className={`w-full aspect-square rounded-xl flex items-center justify-center transition-all ${
+                    owned ? 'border-2 border-[#5c3a21] bg-[#5c3a21]/15' : 'border-2 border-dashed border-[#5c3a21]/40 bg-[#5c3a21]/5'
                   }`}
                 >
-                  {!owned && (states[i] === 'spent' ? '✓' : '?')}
+                  {/* Not carried: what it looks like, faded (a check once used up). Carried ones spin in 3D on top. */}
+                  {!owned && (states[i] === 'spent' ? <span className="text-2xl font-bold text-[#5c3a21]/50">✓</span> : <Icon className="w-1/2 h-1/2 opacity-35 grayscale" />)}
                 </div>
-                <span className={`text-[11px] sm:text-xs text-center leading-tight line-clamp-2 ${owned ? 'font-semibold' : 'text-[#3e2723]/60'}`}>
-                  {owned ? item.name : backpack.hint(item.id, progress)}
-                </span>
+                <span className="text-[11px] sm:text-xs text-center leading-tight font-semibold">{name}</span>
+                {!owned && <span className="text-[10px] sm:text-[11px] text-center leading-tight text-[#3e2723]/60">{backpack.hint(id, progress)}</span>}
               </div>
             );
           })}
@@ -134,7 +141,8 @@ export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProp
             orthographic
             gl={createRenderer}
             camera={{ zoom: 1, position: [0, 0, 500], near: 0.1, far: 2000 }}
-            className="absolute inset-0 pointer-events-none"
+            // Inline: R3F's own inline `position: relative` would override a class and drop the canvas into the grid.
+            style={CANVAS_OVER_GRID}
           >
             <ambientLight intensity={1.4} />
             <directionalLight position={[200, 300, 400]} intensity={2} />

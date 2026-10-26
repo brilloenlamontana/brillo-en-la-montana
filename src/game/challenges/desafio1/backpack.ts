@@ -8,7 +8,7 @@ import { DESAFIO1_MODELS } from './assets';
 import { DIALOG } from './dialogs';
 import { GemaIcon, InsecticidaIcon, SogaIcon } from './ItemIcons';
 import { GEMA_RANGE, POTION_IDS, SPRAY_RANGE, type BackpackItemId } from './items';
-import { allZumbadoresDefeated, areWellsSafe, countPociones, getItemState, hasItem, isBackpackActive } from './mission';
+import { allZumbadoresDefeated, areWellsSafe, countPociones, getGoal, getItemState, hasItem, isBackpackActive } from './mission';
 import { usePantanoStore } from './pantanoStore';
 
 const DIR = DESAFIO1_MODELS.casaDeImeri.recogibles;
@@ -81,8 +81,9 @@ export const DESAFIO1_BACKPACK: Backpack = {
   stateOf: (id, progress) => getItemState(id as BackpackItemId, progress),
   hint: (id, progress) => {
     if (getItemState(id as BackpackItemId, progress) === 'spent') return 'Ya lo usaste';
-    return id === 'insecticida' ? `Pociones ${countPociones(progress)}/${POTION_IDS.length}` : 'Sin recoger';
+    return id === 'insecticida' ? `Pociones ${countPociones(progress)}/${POTION_IDS.length} · casa de Imeri` : 'En la casa de Imeri';
   },
+  goal: getGoal,
   use: (id) => {
     const progress = useProgressStore.getState().progress;
     if (usePlayerStore.getState().health <= 0 || !hasItem(id as BackpackItemId, progress)) return;
