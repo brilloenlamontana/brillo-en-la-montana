@@ -1,0 +1,38 @@
+[
+  {
+    "codigo": "00",
+    "nombre": "CALI"
+  },
+  {
+    "codigo": "01",
+    "nombre": "BUGA"
+  },
+  {
+    "codigo": "02",
+    "nombre": "CAICEDONIA"
+  },
+  {
+    "codigo": "03",
+    "nombre": "CARTAGO"
+  },
+  {
+    "codigo": "04",
+    "nombre": "PACIFICO"
+  },
+  {
+    "codigo": "05",
+    "nombre": "PALMIRA"
+  },
+  {
+    "codigo": "06",
+    "nombre": "TULUA"
+  },
+  {
+    "codigo": "07",
+    "nombre": "ZARZAL"
+  },
+  {
+    "codigo": "14",
+    "nombre": "YUMBO"
+  }
+]

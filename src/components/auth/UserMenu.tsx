@@ -1,0 +1,69 @@
+import { useState, type ReactNode } from 'react';
+import { ProfileModal } from '@/components/modals/ProfileModal';
+import { signOutUser } from '@/services/userService';
+import { useAuthStore } from '@/store/authStore';
+
+// Top-right bar: profile (opens ProfileModal) and sign out. `leading` goes to the left of the profile (e.g. the
+// backpack). Signing out clears the session; the onboarding redirect then takes the player to /login.
+export function UserMenu({ leading }: { leading?: ReactNode }) {
+  const user = useAuthStore((state) => state.user);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  if (!user) return null;
+
+  return (
+    <>
+      <nav
+        className="absolute top-[max(12px,env(safe-area-inset-top,12px))] right-[max(12px,env(safe-area-inset-right,12px))] z-20 select-none"
+        aria-label="Menú de usuario"
+      >
+        <div className="flex items-center gap-2 bg-white/90 hover:bg-white px-2.5 py-1.5 rounded-full border border-slate-200/90 shadow-md transition-all">
+          {leading}
+          <button
+            type="button"
+            onClick={() => setIsProfileOpen(true)}
+            title="Editar perfil y avatar"
+            aria-label="Editar perfil y avatar"
+            className="relative flex items-center justify-center rounded-full hover:scale-105 active:scale-95 transition-all outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#C8102E]"
+          >
+            <img
+              key={user.photoURL}
+              src={user.photoURL}
+              alt={user.name || 'Perfil'}
+              referrerPolicy="no-referrer"
+              className="w-8 h-8 rounded-full object-cover border border-red-200 shadow-xs"
+            />
+            <span
+              className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#C8102E] border-2 border-white flex items-center justify-center text-white shadow-xs"
+              aria-hidden="true"
+            >
+              <svg className="w-2 h-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            </span>
+          </button>
+
+          <div className="w-px h-5 bg-slate-200" />
+
+          <button
+            type="button"
+            onClick={() => signOutUser().catch((error) => console.error('Could not sign out:', error))}
+            title="Cerrar sesión"
+            aria-label="Cerrar sesión"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-600 hover:text-[#C8102E] hover:bg-red-50/80 active:scale-95 transition-all cursor-pointer"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span className="hidden md:inline text-[11px]">Salir</span>
+          </button>
+        </div>
+      </nav>
+
+      {isProfileOpen && <ProfileModal user={user} onClose={() => setIsProfileOpen(false)} />}
+    </>
+  );
+}

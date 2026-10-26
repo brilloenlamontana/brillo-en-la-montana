@@ -1,0 +1,38 @@
+[
+  {
+    "codigo": "1",
+    "nombre": "CIENCIAS NATURALES Y EXACTAS"
+  },
+  {
+    "codigo": "2",
+    "nombre": "HUMANIDADES"
+  },
+  {
+    "codigo": "3",
+    "nombre": "CIENCIAS SOCIALES Y ECONÓMICAS"
+  },
+  {
+    "codigo": "4",
+    "nombre": "EDUCACIÓN Y PEDAGOGÍA"
+  },
+  {
+    "codigo": "4A",
+    "nombre": "PSICOLOGÍA"
+  },
+  {
+    "codigo": "5",
+    "nombre": "ARTES INTEGRADAS"
+  },
+  {
+    "codigo": "6",
+    "nombre": "SALUD"
+  },
+  {
+    "codigo": "7",
+    "nombre": "INGENIERÍA"
+  },
+  {
+    "codigo": "8",
+    "nombre": "CIENCIAS DE LA ADMINISTRACIÓN"
+  }
+]
