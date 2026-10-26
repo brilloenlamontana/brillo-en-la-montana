@@ -41,8 +41,8 @@ const START_ROTATION: [number, number, number] = [0, PLAYER_START_ROTATION_Y, 0]
 
 type PlayerControllerProps = {
   children: ReactNode;
-  // The player died and is back at the respawn point (the game decides what a defeat costs).
-  onRespawn?: () => void;
+  // The player died: the game decides what the defeat costs and where the player comes back (RESPAWN_POINT if omitted).
+  onRespawn?: () => Point;
 };
 
 // Third-person character controller (ecctrl): keyboard, joystick and virtual buttons move the capsule; the camera
@@ -117,9 +117,8 @@ export function PlayerController({ children, onRespawn }: PlayerControllerProps)
       if (state.clock.elapsedTime - diedAt.current > DEATH_RESPAWN_DELAY) {
         diedAt.current = null;
         player.setCameraDistance(null);
-        teleport(RESPAWN_POINT);
+        teleport(onRespawn?.() ?? RESPAWN_POINT);
         player.restoreHealth();
-        onRespawn?.();
       }
       followWithCamera();
       return;

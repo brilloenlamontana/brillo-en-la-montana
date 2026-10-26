@@ -16,4 +16,5 @@ export const DESAFIO2_MODELS = {
     recogibles: `${DIR}/CasaDelElfo/ElfoRecogibles`,
   },
   elfo: '/models-3d/npcs/Elfo.glb',
+  duende: '/models-3d/enemies/Duende.glb',
 } as const;

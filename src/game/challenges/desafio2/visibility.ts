@@ -6,6 +6,8 @@ export const VISIBLE_FROM = {
   casaElfoExterior: visibleFrom(['pantano', 'valle', 'bosque'], ['elfo']),
   casaElfoInterior: visibleFrom(['valle'], ['elfo']),
   elfo: visibleFrom(['pantano', 'valle']),
+  // The goblins only exist in the forest and its valley; far away they are unmounted.
+  duendes: visibleFrom(['valle', 'bosque']),
 } as const;
 
 // Where the third-person camera collides with Challenge 2 geometry: the elf's house from its valley and from inside.

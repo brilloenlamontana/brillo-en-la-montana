@@ -63,11 +63,11 @@ src/
    ├─ player/               Avatar, controlador (ecctrl), cámara, muerte y reaparición
    ├─ hud/                  Capa 2D sobre el canvas: vida, mochila, controles táctiles, diálogos tipo pergamino
    └─ challenges/
-      ├─ types.ts           Contrato Challenge (World, Dialogs, backpack, isCompleted, restart)
+      ├─ types.ts           Contrato Challenge (World, Dialogs, Hud, backpack, regions, startPoint, isCompleted)
       ├─ registry.ts        Lista ordenada de desafíos: lo único que el juego conoce de ellos
-      ├─ progression.ts     Desafío en curso y estrellas (derrotas y reinicios)
+      ├─ progression.ts     Desafío en curso y bajos (qué se pierde y dónde reaparece al morir)
       ├─ desafio1/          Pantano de la Tristeza (con lógica completa)
-      ├─ desafio2/          Bosque de la Oscuridad (el elfo, su casa y su mochila; el bosque solo se renderiza)
+      ├─ desafio2/          Bosque de la Oscuridad (el elfo, su casa, su mochila, los duendes y las frutas con el lente)
       ├─ desafio3/          Túneles de la Cumbre (solo se renderiza)
       └─ relatoCierre/      Cumbre y santuario (solo se renderiza)
 ```
@@ -82,6 +82,7 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
 | `index.ts` | Exporta el `Challenge`: título, mundo 3D, diálogos y mochila |
 | `Desafio1World.tsx` | Compone las piezas 3D del desafío |
 | `Desafio1Dialogs.tsx` | Diálogos DOM sobre el canvas |
+| `Desafio2Hud.tsx` (opcional) | HUD propio del desafío sobre el canvas (p. ej. la barra de hambre y la vista del lente) |
 | `assets.ts` | Rutas de todos los GLB e imágenes que carga |
 | `visibility.ts` | Desde qué regiones se dibuja cada pieza y dónde choca la cámara |
 | `mission.ts` | Reglas puras sobre el progreso (sin React ni three): las usa el juego **y** el panel de admin |
@@ -105,10 +106,25 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
    aviso de pantano superado.
 6. **Elfo** (solo después del desafío 1): explica los peligros del bosque. Con **Sí**, su puerta se abre y la mochila
    cambia a sus herramientas (espada, lente, mapa).
+7. **Duendes** (Bosque de la Oscuridad): 6 duendes esperan repartidos por el bosque. Al entrar te persiguen, cada uno
+   con su velocidad y rodeándote desde un ángulo distinto, y te golpean de cerca. La espada (clic o tecla 1, como el
+   insecticida) derriba a todos los que estén a su alcance; al caer el último, la espada sale de la mochila.
+8. **Hambre y frutas** (Bosque de la Oscuridad): dentro del bosque se vacía la barra de hambre y, vacía, quita vida. Las
+   90 frutas del bosque se ven rojas; cerca de un tercio son buenas (siempre las mismas, `isFrutoBueno` en
+   `mission.ts`). El lente (tecla 2) se enciende y apaga: con él puesto, las buenas cercanas se ven amarillas. Comer
+   una buena (E o tocar) llena la barra y da vida; una venenosa mata (un bajo). Tras comer 3 buenas se acaba el hambre
+   y el lente sale de la mochila.
 
-**Estrellas:** cada desafío se juega con 3 estrellas. Morir te devuelve a Villa Boj con la vida llena y una estrella
-menos. Al perder la tercera, el desafío en curso se reinicia (`restart` de su `Challenge`) y las estrellas vuelven a 3.
-Completar un desafío también las renueva. El panel de admin muestra estrellas, derrotas y reinicios.
+**Bajos (vidas):** hay 3 estrellas para todo el juego, como el rendimiento académico. Morir es caer en un bajo:
+
+| Bajo | Qué pasa |
+| --- | --- |
+| Primero | Reapareces al inicio del desafío donde caíste (`startPoint`: Villa Boj, casa del elfo, pueblo…) con todo tu progreso |
+| Segundo | Vuelves a Villa Boj y se pierde toda la historia (desafío 1, 2…): se empieza desde cero |
+| Tercero | Sales de la carrera: se borra el personaje, eliges otro avatar y empiezas con 3 estrellas |
+
+El desafío "donde caíste" se decide por la región (`regions` de cada `Challenge`). El panel de admin muestra estrellas,
+derrotas por desafío y cuántos segundos y terceros bajos tuvo cada estudiante.
 
 ### Cómo añadir un desafío
 
@@ -116,7 +132,8 @@ Completar un desafío también las renueva. El panel de admin muestra estrellas,
    un `Challenge` (ver `types.ts`).
 2. Si tiene diálogos, exportar `Dialogs`; si tiene mochila, implementar `Backpack` (como `desafio1/backpack.ts`). La
    mochila visible es la del último desafío cuya `isActive` sea verdadera.
-3. Definir `isCompleted` (cuándo pasa al siguiente) y `restart` (qué se reinicia al perder las 3 estrellas).
+3. Definir `regions` (dónde se juega), `startPoint` (dónde reaparece tras un primer bajo) e `isCompleted` (cuándo pasa
+   al siguiente).
 4. Si tiene reglas, escribirlas como funciones puras en `mission.ts` y agregar sus campos a `GameProgress`
    (`store/progressStore.ts`).
 5. Si introduce una región nueva del mapa, añadir su forma en `world/geography.ts` y su caso en `world/regions.ts`.

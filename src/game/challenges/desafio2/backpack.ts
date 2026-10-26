@@ -1,20 +1,47 @@
 import type { Backpack } from '@/game/challenges/types';
+import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
+import { useBosqueStore } from './bosqueStore';
 import { EspadaIcon, LenteIcon, MapaIcon } from './ItemIcons';
-import { ELFO_COLLECTIBLES, type ElfoItemId } from './items';
-import { getGoal, getItemState, isBackpackActive } from './mission';
+import { ELFO_COLLECTIBLES, SWORD_RANGE, type ElfoItemId } from './items';
+import { DUENDE_COUNT, getGoal, getItemState, isBackpackActive } from './mission';
 
 const toast = (message: string) => useToastStore.getState().showToast(message);
 const MODEL = Object.fromEntries(ELFO_COLLECTIBLES.map(({ id, url }) => [id, url])) as Record<ElfoItemId, string>;
 
-// What each tool is for. Their effects arrive with the Dark Forest mechanics; for now using one recalls its purpose.
-const PURPOSE: Record<ElfoItemId, string> = {
-  espada: 'La espada élfica te defenderá de los duendes salvajes del bosque.',
-  lente: 'El lente revela cuáles frutos del bosque son venenosos.',
-  mapa: 'El mapa te ayudará a no perderte en los senderos cambiantes del bosque.',
-};
+// What the map is for. Its effect arrives with the shifting paths; for now using it recalls its purpose.
+const MAP_PURPOSE = 'El mapa te ayudará a no perderte en los senderos cambiantes del bosque.';
+
+// Looking through the lens, or putting it away (see frutos/).
+function toggleLente() {
+  const { lente, toggleLente } = useBosqueStore.getState();
+  toggleLente();
+  toast(lente ? 'Guardas el lente revelador.' : 'Miras a través del lente: las frutas buenas se ven amarillas y las venenosas siguen rojas.');
+}
+
+// A sword swing (click or hotkey, like the insecticide): every live goblin within reach falls.
+function swingSword() {
+  useBosqueStore.getState().slash();
+  const player = usePlayerStore.getState().position;
+  const { progress } = useProgressStore.getState();
+  const hit = useBosqueStore
+    .getState()
+    .duendes.flatMap((duende, i) => (duende.active && duende.position.distanceTo(player) <= SWORD_RANGE ? [i] : []));
+  if (!hit.length) {
+    toast('Ningún duende está a tu alcance. Espera a que se acerquen.');
+    return;
+  }
+  const defeated = [...new Set([...progress.duendesDefeated, ...hit])];
+  saveProgress({ duendesDefeated: defeated });
+  const left = DUENDE_COUNT - defeated.length;
+  toast(
+    left > 0
+      ? `${hit.length > 1 ? `¡Derrotaste ${hit.length} duendes!` : '¡Derrotaste un duende!'} Quedan ${left}.`
+      : '¡Acabaste con todos los duendes! La espada élfica cumplió su misión.',
+  );
+}
 
 // Picking up one of the elf's tools.
 export function collectElfoItem(id: string) {
@@ -36,6 +63,10 @@ export const DESAFIO2_BACKPACK: Backpack = {
   hint: () => 'En la casa del elfo',
   goal: getGoal,
   use: (id) => {
-    if (getItemState(id as ElfoItemId, useProgressStore.getState().progress) === 'owned') toast(PURPOSE[id as ElfoItemId]);
+    const item = id as ElfoItemId;
+    if (getItemState(item, useProgressStore.getState().progress) !== 'owned') return;
+    if (item === 'espada') swingSword();
+    else if (item === 'lente') toggleLente();
+    else toast(MAP_PURPOSE);
   },
 };

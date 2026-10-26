@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { loseStar } from './challenges/progression';
+import { handleDefeat } from './challenges/progression';
 import { CHALLENGES } from './challenges/registry';
 import { AdaptiveResolution } from './engine/rendering/AdaptiveResolution';
 import { createRenderer } from './engine/rendering/renderer';
@@ -26,7 +26,7 @@ export function GameCanvas() {
           {CHALLENGES.map(({ id, World }) => (
             <World key={id} />
           ))}
-          <Player onRespawn={loseStar} />
+          <Player onRespawn={handleDefeat} />
         </Physics>
         <Warmup />
       </Suspense>

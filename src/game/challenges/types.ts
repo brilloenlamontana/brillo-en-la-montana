@@ -1,4 +1,6 @@
 import type { ComponentType } from 'react';
+import type { Point } from '@/game/player/playerStore';
+import type { Region } from '@/game/world/regions';
 import type { GameProgress } from '@/store/progressStore';
 
 // A step of a mission as the admin dashboard lists it.
@@ -31,14 +33,6 @@ export interface Backpack {
   use: (id: string) => void;
 }
 
-// What happens when the player loses the last star in a challenge: the challenge starts over.
-export interface ChallengeRestart {
-  // Shown in the defeat dialog.
-  message: readonly string[];
-  // Progress fields to put back as they were at the start of the challenge.
-  reset: (progress: GameProgress) => Partial<GameProgress>;
-}
-
 // A chapter of the story. Each lives in its own folder (desafio1, desafio2...) with everything it needs: its part of
 // the map, NPCs, enemies, dialogs, items and rules. The game only knows this contract (see registry.ts).
 export interface Challenge {
@@ -48,8 +42,13 @@ export interface Challenge {
   World: ComponentType;
   // DOM overlays (dialogs) drawn over the canvas.
   Dialogs?: ComponentType;
+  // Its own HUD pieces (bars, screen effects), drawn over the canvas under the game's HUD.
+  Hud?: ComponentType;
   backpack?: Backpack;
+  // Map regions it takes place in: a defeat there is a defeat in this challenge.
+  regions: readonly Region[];
+  // Where the player comes back after a first "bajo" in this challenge.
+  startPoint: Point;
   // Finished: the next challenge becomes the one being played. Without it the challenge is never finished.
   isCompleted?: (progress: GameProgress) => boolean;
-  restart?: ChallengeRestart;
 }

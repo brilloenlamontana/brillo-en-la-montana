@@ -1,5 +1,5 @@
 import { usePlayerStore } from '@/game/player/playerStore';
-import { STARS_PER_CHALLENGE, useProgressStore } from '@/store/progressStore';
+import { STARS, useProgressStore } from '@/store/progressStore';
 
 function Star({ lit }: { lit: boolean }) {
   return (
@@ -31,8 +31,8 @@ export function PlayerStatus() {
           <div className={`h-full transition-all duration-300 ease-in-out ${color}`} style={{ width: `${percent}%` }} />
         </div>
         <span className="text-slate-800 font-bold text-xs sm:text-base min-w-[28px] sm:min-w-[36px] text-right">{Math.ceil(health)}</span>
-        <div className="flex items-center" role="img" aria-label={`${estrellas} de ${STARS_PER_CHALLENGE} estrellas`}>
-          {Array.from({ length: STARS_PER_CHALLENGE }, (_, i) => (
+        <div className="flex items-center" role="img" aria-label={`${estrellas} de ${STARS} estrellas`}>
+          {Array.from({ length: STARS }, (_, i) => (
             <Star key={i} lit={i < estrellas} />
           ))}
         </div>

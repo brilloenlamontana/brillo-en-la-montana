@@ -2,7 +2,7 @@ import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc, whe
 import { getMissionSummary } from '@/game/challenges/desafio1/mission';
 import { getDesafio2Summary } from '@/game/challenges/desafio2/mission';
 import type { UserData } from '@/store/authStore';
-import { normalizeProgress, STARS_PER_CHALLENGE, type GameProgress } from '@/store/progressStore';
+import { normalizeProgress, STARS, type GameProgress } from '@/store/progressStore';
 import { db } from './firebase';
 import { signInWithGoogle, signOutUser } from './userService';
 
@@ -148,9 +148,13 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
     'Golem Desactivado',
     'Estrellas',
     'Derrotas (Misión 1)',
-    'Reinicios (Misión 1)',
+    'Derrotas (Misión 2)',
+    'Segundos Bajos',
+    'Terceros Bajos',
     'Ayuda del Elfo',
     'Herramientas del Elfo',
+    'Duendes Derrotados',
+    'Frutas Buenas Comidas',
     'Última Actividad',
     'Autorización de Datos',
     'Fecha de Autorización',
@@ -179,11 +183,15 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
       escapeCSV(step('insecticida').status),
       escapeCSV(step('zumbadores').status),
       escapeCSV(yesNo(step('golem').done)),
-      escapeCSV(`${u.progress.estrellas} de ${STARS_PER_CHALLENGE}`),
+      escapeCSV(`${u.progress.estrellas} de ${STARS}`),
       escapeCSV(u.progress.derrotas.desafio1 ?? 0),
-      escapeCSV(u.progress.reinicios.desafio1 ?? 0),
+      escapeCSV(u.progress.derrotas.desafio2 ?? 0),
+      escapeCSV(u.progress.reinicios.segundoBajo ?? 0),
+      escapeCSV(u.progress.reinicios.tercerBajo ?? 0),
       escapeCSV(desafio2.unlocked ? desafio2.steps[0].status : 'Bloqueada'),
-      escapeCSV(`${desafio2.steps.filter((s) => s.id !== 'elfo' && s.done).length} de 3`),
+      escapeCSV(`${desafio2.steps.filter((s) => s.id.startsWith('recoger') && s.done).length} de 3`),
+      escapeCSV(desafio2.steps.find((s) => s.id === 'duendes')!.status),
+      escapeCSV(desafio2.steps.find((s) => s.id === 'frutos')!.status),
       escapeCSV(u.progressUpdatedAt ? new Date(u.progressUpdatedAt).toLocaleString('es-CO') : 'Sin actividad'),
     ];
   };

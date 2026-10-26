@@ -18,7 +18,7 @@ import {
 } from '@/services/adminService';
 import { isPopupDismissed, signOutUser } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
-import { STARS_PER_CHALLENGE } from '@/store/progressStore';
+import { STARS } from '@/store/progressStore';
 
 // Admin dashboard: every player's registration and Challenge 1 progress, live. Who sees it is decided here only for
 // the interface; the data itself must be protected by the Firestore security rules (see README).
@@ -754,13 +754,19 @@ export default function AdminPage() {
 
                     <p className="text-xs text-slate-600 mb-3.5 flex flex-wrap gap-x-4 gap-y-1">
                       <span>
-                        Estrellas: <strong>{selectedUser.progress.estrellas} de {STARS_PER_CHALLENGE}</strong>
+                        Estrellas: <strong>{selectedUser.progress.estrellas} de {STARS}</strong>
                       </span>
                       <span>
                         Derrotas en el pantano: <strong>{selectedUser.progress.derrotas.desafio1 ?? 0}</strong>
                       </span>
                       <span>
-                        Reinicios del desafío: <strong>{selectedUser.progress.reinicios.desafio1 ?? 0}</strong>
+                        Derrotas en el bosque: <strong>{selectedUser.progress.derrotas.desafio2 ?? 0}</strong>
+                      </span>
+                      <span>
+                        Segundos bajos: <strong>{selectedUser.progress.reinicios.segundoBajo ?? 0}</strong>
+                      </span>
+                      <span>
+                        Terceros bajos: <strong>{selectedUser.progress.reinicios.tercerBajo ?? 0}</strong>
                       </span>
                     </p>
 

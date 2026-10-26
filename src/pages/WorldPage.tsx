@@ -8,7 +8,7 @@ import { useWebGPUSupport } from '@/game/engine/rendering/useWebGPUSupport';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { GameCanvas } from '@/game/GameCanvas';
 import { BackpackButton } from '@/game/hud/backpack/BackpackButton';
-import { DefeatDialog } from '@/game/hud/DefeatDialog';
+import { BajoDialog } from '@/game/hud/BajoDialog';
 import { QuickItemBar } from '@/game/hud/backpack/QuickItemBar';
 import { MobileControls } from '@/game/hud/MobileControls';
 import { MobileControlsToggle } from '@/game/hud/MobileControlsToggle';
@@ -34,6 +34,7 @@ export default function WorldPage() {
   return (
     <main className="w-screen h-screen relative overflow-hidden select-none">
       {webgpu === 'ok' && <GameCanvas />}
+      {CHALLENGES.map(({ id, Hud }) => Hud && <Hud key={id} />)}
       {isMobile && (
         <MobileControlsToggle showMobileControls={showTouchControls} detectedMobile={isMobile} setManualControlsToggle={setTouchControls} />
       )}
@@ -43,7 +44,7 @@ export default function WorldPage() {
       <PlayerStatus />
       <Toast />
       {CHALLENGES.map(({ id, Dialogs }) => Dialogs && <Dialogs key={id} />)}
-      <DefeatDialog />
+      <BajoDialog />
       {!ready && <LoadingScreen />}
     </main>
   );

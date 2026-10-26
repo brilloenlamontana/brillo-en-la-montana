@@ -1,7 +1,7 @@
 import type { Backpack } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
-import { STARS_PER_CHALLENGE, useProgressStore, type GameProgress } from '@/store/progressStore';
+import { useProgressStore, type GameProgress } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { useUIStore } from '@/store/uiStore';
 import { DESAFIO1_MODELS } from './assets';
@@ -14,15 +14,13 @@ import { usePantanoStore } from './pantanoStore';
 const DIR = DESAFIO1_MODELS.casaDeImeri.recogibles;
 const toast = (message: string) => useToastStore.getState().showToast(message);
 
-// Saves an enemy defeat. With no enemy left Challenge 1 is completed: the stars refill for the next challenge and the
-// "swamp crossed" dialog opens. Returns whether it was completed now.
+// Saves an enemy defeat. With no enemy left Challenge 1 is completed and the "swamp crossed" dialog opens. Returns whether it was completed now.
 function saveVictory(changes: Partial<GameProgress>): boolean {
   const next = { ...useProgressStore.getState().progress, ...changes };
   const completedNow = areWellsSafe(next) && !next.mision1Completada;
   if (completedNow) {
     changes.mision1Completada = true;
     changes.mision1CompletadaEn = new Date().toISOString();
-    changes.estrellas = STARS_PER_CHALLENGE;
   }
   saveProgress(changes);
   if (completedNow) useUIStore.getState().openDialog(DIALOG.pantanoSuperado);
