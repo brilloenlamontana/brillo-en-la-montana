@@ -9,3 +9,5 @@ export const HEDRIG_COLLECTIBLES = [
   { id: 'brujula', name: 'Brújula', url: `${DIR}/Brujula.glb` },
   { id: 'muneca', name: 'Muñeca de trapo', url: `${DIR}/Muneca.glb` },
 ] as const satisfies readonly Collectible[];
+
+export type HedrigItemId = (typeof HEDRIG_COLLECTIBLES)[number]['id'];

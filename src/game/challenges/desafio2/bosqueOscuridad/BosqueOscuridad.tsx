@@ -6,9 +6,11 @@ import { CuboidColliders } from '@/game/engine/physics/CuboidColliders';
 import { trunkColliders, type TrunkCore } from '@/game/engine/physics/trunkColliders';
 import { useInterior, useRegion } from '@/game/world/visibility';
 import { DESAFIO2_MODELS } from '../assets';
+import { FrutosBosque } from '../frutos/FrutosBosque';
 import { BOSQUE_MAX_DISTANCE, BOSQUE_MAX_DISTANCE_INDOORS } from '../visibility';
+import { BosqueMuroOculto } from './BosqueMuroOculto';
 
-const { arboles: ARBOLES_URL, hongos: HONGOS_URL, manzanas: MANZANAS_URL } = DESAFIO2_MODELS.bosqueOscuridad;
+const { arboles: ARBOLES_URL, hongos: HONGOS_URL } = DESAFIO2_MODELS.bosqueOscuridad;
 // The roots of these trees start ~1 m under the ground and spread wide, so the trunk is measured between these heights
 // above the lowest point of each model, where there are neither roots nor branches. The box then goes from that
 // lowest point up to TRUNK_HEIGHT.
@@ -33,8 +35,8 @@ function measuredTrunk(geometry: BufferGeometry): TrunkCore {
   return { center: new Vector3(cx, minY + TRUNK_HEIGHT / 2, cz), half: new Vector3(radius, TRUNK_HEIGHT / 2, radius) };
 }
 
-// "BosqueOscuridad" collection of Map.blend: trees, mushrooms and apples, only rendered (no game logic yet). The trunks
-// are its only colliders. Far from the forest nothing is drawn; from the swamp and the valley only the trees.
+// "BosqueOscuridad" collection of Map.blend: trees, mushrooms and the edible fruit (see frutos/). The trunks are its
+// only colliders. Far from the forest nothing is drawn; from the swamp and the valley only the trees.
 export function BosqueOscuridad() {
   const { scene: arbolesScene } = useGLTF(ARBOLES_URL);
   const trunks = useMemo(() => trunkColliders(arbolesScene, 'BosqueCorteza', measuredTrunk), [arbolesScene]);
@@ -50,10 +52,11 @@ export function BosqueOscuridad() {
     <group name="BosqueOscuridad">
       <InstancedField url={ARBOLES_URL} maxDistance={arboles ?? 0} enabled={arboles !== undefined} />
       <InstancedField url={HONGOS_URL} maxDistance={hongos ?? 0} enabled={hongos !== undefined} />
-      <InstancedField url={MANZANAS_URL} maxDistance={manzanas ?? 0} enabled={manzanas !== undefined} />
+      <FrutosBosque maxDistance={manzanas ?? 0} enabled={manzanas !== undefined} />
       <CuboidColliders boxes={trunks} />
+      <BosqueMuroOculto />
     </group>
   );
 }
 
-useGLTF.preload([ARBOLES_URL, HONGOS_URL, MANZANAS_URL]);
+useGLTF.preload([ARBOLES_URL, HONGOS_URL]);

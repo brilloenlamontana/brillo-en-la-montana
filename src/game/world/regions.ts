@@ -22,8 +22,25 @@ export type Region = 'villa' | 'camino' | 'casa' | 'pantano' | 'valle' | 'bosque
 // House the player is inside: indoors only the house and what shows through its doors and windows is drawn.
 export type Interior = 'imeri' | 'elfo' | 'hedrig' | 'santuario';
 
-// Every region, in the order the renderer warmup visits them while loading.
+// Every region, along the story.
 export const REGIONS: readonly Region[] = ['villa', 'camino', 'casa', 'pantano', 'valle', 'bosque', 'pueblo', 'tuneles', 'cumbre'];
+
+// Regions that border each other (walking from one leads straight into the other).
+const NEIGHBORS: Record<Region, readonly Region[]> = {
+  villa: ['camino'],
+  camino: ['villa', 'casa', 'pantano'],
+  casa: ['camino', 'pantano'],
+  pantano: ['camino', 'casa', 'valle'],
+  valle: ['pantano', 'bosque'],
+  bosque: ['valle', 'pueblo'],
+  pueblo: ['bosque', 'tuneles'],
+  tuneles: ['pueblo', 'cumbre'],
+  cumbre: ['tuneles'],
+};
+
+// Regions the renderer warmup visits while loading: the ones bordering where the player appears, then that one (the
+// last one visited is what shows first). Farther regions get ready the first time the player walks into them.
+export const warmupRegions = (start: Region): Region[] => [...NEIGHBORS[start], start];
 
 // 3D distance to the tunnel axis: the tunnels run under the town and the summit, so height matters.
 function distanceToTunnel(x: number, y: number, z: number): number {

@@ -63,11 +63,11 @@ src/
    ├─ player/               Avatar, controlador (ecctrl), cámara, muerte y reaparición
    ├─ hud/                  Capa 2D sobre el canvas: vida, mochila, controles táctiles, diálogos tipo pergamino
    └─ challenges/
-      ├─ types.ts           Contrato Challenge (World, Dialogs, backpack, isCompleted, restart)
+      ├─ types.ts           Contrato Challenge (World, Dialogs, Hud, backpack, regions, startPoint, isCompleted)
       ├─ registry.ts        Lista ordenada de desafíos: lo único que el juego conoce de ellos
-      ├─ progression.ts     Desafío en curso y estrellas (derrotas y reinicios)
+      ├─ progression.ts     Desafío en curso y bajos (qué se pierde y dónde reaparece al morir)
       ├─ desafio1/          Pantano de la Tristeza (con lógica completa)
-      ├─ desafio2/          Bosque de la Oscuridad (el elfo, su casa y su mochila; el bosque solo se renderiza)
+      ├─ desafio2/          Bosque de la Oscuridad (el elfo, su casa, su mochila, los duendes y las frutas con el lente)
       ├─ desafio3/          Túneles de la Cumbre (solo se renderiza)
       └─ relatoCierre/      Cumbre y santuario (solo se renderiza)
 ```
@@ -82,6 +82,7 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
 | `index.ts` | Exporta el `Challenge`: título, mundo 3D, diálogos y mochila |
 | `Desafio1World.tsx` | Compone las piezas 3D del desafío |
 | `Desafio1Dialogs.tsx` | Diálogos DOM sobre el canvas |
+| `Desafio2Hud.tsx` (opcional) | HUD propio del desafío sobre el canvas (p. ej. la barra de hambre y la vista del lente) |
 | `assets.ts` | Rutas de todos los GLB e imágenes que carga |
 | `visibility.ts` | Desde qué regiones se dibuja cada pieza y dónde choca la cámara |
 | `mission.ts` | Reglas puras sobre el progreso (sin React ni three): las usa el juego **y** el panel de admin |
@@ -105,10 +106,37 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
    aviso de pantano superado.
 6. **Elfo** (solo después del desafío 1): explica los peligros del bosque. Con **Sí**, su puerta se abre y la mochila
    cambia a sus herramientas (espada, lente, mapa).
+7. **Duendes** (Bosque de la Oscuridad): 6 duendes esperan repartidos por el bosque. Al entrar te persiguen, cada uno
+   con su velocidad y rodeándote desde un ángulo distinto, y te golpean de cerca. La espada (clic o tecla 1, como el
+   insecticida) derriba a todos los que estén a su alcance; al caer el último, la espada sale de la mochila.
+8. **Hambre y frutas** (Bosque de la Oscuridad): dentro del bosque se vacía la barra de hambre y, vacía, quita vida. Las
+   90 frutas del bosque se ven rojas; cerca de un tercio son buenas (siempre las mismas, `isFrutoBueno` en
+   `mission.ts`). El lente (tecla 2) se enciende y apaga: con él puesto, las buenas cercanas se ven amarillas. Comer
+   una buena (E o tocar) llena la barra y da vida; una venenosa mata (un bajo). Tras comer 3 buenas se acaba el hambre
+   y el lente sale de la mochila.
+9. **Mapa** (tecla 3): hunde el muro de roca oculto y aparece en el suelo un sendero de flechas doradas desde donde
+   está el jugador hasta la salida del bosque (`mapa/SenderoMapa.tsx`). La ruta (`mapa/senderoBosque.ts`) se calculó
+   con A* sobre el terreno, lejos de los troncos y de las pendientes fuertes.
 
-**Estrellas:** cada desafío se juega con 3 estrellas. Morir te devuelve a Villa Boj con la vida llena y una estrella
-menos. Al perder la tercera, el desafío en curso se reinicia (`restart` de su `Challenge`) y las estrellas vuelven a 3.
-Completar un desafío también las renueva. El panel de admin muestra estrellas, derrotas y reinicios.
+**Bajos (vidas):** hay 3 estrellas para todo el juego, como el rendimiento académico. Morir es caer en un bajo:
+
+| Bajo | Qué pasa |
+| --- | --- |
+| Primero | Reapareces al inicio del desafío donde caíste (`startPoint`: Villa Boj, casa del elfo, pueblo…) con todo tu progreso |
+| Segundo | Vuelves a Villa Boj y se pierde toda la historia (desafío 1, 2…): se empieza desde cero |
+| Tercero | Sales de la carrera: se borra el personaje, eliges otro avatar y empiezas con 3 estrellas |
+
+**Checkpoints (volver otro día):** al abrir el mundo, el avatar aparece donde va su historia (`resumeAt` de cada
+`Challenge`, leído una vez en `GameCanvas`): en la portada de Villa Boj; frente a la casa de Imeri si ya habló con
+ella; frente a la casa del elfo al superar el desafío 1; frente a la casa de Hedrig (la enana) al superar el desafío 2
+(con el mapa activado); en la cumbre después. Es independiente de los bajos.
+
+**Carga:** el calentamiento (`Warmup`) solo prepara la región donde aparece el avatar y sus vecinas; las demás se
+preparan la primera vez que se entra en ellas. El decodificador Draco se sirve desde `public/draco`. La consola
+muestra los tiempos con el prefijo `[carga]`.
+
+El desafío "donde caíste" se decide por la región (`regions` de cada `Challenge`). El panel de admin muestra estrellas,
+derrotas por desafío y cuántos segundos y terceros bajos tuvo cada estudiante.
 
 ### Cómo añadir un desafío
 
@@ -116,7 +144,8 @@ Completar un desafío también las renueva. El panel de admin muestra estrellas,
    un `Challenge` (ver `types.ts`).
 2. Si tiene diálogos, exportar `Dialogs`; si tiene mochila, implementar `Backpack` (como `desafio1/backpack.ts`). La
    mochila visible es la del último desafío cuya `isActive` sea verdadera.
-3. Definir `isCompleted` (cuándo pasa al siguiente) y `restart` (qué se reinicia al perder las 3 estrellas).
+3. Definir `regions` (dónde se juega), `startPoint` (dónde reaparece tras un primer bajo) e `isCompleted` (cuándo pasa
+   al siguiente).
 4. Si tiene reglas, escribirlas como funciones puras en `mission.ts` y agregar sus campos a `GameProgress`
    (`store/progressStore.ts`).
 5. Si introduce una región nueva del mapa, añadir su forma en `world/geography.ts` y su caso en `world/regions.ts`.
@@ -129,7 +158,8 @@ Completar un desafío también las renueva. El panel de admin muestra estrellas,
 - **Colisiones:** solo cuboides y solo donde el avatar camina o choca (`CuboidColliders`). El único GLB de colisión es
   `LimiteMapa`. El terreno es una sola malla trimesh.
 - **Puertas** (`PhysicsDoor`): cuerpos cinemáticos. Nada las mueve salvo el avatar al chocar con la hoja; giran hacia el
-  lado contrario a él y se quedan donde las dejó. Bloqueadas (`locked`) quedan cerradas y no ceden.
+  lado contrario a él y se quedan donde las dejó. Bloqueadas (`locked`) quedan cerradas y no ceden. La caja de cada hoja
+  se mide con sus vértices en su dirección real (`doorLeaf.ts`), aunque el nodo esté modelado en diagonal.
 - **Calidad de imagen** (`engine/rendering/resolution.ts`): la resolución sigue al `PerformanceMonitor` (factor gradual,
   solo después de cargar), con MSAA y supermuestreo en escritorio y filtrado anisotrópico en todas las texturas.
 - **Rendimiento:**

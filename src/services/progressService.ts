@@ -1,4 +1,4 @@
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { deleteField, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { useAuthStore } from '@/store/authStore';
 import { useProgressStore, type GameProgress } from '@/store/progressStore';
 import { db } from './firebase';
@@ -16,14 +16,16 @@ export async function saveProgress(changes: Partial<GameProgress>) {
 
   const userRef = doc(db, 'users', uid);
   const progressUpdatedAt = new Date().toISOString();
-  // Dot notation updates only these fields inside the progress map.
-  const fields = Object.fromEntries(Object.entries(changes).map(([key, value]) => [`progress.${key}`, value]));
+  // Dot notation updates only these fields inside the progress map; an undefined value removes the field (Firestore
+  // rejects undefined).
+  const fields = Object.fromEntries(Object.entries(changes).map(([key, value]) => [`progress.${key}`, value === undefined ? deleteField() : value]));
+  const defined = Object.fromEntries(Object.entries(changes).filter(([, value]) => value !== undefined));
   try {
     await updateDoc(userRef, { ...fields, progressUpdatedAt });
   } catch {
     // The document may not exist yet: create it.
     try {
-      await setDoc(userRef, { progress: changes, progressUpdatedAt }, { merge: true });
+      await setDoc(userRef, { progress: defined, progressUpdatedAt }, { merge: true });
     } catch (error) {
       console.error('Could not save the progress:', error);
     }

@@ -1,5 +1,5 @@
 import { signInWithPopup, signOut, type User } from 'firebase/auth';
-import { doc, getDoc, setDoc, type DocumentData } from 'firebase/firestore';
+import { deleteField, doc, getDoc, setDoc, type DocumentData } from 'firebase/firestore';
 import { findFacultadByCodigo, findProgramaByCodigo, findSedeByCodigo } from '@/data/univalle';
 import type { AvatarGender, UserData } from '@/store/authStore';
 import type { GameProgress } from '@/store/progressStore';
@@ -83,3 +83,7 @@ type Character = { nickname: string; avatarName: string; gender: AvatarGender };
 export const saveCharacter = (uid: string, character: Character) => setDoc(userRef(uid), character, { merge: true });
 
 export const saveProfile = (uid: string, profile: Character & { name: string }) => setDoc(userRef(uid), profile, { merge: true });
+
+// The run was lost (third "bajo"): the character is forgotten, so the onboarding asks to choose a new one.
+export const clearCharacter = (uid: string) =>
+  setDoc(userRef(uid), { nickname: deleteField(), avatarName: deleteField(), gender: deleteField() }, { merge: true });

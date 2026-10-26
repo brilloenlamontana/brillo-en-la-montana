@@ -1,9 +1,10 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
-import { Box3, Euler, MathUtils, Matrix4, Quaternion, Vector3, type Mesh, type Object3D } from 'three';
+import { MathUtils, Quaternion, Vector3, type Mesh, type Object3D } from 'three';
 import { restPose } from '@/game/engine/models/sceneUtils';
 import { usePlayerStore } from '@/game/player/playerStore';
+import { measureLeaf } from './doorLeaf';
 
 const UP = new Vector3(0, 1, 0);
 // The leaf starts turning when the avatar gets this close to it (capsule radius 0.3 + a margin), so the avatar pushes
@@ -24,7 +25,7 @@ function placeLeaf(target: Object3D, { hinge, targetPosition, targetQuaternion }
 const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
 
 type PhysicsDoorProps = {
-  // Leaf node as it comes from the GLB; its bounding box sizes the collider.
+  // Leaf node as it comes from the GLB; its vertices size the collider (see doorLeaf.ts).
   node: Object3D;
   // What is drawn and rotated (the node itself by default).
   target?: Object3D;
@@ -52,51 +53,33 @@ export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn 
     target.quaternion.copy(rest.quaternion);
     target.updateMatrix();
     node.updateWorldMatrix(true, true);
-    const nodePosition = new Vector3();
-    const nodeQuaternion = new Quaternion();
-    node.matrixWorld.decompose(nodePosition, nodeQuaternion, new Vector3());
-    // Leaf box in node space (aligned with the leaf, not with the world axes).
-    const toNode = new Matrix4().copy(node.matrixWorld).invert();
-    const box = new Box3();
+    const pivot = hingeProp ?? new Vector3().setFromMatrixPosition(node.matrixWorld);
+    // Closed pose (Imeri's house exports its door open): turned closedTurn around the hinge.
+    const close = new Quaternion().setFromAxisAngle(UP, closedTurn);
+    const points: Vector3[] = [];
     node.traverse((object) => {
       const mesh = object as Mesh;
       if (!mesh.isMesh) return;
-      if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
-      box.union(mesh.geometry.boundingBox!.clone().applyMatrix4(new Matrix4().multiplyMatrices(toNode, mesh.matrixWorld)));
-    });
-    const half = box.getSize(new Vector3()).multiplyScalar(0.5);
-    const centerWorld = box.getCenter(new Vector3()).applyMatrix4(node.matrixWorld);
-
-    // Closed pose (Imeri's house exports its door open).
-    const hinge = (hingeProp ?? nodePosition).clone().setY(centerWorld.y);
-    const close = new Quaternion().setFromAxisAngle(UP, closedTurn);
-    const closedCenter = centerWorld.clone().sub(hinge).applyQuaternion(close).add(hinge);
-    const closedQuaternion = nodeQuaternion.clone().premultiply(close);
-
-    // The leaf seen from above: a segment from the hinge along `direction`, as long as its farthest corner.
-    const direction = new Vector3(closedCenter.x - hinge.x, 0, closedCenter.z - hinge.z).normalize();
-    const toWorld = new Matrix4().makeTranslation(-hinge.x, -hinge.y, -hinge.z).premultiply(new Matrix4().makeRotationFromQuaternion(close)).multiply(node.matrixWorld);
-    let length = 0;
-    for (const x of [box.min.x, box.max.x]) {
-      for (const z of [box.min.z, box.max.z]) {
-        const corner = new Vector3(x, 0, z).applyMatrix4(toWorld);
-        length = Math.max(length, Math.hypot(corner.x, corner.z));
+      const position = mesh.geometry.attributes.position;
+      for (let i = 0; i < position.count; i++) {
+        points.push(new Vector3().fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld).sub(pivot).applyQuaternion(close).add(pivot));
       }
-    }
+    });
+    const leaf = measureLeaf(points, pivot);
 
     return {
-      hinge,
+      hinge: leaf.hinge,
       // Stable array: a new one per render would make Rapier reposition the body.
-      hingeArray: hinge.toArray() as [number, number, number],
-      targetPosition: target.position.clone().sub(hinge).applyQuaternion(close).add(hinge),
+      hingeArray: leaf.hinge.toArray() as [number, number, number],
+      targetPosition: target.position.clone().sub(leaf.hinge).applyQuaternion(close).add(leaf.hinge),
       targetQuaternion: target.quaternion.clone().premultiply(close),
-      direction,
-      length,
-      bottom: centerWorld.y - half.y,
-      top: centerWorld.y + half.y,
-      colliderPosition: closedCenter.clone().sub(hinge).toArray(),
-      colliderRotation: new Euler().setFromQuaternion(closedQuaternion).toArray().slice(0, 3) as [number, number, number],
-      halfExtents: [Math.max(half.x, 0.05), Math.max(half.y, 0.05), Math.max(half.z, 0.05)] as [number, number, number],
+      direction: leaf.along,
+      length: leaf.length,
+      bottom: leaf.bottom,
+      top: leaf.top,
+      colliderPosition: leaf.center.clone().sub(leaf.hinge).toArray(),
+      colliderRotation: [0, leaf.yaw, 0] as [number, number, number],
+      halfExtents: leaf.half,
     };
   }, [node, target, hingeProp, closedTurn]);
 

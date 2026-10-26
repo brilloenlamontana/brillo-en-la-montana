@@ -8,6 +8,7 @@ export const DESAFIO2_MODELS = {
     arboles: `${DIR}/BosqueOscuridad/BosqueArboles.glb`,
     hongos: `${DIR}/BosqueOscuridad/BosqueHongos.glb`,
     manzanas: `${DIR}/BosqueOscuridad/BosqueManzanas.glb`,
+    muroOculto: `${DIR}/BosqueOscuridad/BosqueMuroOculto.glb`,
   },
   casaDelElfo: {
     exterior: `${DIR}/CasaDelElfo/ElfoExterior.glb`,
@@ -16,4 +17,5 @@ export const DESAFIO2_MODELS = {
     recogibles: `${DIR}/CasaDelElfo/ElfoRecogibles`,
   },
   elfo: '/models-3d/npcs/Elfo.glb',
+  duende: '/models-3d/enemies/Duende.glb',
 } as const;

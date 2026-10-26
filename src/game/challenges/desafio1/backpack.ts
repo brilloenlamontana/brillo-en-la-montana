@@ -1,28 +1,27 @@
 import type { Backpack } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
-import { STARS_PER_CHALLENGE, useProgressStore, type GameProgress } from '@/store/progressStore';
+import { useProgressStore, type GameProgress } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { useUIStore } from '@/store/uiStore';
 import { DESAFIO1_MODELS } from './assets';
 import { DIALOG } from './dialogs';
 import { GemaIcon, InsecticidaIcon, SogaIcon } from './ItemIcons';
 import { GEMA_RANGE, POTION_IDS, SPRAY_RANGE, type BackpackItemId } from './items';
-import { allZumbadoresDefeated, areWellsSafe, countPociones, getItemState, hasItem, isBackpackActive } from './mission';
+import { allZumbadoresDefeated, areWellsSafe, countPociones, getGoal, getItemState, hasItem, isBackpackActive } from './mission';
 import { usePantanoStore } from './pantanoStore';
 
 const DIR = DESAFIO1_MODELS.casaDeImeri.recogibles;
 const toast = (message: string) => useToastStore.getState().showToast(message);
 
-// Saves an enemy defeat. With no enemy left Challenge 1 is completed: the stars refill for the next challenge and the
-// "swamp crossed" dialog opens. Returns whether it was completed now.
+// Saves an enemy defeat. With no enemy left Challenge 1 is completed and the "swamp crossed" dialog opens. Returns whether it was completed now.
 function saveVictory(changes: Partial<GameProgress>): boolean {
   const next = { ...useProgressStore.getState().progress, ...changes };
   const completedNow = areWellsSafe(next) && !next.mision1Completada;
   if (completedNow) {
     changes.mision1Completada = true;
     changes.mision1CompletadaEn = new Date().toISOString();
-    changes.estrellas = STARS_PER_CHALLENGE;
+    usePlayerStore.getState().restoreHealth();
   }
   saveProgress(changes);
   if (completedNow) useUIStore.getState().openDialog(DIALOG.pantanoSuperado);
@@ -81,8 +80,9 @@ export const DESAFIO1_BACKPACK: Backpack = {
   stateOf: (id, progress) => getItemState(id as BackpackItemId, progress),
   hint: (id, progress) => {
     if (getItemState(id as BackpackItemId, progress) === 'spent') return 'Ya lo usaste';
-    return id === 'insecticida' ? `Pociones ${countPociones(progress)}/${POTION_IDS.length}` : 'Sin recoger';
+    return id === 'insecticida' ? `Pociones ${countPociones(progress)}/${POTION_IDS.length} · casa de Imeri` : 'En la casa de Imeri';
   },
+  goal: getGoal,
   use: (id) => {
     const progress = useProgressStore.getState().progress;
     if (usePlayerStore.getState().health <= 0 || !hasItem(id as BackpackItemId, progress)) return;
