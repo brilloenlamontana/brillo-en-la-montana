@@ -153,7 +153,9 @@ function updateTrail(trail: Trail, player: Vector3, time: number, delta: number,
 export function SenderoMapa() {
   const visible = useVisibleFrom(VISIBLE_FROM.sendero);
   const activado = useProgressStore((state) => isMapaActivado(state.progress));
-  return visible && activado ? <Sendero /> : null;
+  // Its job is done once the player reaches Hedrig's town (Challenge 3 begins): it goes away for good.
+  const llegoAlPueblo = useProgressStore((state) => state.progress.llegoAlPueblo);
+  return visible && activado && !llegoAlPueblo ? <Sendero /> : null;
 }
 
 function Sendero() {

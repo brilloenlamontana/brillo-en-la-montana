@@ -47,6 +47,10 @@ export interface GameProgress {
   mapaActivado: boolean;
   mision2Completada: boolean;
   mision2CompletadaEn?: string;
+
+  // Challenge 3
+  // Reached Hedrig's mining town after the forest: the forest trail goes away and the backpack switches to hers.
+  llegoAlPueblo: boolean;
 }
 
 interface ProgressState {
@@ -74,6 +78,7 @@ export const STORY_START = {
   mapaActivado: false,
   mision2Completada: false,
   mision2CompletadaEn: undefined,
+  llegoAlPueblo: false,
 } as const satisfies Omit<GameProgress, 'estrellas' | 'derrotas' | 'reinicios'>;
 
 const DEFAULT_PROGRESS: GameProgress = {

@@ -5,6 +5,7 @@ import { useProgressStore } from '@/store/progressStore';
 import { handleDefeat, resumeSpawn } from './challenges/progression';
 import { CHALLENGES } from './challenges/registry';
 import { AdaptiveResolution } from './engine/rendering/AdaptiveResolution';
+import { RenderGate } from './engine/rendering/RenderGate';
 import { createRenderer } from './engine/rendering/renderer';
 import { START_DPR } from './engine/rendering/resolution';
 import { Player } from './player/Player';
@@ -25,6 +26,7 @@ export function GameCanvas() {
 
   return (
     <Canvas camera={{ position: [start.spawn.x, start.spawn.y + 1.5, start.spawn.z + 2], far: 450 }} dpr={START_DPR} gl={createRenderer}>
+      <RenderGate />
       <AdaptiveResolution />
       <Ambience />
       <ZoneTracker />
