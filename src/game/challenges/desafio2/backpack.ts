@@ -6,13 +6,26 @@ import { useToastStore } from '@/store/toastStore';
 import { useBosqueStore } from './bosqueStore';
 import { EspadaIcon, LenteIcon, MapaIcon } from './ItemIcons';
 import { ELFO_COLLECTIBLES, SWORD_RANGE, type ElfoItemId } from './items';
-import { DUENDE_COUNT, getGoal, getItemState, isBackpackActive } from './mission';
+import { DUENDE_COUNT, getGoal, getItemState, isBackpackActive, isMapaActivado } from './mission';
+import { saveDesafio2Victory } from './victory';
 
 const toast = (message: string) => useToastStore.getState().showToast(message);
 const MODEL = Object.fromEntries(ELFO_COLLECTIBLES.map(({ id, url }) => [id, url])) as Record<ElfoItemId, string>;
 
-// What the map is for. Its effect arrives with the shifting paths; for now using it recalls its purpose.
-const MAP_PURPOSE = 'El mapa te ayudará a no perderte en los senderos cambiantes del bosque.';
+// Activating the forest map lowers the hidden rock wall that blocks the mountain pass and lays a golden trail on the
+// ground from the player to the forest exit (mapa/SenderoMapa).
+function activarMapa() {
+  const { progress } = useProgressStore.getState();
+  if (isMapaActivado(progress)) {
+    toast('El mapa ya reveló el sendero oculto: sigue las flechas doradas del suelo hasta la salida del bosque.');
+    return;
+  }
+  useBosqueStore.getState().usarMapa();
+  const victory = saveDesafio2Victory({ mapaActivado: true });
+  if (!victory) {
+    toast('¡Activaste el mapa del bosque! El muro de piedra desciende y un sendero dorado aparece en el suelo: síguelo hasta la salida.');
+  }
+}
 
 // Looking through the lens, or putting it away (see frutos/).
 function toggleLente() {
@@ -34,13 +47,15 @@ function swingSword() {
     return;
   }
   const defeated = [...new Set([...progress.duendesDefeated, ...hit])];
-  saveProgress({ duendesDefeated: defeated });
+  const victory = saveDesafio2Victory({ duendesDefeated: defeated });
   const left = DUENDE_COUNT - defeated.length;
-  toast(
-    left > 0
-      ? `${hit.length > 1 ? `¡Derrotaste ${hit.length} duendes!` : '¡Derrotaste un duende!'} Quedan ${left}.`
-      : '¡Acabaste con todos los duendes! La espada élfica cumplió su misión.',
-  );
+  if (!victory) {
+    toast(
+      left > 0
+        ? `${hit.length > 1 ? `¡Derrotaste ${hit.length} duendes!` : '¡Derrotaste un duende!'} Quedan ${left}.`
+        : '¡Acabaste con todos los duendes! La espada élfica cumplió su misión.',
+    );
+  }
 }
 
 // Picking up one of the elf's tools.
@@ -60,13 +75,17 @@ export const DESAFIO2_BACKPACK: Backpack = {
   ],
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as ElfoItemId, progress),
-  hint: () => 'En la casa del elfo',
+  hint: (id, progress) => {
+    const state = getItemState(id as ElfoItemId, progress);
+    if (state === 'spent') return 'Ya lo usaste';
+    return 'En la casa del elfo';
+  },
   goal: getGoal,
   use: (id) => {
     const item = id as ElfoItemId;
     if (getItemState(item, useProgressStore.getState().progress) !== 'owned') return;
     if (item === 'espada') swingSword();
     else if (item === 'lente') toggleLente();
-    else toast(MAP_PURPOSE);
+    else if (item === 'mapa') activarMapa();
   },
 };

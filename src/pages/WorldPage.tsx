@@ -1,7 +1,8 @@
+// First: the GLTF loader must know where the Draco decoder is before the challenges preload their models.
+import '@/game/engine/models/dracoDecoder';
 import { useState } from 'react';
 import { useOnboardingRedirect } from '@/app/onboarding';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { LoadingScreen } from '@/components/LoadingScreen';
 import { Toast } from '@/components/Toast';
 import { CHALLENGES } from '@/game/challenges/registry';
 import { useWebGPUSupport } from '@/game/engine/rendering/useWebGPUSupport';
@@ -14,6 +15,7 @@ import { MobileControls } from '@/game/hud/MobileControls';
 import { MobileControlsToggle } from '@/game/hud/MobileControlsToggle';
 import { PlayerStatus } from '@/game/hud/PlayerStatus';
 import { RendererErrorScreen } from '@/game/hud/RendererErrorScreen';
+import { WorldLoadingScreen } from '@/game/hud/WorldLoadingScreen';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 // The game: the 3D world with its HUD and the dialogs of every challenge drawn over it.
@@ -45,7 +47,7 @@ export default function WorldPage() {
       <Toast />
       {CHALLENGES.map(({ id, Dialogs }) => Dialogs && <Dialogs key={id} />)}
       <BajoDialog />
-      {!ready && <LoadingScreen />}
+      {!ready && <WorldLoadingScreen />}
     </main>
   );
 }

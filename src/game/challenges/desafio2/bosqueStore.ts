@@ -18,6 +18,9 @@ interface BosqueState {
   // Looking through the elf's lens (toggled from the backpack).
   lente: boolean;
   toggleLente: () => void;
+  // Moment the map was used in this visit: the trail it reveals then spreads from the player (see mapa/).
+  mapaUsadoAt: number | null;
+  usarMapa: () => void;
   // Fullness, from MAX_HAMBRE down to 0 while the forest's hunger applies (`hambreActiva`); at 0 the player loses
   // health. Written by HambreDelBosque.
   hambre: number;
@@ -31,6 +34,8 @@ export const useBosqueStore = create<BosqueState>((set) => ({
   slash: () => set({ slashAt: performance.now() }),
   lente: false,
   toggleLente: () => set((state) => ({ lente: !state.lente })),
+  mapaUsadoAt: null,
+  usarMapa: () => set({ mapaUsadoAt: performance.now() }),
   hambre: MAX_HAMBRE,
   hambreActiva: false,
   setHambre: (hambre, hambreActiva) => set({ hambre, hambreActiva }),

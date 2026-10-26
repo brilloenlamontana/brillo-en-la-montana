@@ -1,4 +1,4 @@
-import type { Point } from '@/game/player/playerStore';
+import type { Point, Spawn } from '@/game/player/playerStore';
 import { useZoneStore } from '@/game/world/zoneStore';
 import { saveProgress } from '@/services/progressService';
 import { STARS, STORY_START, useProgressStore, type GameProgress } from '@/store/progressStore';
@@ -19,6 +19,10 @@ export const bajoDialog = (bajo: Bajo) => `bajo.${bajo}`;
 // The first challenge not finished yet (the last one once everything is finished).
 export const currentChallenge = (progress: GameProgress): Challenge =>
   CHALLENGES.find((challenge) => !challenge.isCompleted?.(progress)) ?? CHALLENGES[CHALLENGES.length - 1];
+
+// Checkpoint for a player who comes back another day: where the current challenge says it is resumed (Villa Boj gate,
+// Imeri's house, the elf's house, Hedrig's house...).
+export const resumeSpawn = (progress: GameProgress): Spawn => currentChallenge(progress).resumeAt(progress);
 
 // The challenge the player is in: the one that owns the current map region.
 const challengeHere = (progress: GameProgress): Challenge =>

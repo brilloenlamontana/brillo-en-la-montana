@@ -25,6 +25,12 @@ export const frutosEaten = (progress: Progress) => new Set(progress?.frutosComid
 export const allDuendesDefeated = (progress: Progress) => defeatedDuendes(progress) >= DUENDE_COUNT;
 // Fed: the forest's hunger no longer applies.
 export const isFed = (progress: Progress) => frutosEaten(progress) >= FRUTOS_NEEDED;
+// Hidden rock wall lowered by activating the map.
+export const isMapaActivado = (progress: Progress) => progress?.mapaActivado === true;
+
+// Challenge 2 is completely finished when duendes are defeated, player is fed, and map is activated.
+export const isDesafio2Completado = (progress: Progress) =>
+  progress?.mision2Completada === true || (allDuendesDefeated(progress) && isFed(progress) && isMapaActivado(progress));
 
 // The elf only waits at the foot of his tree once the swamp was crossed (Challenge 1 completed).
 export const isElfoPresent = (progress: Progress) => progress?.mision1Completada === true;
@@ -33,10 +39,12 @@ export const isElfoPresent = (progress: Progress) => progress?.mision1Completada
 export const isElfoHouseUnlocked = (progress: Progress) => progress?.elfoHelp === 'accepted';
 export const isBackpackActive = isElfoHouseUnlocked;
 
-// The sword leaves the backpack once every goblin is defeated; the lens once the player is fed.
+// The sword leaves the backpack once every goblin is defeated; the lens once the player is fed;
+// the map once the hidden wall has been lowered.
 export function getItemState(id: ElfoItemId, progress: Progress): ItemState {
   if (id === 'espada' && allDuendesDefeated(progress)) return 'spent';
   if (id === 'lente' && isFed(progress)) return 'spent';
+  if (id === 'mapa' && isMapaActivado(progress)) return 'spent';
   return collected(progress).includes(id) ? 'owned' : 'missing';
 }
 
@@ -45,6 +53,9 @@ const ITEM_LABEL: Record<ElfoItemId, string> = { espada: 'la espada élfica', le
 
 // What the player has to do now (shown in the backpack).
 export function getGoal(progress: Progress): string {
+  if (isDesafio2Completado(progress)) {
+    return '¡Superaste el Bosque de la Oscuridad! Tu vida está recuperada y el sendero hacia la cumbre está despejado: sigue las flechas doradas del suelo hasta la salida del bosque.';
+  }
   const missing = ELFO_COLLECTIBLES.filter(({ id }) => !collected(progress).includes(id)).map(({ id }) => ITEM_LABEL[id]);
   if (missing.length) return `Sube a la casa del elfo, en la copa del árbol gigante, y recoge ${listText(missing)}.`;
   const tasks: string[] = [];
@@ -60,8 +71,11 @@ export function getGoal(progress: Progress): string {
       `El hambre te obligará a comer: mira por el lente y come ${frutos === 1 ? 'una fruta amarilla más' : `${frutos} frutas amarillas`}; las que siguen rojas son venenosas.`,
     );
   }
+  if (!isMapaActivado(progress)) {
+    tasks.push('Usa el mapa del bosque para hacer descender el muro oculto y despejar el sendero.');
+  }
   if (tasks.length) return `Adéntrate en el Bosque de la Oscuridad. ${tasks.join(' ')}`;
-  return 'Acabaste con los duendes y saciaste tu hambre. Sigue tu camino por el Bosque de la Oscuridad.';
+  return 'Acabaste con los duendes, saciaste tu hambre y despejaste el sendero oculto. Sigue las flechas doradas del suelo hasta la salida del bosque.';
 }
 
 const answerLabel = (help: string) => (help === 'accepted' ? 'Aceptó la ayuda' : help === 'rejected' ? 'Rechazó la ayuda' : 'Pendiente');
@@ -72,6 +86,7 @@ export function getDesafio2Summary(progress: Progress) {
   const items = collected(progress);
   const duendes = defeatedDuendes(progress);
   const frutos = frutosEaten(progress);
+  const completed = isDesafio2Completado(progress);
   const steps: MissionStep[] = [
     {
       id: 'elfo',
@@ -89,6 +104,13 @@ export function getDesafio2Summary(progress: Progress) {
       done: frutos >= FRUTOS_NEEDED,
       status: `${Math.min(frutos, FRUTOS_NEEDED)}/${FRUTOS_NEEDED}`,
     },
+    {
+      id: 'mapa',
+      label: 'Despejar el sendero oculto',
+      detail: 'Con el mapa del bosque, haciendo descender el muro de roca',
+      done: isMapaActivado(progress),
+    },
   ];
-  return { unlocked: isElfoPresent(progress), steps, done: steps.filter((step) => step.done).length, total: steps.length };
+  const done = steps.filter((step) => step.done).length;
+  return { unlocked: isElfoPresent(progress), steps, done, total: steps.length, percent: Math.round((done / steps.length) * 100), completed };
 }

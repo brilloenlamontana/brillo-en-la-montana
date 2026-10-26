@@ -8,6 +8,7 @@ import { useInterior, useRegion } from '@/game/world/visibility';
 import { DESAFIO2_MODELS } from '../assets';
 import { FrutosBosque } from '../frutos/FrutosBosque';
 import { BOSQUE_MAX_DISTANCE, BOSQUE_MAX_DISTANCE_INDOORS } from '../visibility';
+import { BosqueMuroOculto } from './BosqueMuroOculto';
 
 const { arboles: ARBOLES_URL, hongos: HONGOS_URL } = DESAFIO2_MODELS.bosqueOscuridad;
 // The roots of these trees start ~1 m under the ground and spread wide, so the trunk is measured between these heights
@@ -53,6 +54,7 @@ export function BosqueOscuridad() {
       <InstancedField url={HONGOS_URL} maxDistance={hongos ?? 0} enabled={hongos !== undefined} />
       <FrutosBosque maxDistance={manzanas ?? 0} enabled={manzanas !== undefined} />
       <CuboidColliders boxes={trunks} />
+      <BosqueMuroOculto />
     </group>
   );
 }

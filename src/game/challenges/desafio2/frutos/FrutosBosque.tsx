@@ -9,7 +9,7 @@ import { usePlayerStore } from '@/game/player/playerStore';
 import { useProgressStore } from '@/store/progressStore';
 import { DESAFIO2_MODELS } from '../assets';
 import { EAT_RANGE, LENS_RANGE } from '../items';
-import { isFrutoBueno } from '../mission';
+import { isDesafio2Completado, isFrutoBueno } from '../mission';
 import { comerFruto } from './comer';
 import { isLenteActivo } from './lente';
 
@@ -152,9 +152,10 @@ export function FrutosBosque({ maxDistance, enabled }: FrutosBosqueProps) {
     VIEW_PROJECTION.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     FRUSTUM.setFromProjectionMatrix(VIEW_PROJECTION);
     const player = usePlayerStore.getState();
-    const eaten = useProgressStore.getState().progress.frutosComidos;
+    const progress = useProgressStore.getState().progress;
+    const eaten = progress.frutosComidos;
     const lens = isLenteActivo();
-    const canEat = enabled && player.health > 0;
+    const canEat = enabled && player.health > 0 && !isDesafio2Completado(progress);
     let nearest: number | null = null;
     let nearestDistance = EAT_RANGE;
     let changed = false;

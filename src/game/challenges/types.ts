@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import type { Point } from '@/game/player/playerStore';
+import type { Point, Spawn } from '@/game/player/playerStore';
 import type { Region } from '@/game/world/regions';
 import type { GameProgress } from '@/store/progressStore';
 
@@ -49,6 +49,9 @@ export interface Challenge {
   regions: readonly Region[];
   // Where the player comes back after a first "bajo" in this challenge.
   startPoint: Point;
+  // Checkpoint: where the avatar appears when the player comes back to play another day while this is the current
+  // challenge (a separate system from the "bajos").
+  resumeAt: (progress: GameProgress) => Spawn;
   // Finished: the next challenge becomes the one being played. Without it the challenge is never finished.
   isCompleted?: (progress: GameProgress) => boolean;
 }

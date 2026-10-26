@@ -8,6 +8,9 @@ export const VISIBLE_FROM = {
   elfo: visibleFrom(['pantano', 'valle']),
   // The goblins only exist in the forest and its valley; far away they are unmounted.
   duendes: visibleFrom(['valle', 'bosque']),
+  muroOculto: visibleFrom(['valle', 'bosque', 'pueblo']),
+  // The trail the map reveals runs from the forest entrance to past the wall, at the edge of Hedrig's town.
+  sendero: visibleFrom(['valle', 'bosque', 'pueblo']),
 } as const;
 
 // Where the third-person camera collides with Challenge 2 geometry: the elf's house from its valley and from inside.

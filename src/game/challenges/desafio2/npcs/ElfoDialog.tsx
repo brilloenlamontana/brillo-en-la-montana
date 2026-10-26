@@ -5,6 +5,8 @@ import { useToastStore } from '@/store/toastStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { DIALOG } from '../dialogs';
 
+import { isDesafio2Completado } from '../mission';
+
 // "Audio explicación del Elfo", from the scene schedule.
 const EXPLICACION = [
   'El mago se compadece del aventurero. Hace mucho tiempo vive en el bosque y conoce bien los peligros del camino, pero no puede acompañarte: es su magia la que mantiene a raya a los dragones de los alrededores para que no ataquen los pueblos. Su ayuda viene en forma de consejos y de herramientas que puedes pedirle si lo deseas.',
@@ -14,14 +16,33 @@ const EXPLICACION = [
   'Lo más peligroso del bosque son varias especies de frutales que, a pesar de ser casi idénticos a perales y manzanos, se cargan de frutos venenosos que matarían a cualquier ser imprudente.',
 ];
 
+const FELICITACION = [
+  '¡Lo lograste, valiente aventurero! Has demostrado gran destreza con la espada élfica, supiste ver la verdad con el lente revelador y encontraste el paso en la espesura con el mapa.',
+  'El camino hacia la Cumbre de la Desesperación está abierto ante ti. En la falda de la montaña encontrarás a la enana Hedrig en las ruinas del pueblo minero. Ten cuidado, pues los derrumbes y los espectros custodian las alturas.',
+  'Que la luz de los árboles sagrados guíe tus pasos.',
+];
+
 // The elf explains the dangers of the forest and offers his tools. Accepting opens his house (sword, lens and map
 // inside) and switches the backpack to Challenge 2. Refusing keeps the door closed; he can be asked again.
+// Once Challenge 2 is completed, he congratulates the player and points the way to Hedrig.
 export function ElfoDialog() {
   const isOpen = useDialogOpen(DIALOG.elfo);
-  const accepted = useProgressStore((state) => state.progress.elfoHelp === 'accepted');
+  const progress = useProgressStore((state) => state.progress);
   if (!isOpen) return null;
 
   const close = () => useUIStore.getState().closeDialog();
+  const completed = isDesafio2Completado(progress);
+  const accepted = progress.elfoHelp === 'accepted';
+
+  if (completed) {
+    return (
+      <ParchmentDialog title="El elfo del bosque" subtitle="Mago protector del bosque" paragraphs={FELICITACION}>
+        <div className="flex justify-end">
+          <ParchmentButton onClick={close}>Gracias, elfo</ParchmentButton>
+        </div>
+      </ParchmentDialog>
+    );
+  }
   const answer = (help: 'accepted' | 'rejected') => {
     saveProgress({ interactedWithElfo: true, elfoHelp: help });
     close();

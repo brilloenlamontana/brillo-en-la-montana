@@ -3,6 +3,8 @@ import { Vector3 } from 'three';
 
 export type PlayerAction = 'Idle' | 'Walking' | 'Running' | 'Death';
 export type Point = { x: number; y: number; z: number };
+// Where the avatar appears and which way it faces (yaw around +y; 0 faces +z).
+export type Spawn = Point & { yaw: number };
 
 const MAX_HEALTH = 100;
 

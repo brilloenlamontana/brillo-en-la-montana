@@ -114,6 +114,9 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
    `mission.ts`). El lente (tecla 2) se enciende y apaga: con él puesto, las buenas cercanas se ven amarillas. Comer
    una buena (E o tocar) llena la barra y da vida; una venenosa mata (un bajo). Tras comer 3 buenas se acaba el hambre
    y el lente sale de la mochila.
+9. **Mapa** (tecla 3): hunde el muro de roca oculto y aparece en el suelo un sendero de flechas doradas desde donde
+   está el jugador hasta la salida del bosque (`mapa/SenderoMapa.tsx`). La ruta (`mapa/senderoBosque.ts`) se calculó
+   con A* sobre el terreno, lejos de los troncos y de las pendientes fuertes.
 
 **Bajos (vidas):** hay 3 estrellas para todo el juego, como el rendimiento académico. Morir es caer en un bajo:
 
@@ -122,6 +125,15 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
 | Primero | Reapareces al inicio del desafío donde caíste (`startPoint`: Villa Boj, casa del elfo, pueblo…) con todo tu progreso |
 | Segundo | Vuelves a Villa Boj y se pierde toda la historia (desafío 1, 2…): se empieza desde cero |
 | Tercero | Sales de la carrera: se borra el personaje, eliges otro avatar y empiezas con 3 estrellas |
+
+**Checkpoints (volver otro día):** al abrir el mundo, el avatar aparece donde va su historia (`resumeAt` de cada
+`Challenge`, leído una vez en `GameCanvas`): en la portada de Villa Boj; frente a la casa de Imeri si ya habló con
+ella; frente a la casa del elfo al superar el desafío 1; frente a la casa de Hedrig (la enana) al superar el desafío 2
+(con el mapa activado); en la cumbre después. Es independiente de los bajos.
+
+**Carga:** el calentamiento (`Warmup`) solo prepara la región donde aparece el avatar y sus vecinas; las demás se
+preparan la primera vez que se entra en ellas. El decodificador Draco se sirve desde `public/draco`. La consola
+muestra los tiempos con el prefijo `[carga]`.
 
 El desafío "donde caíste" se decide por la región (`regions` de cada `Challenge`). El panel de admin muestra estrellas,
 derrotas por desafío y cuántos segundos y terceros bajos tuvo cada estudiante.

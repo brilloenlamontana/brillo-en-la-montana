@@ -178,13 +178,18 @@ export default function AdminPage() {
     });
   }, [users, searchQuery, sedeFilter, roleFilter]);
 
-  // Summary of Mission 1 across filtered users (administrators who play also count).
+  // Summary of Mission 1 & 2 across filtered users (administrators who play also count).
   const missionStats = useMemo(() => {
-    const summaries = filteredUsers.map((u) => getMissionSummary(u.progress));
-    const completed = summaries.filter((m) => m.completed).length;
-    const started = summaries.filter((m) => m.done > 0).length;
-    const average = summaries.length ? Math.round(summaries.reduce((sum, m) => sum + m.percent, 0) / summaries.length) : 0;
-    return { players: filteredUsers.length, completed, started, average };
+    const summaries1 = filteredUsers.map((u) => getMissionSummary(u.progress));
+    const completed1 = summaries1.filter((m) => m.completed).length;
+    const started1 = summaries1.filter((m) => m.done > 0).length;
+    const average1 = summaries1.length ? Math.round(summaries1.reduce((sum, m) => sum + m.percent, 0) / summaries1.length) : 0;
+
+    const summaries2 = filteredUsers.map((u) => getDesafio2Summary(u.progress));
+    const unlocked2 = summaries2.filter((m) => m.unlocked).length;
+    const completed2 = summaries2.filter((m) => m.completed).length;
+
+    return { players: filteredUsers.length, completed1, started1, average1, unlocked2, completed2 };
   }, [filteredUsers]);
 
 
@@ -346,17 +351,18 @@ export default function AdminPage() {
 
 
 
-        {/* Mission 1 summary (en vivo) */}
+        {/* Missions summary (en vivo) */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: 'Jugadores', value: missionStats.players },
-            { label: 'Han empezado la Misión 1', value: missionStats.started },
-            { label: 'Completaron la Misión 1', value: missionStats.completed },
-            { label: 'Avance promedio', value: `${missionStats.average}%` },
-          ].map(({ label, value }) => (
+            { label: 'Total Jugadores', value: missionStats.players, sub: `${missionStats.started1} han jugado` },
+            { label: 'Misión 1: Pantano', value: `${missionStats.completed1} superaron`, sub: `${missionStats.average1}% avance promedio` },
+            { label: 'Misión 2: En el Bosque', value: `${missionStats.unlocked2} llegaron`, sub: 'Desafío desbloqueado' },
+            { label: 'Misión 2: Completada', value: `${missionStats.completed2} superaron`, sub: 'Camino despejado' },
+          ].map(({ label, value, sub }) => (
             <div key={label} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
               <p className="text-xs uppercase tracking-wider font-semibold text-slate-500">{label}</p>
               <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
             </div>
           ))}
         </section>
@@ -453,7 +459,8 @@ export default function AdminPage() {
                   <th className="py-4 px-5">Código</th>
                   <th className="py-4 px-5">Sede y Programa</th>
                   <th className="py-4 px-5">Personaje</th>
-                  <th className="py-4 px-5 min-w-[180px]">Misión 1</th>
+                  <th className="py-4 px-5 min-w-[170px]">Misión 1: Pantano</th>
+                  <th className="py-4 px-5 min-w-[170px]">Misión 2: Bosque</th>
                   <th className="py-4 px-5 text-center">Datos Ley 1581</th>
                   <th className="py-4 px-5 text-center">Rol</th>
                   <th className="py-4 px-5 text-right">Ficha</th>
@@ -462,7 +469,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-slate-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-14 text-center text-slate-400">
+                    <td colSpan={9} className="py-14 text-center text-slate-400">
                       <div className="flex flex-col items-center justify-center gap-2.5">
                         <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -546,9 +553,9 @@ export default function AdminPage() {
                           {(() => {
                             const mission = getMissionSummary(u.progress);
                             return (
-                              <div className="min-w-[160px]">
+                              <div className="min-w-[150px]">
                                 <div className="flex items-center justify-between text-xs font-semibold mb-1">
-                                  <span className={mission.completed ? 'text-emerald-700' : 'text-slate-700'}>
+                                  <span className={mission.completed ? 'text-emerald-700 font-bold' : 'text-slate-700'}>
                                     {mission.completed ? 'Completada' : `${mission.done} de ${mission.total} pasos`}
                                   </span>
                                   <span className="text-slate-500">{mission.percent}%</span>
@@ -560,7 +567,46 @@ export default function AdminPage() {
                                   />
                                 </div>
                                 <p className="text-[11px] text-slate-400 mt-1">
-                                  {u.progressUpdatedAt ? `Activo: ${new Date(u.progressUpdatedAt).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}` : 'Sin actividad'}
+                                  {mission.completed && u.progress?.mision1CompletadaEn
+                                    ? `Superado: ${new Date(u.progress.mision1CompletadaEn).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`
+                                    : u.progressUpdatedAt
+                                      ? `Activo: ${new Date(u.progressUpdatedAt).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`
+                                      : 'Sin actividad'}
+                                </p>
+                              </div>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Mission 2 progress */}
+                        <td className="py-4 px-5">
+                          {(() => {
+                            const desafio2 = getDesafio2Summary(u.progress);
+                            if (!desafio2.unlocked) {
+                              return (
+                                <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg font-medium inline-block">
+                                  Bloqueada
+                                </span>
+                              );
+                            }
+                            return (
+                              <div className="min-w-[150px]">
+                                <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                                  <span className={desafio2.completed ? 'text-emerald-700 font-bold' : 'text-slate-700'}>
+                                    {desafio2.completed ? 'Completada' : `${desafio2.done} de ${desafio2.total} pasos`}
+                                  </span>
+                                  <span className="text-slate-500">{desafio2.percent}%</span>
+                                </div>
+                                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full ${desafio2.completed ? 'bg-emerald-500' : desafio2.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
+                                    style={{ width: `${desafio2.percent}%` }}
+                                  />
+                                </div>
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                  {desafio2.completed && u.progress?.mision2CompletadaEn
+                                    ? `Superado: ${new Date(u.progress.mision2CompletadaEn).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`
+                                    : `${desafio2.steps.find((s) => s.id === 'duendes')?.status} duendes · ${desafio2.steps.find((s) => s.id === 'frutos')?.status} frutas`}
                                 </p>
                               </div>
                             );
@@ -781,15 +827,39 @@ export default function AdminPage() {
                 return (
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
-                      <h4 className="font-bold text-sm uppercase tracking-wider text-[#C8102E]">Misión 2: El Bosque de la Oscuridad</h4>
-                      <span className="text-xs sm:text-sm font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700">
-                        {desafio2.unlocked ? `${desafio2.done} de ${desafio2.total} pasos` : 'Bloqueada'}
+                      <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        Misión 2: El Bosque de la Oscuridad
+                      </h4>
+                      <span className={`text-xs sm:text-sm font-bold px-3 py-1 rounded-full ${desafio2.completed ? 'bg-emerald-100 text-emerald-800' : desafio2.unlocked ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-400'}`}>
+                        {desafio2.completed ? 'Completada' : desafio2.unlocked ? `${desafio2.done} de ${desafio2.total} pasos (${desafio2.percent}%)` : 'Bloqueada'}
                       </span>
                     </div>
+
+                    {desafio2.unlocked && (
+                      <>
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-2">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${desafio2.completed ? 'bg-emerald-500' : desafio2.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
+                            style={{ width: `${desafio2.percent}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-slate-500 mb-3.5">
+                          {desafio2.completed && selectedUser.progress?.mision2CompletadaEn
+                            ? `Completada el ${new Date(selectedUser.progress.mision2CompletadaEn).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' })}`
+                            : `Herramientas élficas recogidas: ${desafio2.steps.filter((s) => s.id.startsWith('recoger-') && s.done).length} de 3 · Sendero oculto: ${desafio2.steps.find((s) => s.id === 'mapa')?.done ? 'Despejado con mapa' : 'Bloqueado por muro de roca'}`}
+                        </p>
+                      </>
+                    )}
+
                     {desafio2.unlocked ? (
                       <MissionSteps steps={desafio2.steps} />
                     ) : (
-                      <p className="text-xs text-slate-500">Se habilita al completar la Misión 1: el elfo espera al otro lado del pantano.</p>
+                      <p className="text-xs text-slate-500 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        Se habilita al completar la Misión 1 (Pantano de la Tristeza): el elfo espera al pie del gran árbol al otro lado del pantano.
+                      </p>
                     )}
                   </div>
                 );

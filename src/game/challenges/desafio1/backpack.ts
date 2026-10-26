@@ -21,6 +21,7 @@ function saveVictory(changes: Partial<GameProgress>): boolean {
   if (completedNow) {
     changes.mision1Completada = true;
     changes.mision1CompletadaEn = new Date().toISOString();
+    usePlayerStore.getState().restoreHealth();
   }
   saveProgress(changes);
   if (completedNow) useUIStore.getState().openDialog(DIALOG.pantanoSuperado);

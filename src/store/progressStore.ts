@@ -43,6 +43,10 @@ export interface GameProgress {
   duendesDefeated: number[];
   // Indices of the good fruits of the Dark Forest already eaten.
   frutosComidos: number[];
+  // Forest map activated: reveals the hidden mountain path by lowering the rock wall.
+  mapaActivado: boolean;
+  mision2Completada: boolean;
+  mision2CompletadaEn?: string;
 }
 
 interface ProgressState {
@@ -67,6 +71,9 @@ export const STORY_START = {
   elfoHelp: 'pending',
   duendesDefeated: [],
   frutosComidos: [],
+  mapaActivado: false,
+  mision2Completada: false,
+  mision2CompletadaEn: undefined,
 } as const satisfies Omit<GameProgress, 'estrellas' | 'derrotas' | 'reinicios'>;
 
 const DEFAULT_PROGRESS: GameProgress = {
@@ -78,6 +85,9 @@ const DEFAULT_PROGRESS: GameProgress = {
   zumbadoresDefeated: [],
   duendesDefeated: [],
   frutosComidos: [],
+  mapaActivado: false,
+  mision2Completada: false,
+  mision2CompletadaEn: undefined,
 };
 
 const isRecord = (value: unknown): value is Record<string, number> => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -95,6 +105,8 @@ export function normalizeProgress(saved: Partial<GameProgress> | undefined): Gam
   progress.zumbadoresDefeated = list(progress.zumbadoresDefeated);
   progress.duendesDefeated = list(progress.duendesDefeated);
   progress.frutosComidos = list(progress.frutosComidos);
+  progress.mapaActivado = Boolean(progress.mapaActivado);
+  progress.mision2Completada = Boolean(progress.mision2Completada);
   return progress;
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useKeyboardControls } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Ecctrl, type EcctrlHandle } from 'ecctrl';
@@ -10,8 +10,8 @@ import { PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { isGameplayPaused } from '@/store/uiStore';
 import type { Control } from './keyboardMap';
-import { usePlayerStore, type PlayerAction, type Point } from './playerStore';
-import { PLAYER_START, PLAYER_START_CAMERA_AZIMUTH, PLAYER_START_ROTATION_Y, RESPAWN_POINT } from './spawn';
+import { usePlayerStore, type PlayerAction, type Point, type Spawn } from './playerStore';
+import { cameraAzimuthBehind, PLAYER_START, RESPAWN_POINT } from './spawn';
 import { useMouseLook } from './useMouseLook';
 
 const CAPSULE_HALF_HEIGHT = 0.6;
@@ -36,18 +36,24 @@ const STAND_STILL = { forward: false, backward: false, leftward: false, rightwar
 // Stable objects: @react-three/rapier resets the body to the (stale) object position when these props change identity,
 // which would undo teleports such as respawning.
 const PLAYER_USER_DATA = { name: PLAYER_BODY_NAME };
-const START_POSITION: [number, number, number] = [PLAYER_START.x, PLAYER_START.y, PLAYER_START.z];
-const START_ROTATION: [number, number, number] = [0, PLAYER_START_ROTATION_Y, 0];
 
 type PlayerControllerProps = {
   children: ReactNode;
+  // Where the avatar appears when the world opens (the checkpoint of the saved progress); read once.
+  start?: Spawn;
   // The player died: the game decides what the defeat costs and where the player comes back (RESPAWN_POINT if omitted).
   onRespawn?: () => Point;
 };
 
 // Third-person character controller (ecctrl): keyboard, joystick and virtual buttons move the capsule; the camera
 // follows it. It also applies teleports, the camera distance override, the dialog pause and death → respawn.
-export function PlayerController({ children, onRespawn }: PlayerControllerProps) {
+export function PlayerController({ children, start = PLAYER_START, onRespawn }: PlayerControllerProps) {
+  // Frozen at mount (see PLAYER_USER_DATA): a later progress change must not move the body back here.
+  const [initial] = useState(() => ({
+    position: [start.x, start.y, start.z] as [number, number, number],
+    rotation: [0, start.yaw, 0] as [number, number, number],
+    cameraAzimuth: cameraAzimuthBehind(start.yaw),
+  }));
   const [, getKeys] = useKeyboardControls<Control>();
   const ecctrlRef = useRef<EcctrlHandle>(null);
   const cameraControls = useRef<EcctrlCameraControlsHandle>(null);
@@ -90,7 +96,7 @@ export function PlayerController({ children, onRespawn }: PlayerControllerProps)
     if (!cameraPlaced.current) {
       cameraPlaced.current = true;
       controls.moveTo(target.x, target.y + CAMERA_TARGET_HEIGHT, target.z, false);
-      controls.rotateTo(PLAYER_START_CAMERA_AZIMUTH, CAMERA_START_POLAR, false);
+      controls.rotateTo(initial.cameraAzimuth, CAMERA_START_POLAR, false);
       controls.dollyTo(CAMERA_DISTANCE, false);
     }
     controls.moveTo(target.x, target.y + CAMERA_TARGET_HEIGHT, target.z, true);
@@ -172,8 +178,8 @@ export function PlayerController({ children, onRespawn }: PlayerControllerProps)
         ref={ecctrlRef}
         capsuleHalfHeight={CAPSULE_HALF_HEIGHT}
         capsuleRadius={CAPSULE_RADIUS}
-        position={START_POSITION}
-        rotation={START_ROTATION}
+        position={initial.position}
+        rotation={initial.rotation}
         friction={1}
         enableToggleRun={false}
         userData={PLAYER_USER_DATA}
