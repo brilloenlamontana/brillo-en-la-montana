@@ -1,0 +1,32 @@
+# Dependencies & build output
+node_modules
+dist
+dist-ssr
+
+# Environment & secrets (passed via env_file / build args instead)
+.env
+.env.*
+!.env.example
+*.local
+
+# Version control & local tooling
+.git
+.gitignore
+.claude
+.codex-cache
+.gemini
+.vscode
+.idea
+graphify-out
+
+# Logs & OS files
+logs
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Documentation not needed inside the image
+docs
+*.md
+

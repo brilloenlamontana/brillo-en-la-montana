@@ -23,19 +23,48 @@ Reglas específicas de obligado cumplimiento:
   - Ejecutar `deleteDoc`, borrados por lotes (`writeBatch` / scripts de limpieza), eliminación de cuentas de Firebase Auth o `setDoc` sin `{ merge: true }` sobre documentos reales.
   - Invocar operaciones que borren campos o reinicien progreso real en pruebas manuales o automatizadas (p. ej. `clearCharacter`, `deleteField()`, o forzar un *segundo bajo* / *tercer bajo* sobre la cuenta real de un usuario o estudiante).
 - **Cómo probar de forma segura:**
+  - En el navegador (Google Chrome), **entra siempre usando el modo sandbox `?dev=<preset>`** (ver sección de Pruebas en Navegador abajo), el cual usa `DEV_USER_UID = 'dev-local-tester'` y cortocircuita por completo Firebase Auth y Cloud Firestore.
   - Valida reglas de negocio y misiones sobre las funciones puras (`mission.ts`, `progression.ts`) y stores locales de Zustand (`useProgressStore`, `useAuthStore`) sin llamar a Firestore.
   - En pruebas automatizadas o de integración, usa *mocks/stubs* de `src/services/*` o el **Firebase Local Emulator Suite**, nunca el proyecto real de `.env`.
   - Si una prueba requiere ineludiblemente borrar o restablecer un registro en Firestore real, **detente, explica exactamente qué documento/campo se afectaría y espera confirmación explícita del usuario**.
 
 ---
 
+## Pruebas en Navegador (Google Chrome + WebGPU + Modo Sandbox `?dev=...`)
+
+El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seguro (`http://localhost:5174` con `npm run dev` o `npm run docker:dev`). En desarrollo (`import.meta.env.DEV`) existe `src/app/devSession.ts`, que se elimina al 100 % en *builds* de producción:
+
+1. **Cómo abrir Chrome desde el agente:**
+   - Usa las herramientas de **Chrome DevTools MCP** (plugin `chrome-devtools`) o `/browser` sobre Google Chrome local (no navegadores sin WebGPU).
+   - Navega siempre con `?dev=<preset>` para omitir Google OAuth (`@correounivalle.edu.co`) y proteger Firestore real (`isDevUser` en `authStore.ts` desactiva lecturas/escrituras en `progressService.ts`, `userService.ts` y `adminService.ts`).
+2. **URLs y presets disponibles (`http://localhost:5174`):**
+   - `/mundo?dev=1` (alias: `villa`, `desafio1`) — Puerta de Villa de Boj desde cero (`x: -39, y: 12.4, z: 18`).
+   - `/mundo?dev=imeri` — Frente a la casa de Imeri (`x: 14.5, y: 11.8, z: 41`), puerta abierta y mochila activa.
+   - `/mundo?dev=pantano` — Orilla seca antes del Pantano (`x: 50, y: 12.2, z: 24`) con gema, soga e insecticida listos.
+   - `/mundo?dev=desafio2` (alias: `elfo`) — Pie del árbol del Elfo (`x: -36.4, y: 11.9, z: -122.5`) tras superar el Desafío 1.
+   - `/mundo?dev=bosque` — Entrada del Bosque de la Oscuridad (`x: -25, y: 13.3, z: -182`) con espada, lente y mapa en mochila.
+   - `/mundo?dev=desafio3` (alias: `pueblo`) — Frente a la casa de Hedrig (`x: 82, y: 25.3, z: -211.6`) tras superar el Desafío 2.
+   - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca en mochila.
+   - `/mundo?dev=cumbre` (alias: `relatoCierre`) — Salida de los túneles en la Cumbre (`x: 104.08, y: 113.6, z: -168.29`).
+   - `/seleccion-personaje?dev=personaje` · `/login?dev=registro` · `/admin?dev=admin` — Pantallas de onboarding y panel administrativo 100 % en memoria.
+   - Parámetros extra opcionales: `&spawn=x,y,z[,yaw]` (coordenadas exactas) y `&avatar=Elfa`.
+3. **Inspector en vivo (`window.__DEV_GAME__`) y controles:**
+   - Espera a que `window.__DEV_GAME__.status().ready === true` antes de interactuar con el mundo 3D.
+   - `window.__DEV_GAME__.status()` devuelve `{ ready, warming, loadStage, loadPercent, rendererError, region, interior, position, action, health, dialog, backpackOpen, progress }`.
+   - Helpers en memoria: `window.__DEV_GAME__.teleport(x, y, z)`, `setProgress({...})`, `heal()`, `openBackpack(true)`, `closeDialog()`.
+   - Teclado en el canvas: `W A S D` / flechas (mover), `Shift` (correr), `Space` (saltar), `E` (interactuar / recoger), `1`–`3` (usar ítems rápidos de la mochila).
+
+---
+
 ## Comandos del proyecto
 
 ```bash
-npm run dev       # Servidor de desarrollo (Vite)
-npm run build     # Verificación TypeScript estricta (tsc -b) + build de producción
-npm run lint      # Linter rápido con oxlint
-npm run preview   # Vista previa del build en dist/
+npm run dev           # Servidor de desarrollo (Vite)
+npm run build         # Verificación TypeScript estricta (tsc -b) + build de producción
+npm run lint          # Linter rápido con oxlint
+npm run preview       # Vista previa del build en dist/
+npm run docker:dev    # Levantar contenedor de desarrollo (puerto 5174, alterna desde prod)
+npm run docker:prod   # Levantar contenedor de producción con Nginx (puerto 8081, alterna desde dev)
 ```
 
 ---

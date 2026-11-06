@@ -17,6 +17,8 @@ interface PlayerState {
   position: Vector3;
   // Camera distance override (e.g. zoomed in at the bottom of a well); null keeps the default third-person distance.
   cameraDistance: number | null;
+  // Optional one-shot spawn override (used by ?dev=... presets); consumed once when GameCanvas mounts.
+  initialSpawn: Spawn | null;
   // Teleport applied by PlayerController on the next frame.
   teleportRequest: Point | null;
   setAction: (action: PlayerAction) => void;
@@ -26,17 +28,20 @@ interface PlayerState {
   heal: (amount: number) => void;
   restoreHealth: () => void;
   setCameraDistance: (distance: number | null) => void;
+  setInitialSpawn: (spawn: Spawn | null) => void;
+  consumeInitialSpawn: () => Spawn | null;
   requestTeleport: (point: Point) => void;
   clearTeleportRequest: () => void;
   reset: () => void;
 }
 
-export const usePlayerStore = create<PlayerState>((set) => ({
+export const usePlayerStore = create<PlayerState>((set, get) => ({
   action: 'Idle',
   health: MAX_HEALTH,
   maxHealth: MAX_HEALTH,
   position: new Vector3(),
   cameraDistance: null,
+  initialSpawn: null,
   teleportRequest: null,
   setAction: (action) => set({ action }),
   takeDamage: (amount) =>
@@ -48,7 +53,13 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   heal: (amount) => set((state) => (state.health <= 0 ? {} : { health: Math.min(state.maxHealth, state.health + amount) })),
   restoreHealth: () => set((state) => ({ health: state.maxHealth })),
   setCameraDistance: (cameraDistance) => set({ cameraDistance }),
+  setInitialSpawn: (initialSpawn) => set({ initialSpawn }),
+  consumeInitialSpawn: () => {
+    const spawn = get().initialSpawn;
+    if (spawn) set({ initialSpawn: null });
+    return spawn;
+  },
   requestTeleport: (teleportRequest) => set({ teleportRequest }),
   clearTeleportRequest: () => set({ teleportRequest: null }),
-  reset: () => set({ action: 'Idle', health: MAX_HEALTH, cameraDistance: null, teleportRequest: null }),
+  reset: () => set({ action: 'Idle', health: MAX_HEALTH, cameraDistance: null, initialSpawn: null, teleportRequest: null }),
 }));

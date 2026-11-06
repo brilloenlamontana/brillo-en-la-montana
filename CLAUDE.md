@@ -30,6 +30,7 @@ Cuando el usuario escriba `/graphify`, usa la skill `graphify` instalada antes d
   - `deleteDoc`, borrados masivos/lotes, eliminación de usuarios en Firebase Auth o `setDoc` sin `{ merge: true }` contra Firestore real.
   - Acciones o pruebas que borren campos (`deleteField()`, `clearCharacter`) o reinicien progreso real (p. ej. simular un *segundo bajo* o *tercer bajo* conectado a una sesión real).
 - **Pruebas seguras por defecto:**
+  - En pruebas con navegador (Google Chrome), **usa siempre el modo sandbox `?dev=<preset>`** (ver sección 4), que inyecta `DEV_USER_UID = 'dev-local-tester'` en memoria sin tocar Firebase Auth ni Cloud Firestore.
   - Prueba la lógica sobre funciones puras (`mission.ts`, `progression.ts`) y estado en memoria de Zustand (`useProgressStore`, `useAuthStore`).
   - Usa *mocks/stubs* de `src/services/*` o **Firebase Local Emulator Suite** para pruebas automatizadas; jamás apuntes scripts destructivos al proyecto real definido en `.env`.
 
@@ -38,9 +39,11 @@ Cuando el usuario escriba `/graphify`, usa la skill `graphify` instalada antes d
 ## 3. Comandos y Arquitectura Rápida
 
 ```bash
-npm run dev       # Servidor de desarrollo Vite
-npm run build     # tsc -b (TypeScript estricto) + vite build
-npm run lint      # oxlint
+npm run dev           # Servidor de desarrollo Vite
+npm run build         # tsc -b (TypeScript estricto) + vite build
+npm run lint          # oxlint
+npm run docker:dev    # Contenedor Docker dev en http://localhost:5174 (alterna desde prod)
+npm run docker:prod   # Contenedor Docker prod (Nginx) en http://localhost:8081 (alterna desde dev)
 ```
 
 - **Capas unidireccionales:** `pages ──► game (challenges ──► player / world ──► engine) ──► store / services ──► data`.
@@ -48,4 +51,30 @@ npm run lint      # oxlint
 - **Firebase encapsulado:** Solo `src/services/` interactúa con Firebase; ningún componente o módulo del motor importa `firebase/*`.
 - **Desafíos modulares:** Cada carpeta en `src/game/challenges/` (`desafio1`, `desafio2`, `desafio3`, `relatoCierre`) implementa el contrato `Challenge` (`types.ts`) y se conecta en `registry.ts`.
 - **Física y rendimiento:** Colisiones por cuboides (`CuboidColliders`, salvo `Terreno` y `LimiteMapa`), visibilidad por región (`visibility.ts`), `InstancedField` para objetos repetidos, mallas estáticas fusionadas (`merge`), selectores en Zustand y sin `backdrop-blur` sobre el canvas.
+
+---
+
+## 4. Ingreso al Mundo 3D para Pruebas en Google Chrome (`?dev=<preset>`)
+
+El motor requiere **Google Chrome real con soporte WebGPU** sobre `http://localhost:5174` (`npm run dev` o `npm run docker:dev`). En modo desarrollo (`import.meta.env.DEV`, eliminado por Vite en producción) existe `src/app/devSession.ts` para entrar al juego sin Google OAuth (`@correounivalle.edu.co`) y **sin leer ni escribir jamás en Cloud Firestore real**:
+
+1. **Cómo conectar Google Chrome desde Claude / automatización:**
+   - Usa **Chrome DevTools MCP** conectado a Google Chrome local, o lanza Chrome real con soporte GPU (`channel: 'chrome'` en Playwright/Puppeteer, evitando Chromium headless sin adaptador WebGPU).
+   - Abre siempre las rutas con `?dev=<preset>`: `useAuthSession.ts` omite `onAuthStateChanged` y `isDevUser` (`authStore.ts`) bloquea toda lectura/escritura a Firestore en `progressService.ts`, `userService.ts` y `adminService.ts`.
+2. **Presets de entrada (`http://localhost:5174`):**
+   - `/mundo?dev=1` (`villa` / `desafio1`) — Inicio en la puerta de Villa de Boj (`x: -39, y: 12.4, z: 18`).
+   - `/mundo?dev=imeri` — Frente a la casa de Imeri (`x: 14.5, y: 11.8, z: 41`), puerta desbloqueada y mochila activa.
+   - `/mundo?dev=pantano` — Entrada seca al Pantano de la Tristeza (`x: 50, y: 12.2, z: 24`) con gema, soga e insecticida.
+   - `/mundo?dev=desafio2` (`elfo`) — Pie del árbol del Elfo (`x: -36.4, y: 11.9, z: -122.5`) con Desafío 1 completado.
+   - `/mundo?dev=bosque` — Entrada del Bosque de la Oscuridad (`x: -25, y: 13.3, z: -182`) con espada, lente y mapa.
+   - `/mundo?dev=desafio3` (`pueblo`) — Frente a la casa de Hedrig en el pueblo minero (`x: 82, y: 25.3, z: -211.6`).
+   - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca.
+   - `/mundo?dev=cumbre` (`relatoCierre`) — Salida de los túneles en la Cumbre (`x: 104.08, y: 113.6, z: -168.29`).
+   - `/seleccion-personaje?dev=personaje` · `/login?dev=registro` · `/admin?dev=admin` — Flujos de registro, avatar y panel admin en memoria.
+   - Parámetros opcionales: `&spawn=x,y,z[,yaw]` y `&avatar=Elfa`.
+3. **API de inspección en consola (`window.__DEV_GAME__`) y controles:**
+   - Verifica `window.__DEV_GAME__.status().ready === true` antes de enviar entradas al `<canvas>`.
+   - `window.__DEV_GAME__.status()` reporta `{ ready, warming, loadStage, loadPercent, rendererError, region, interior, position, action, health, dialog, backpackOpen, progress }`.
+   - Acciones rápidas en memoria: `window.__DEV_GAME__.teleport(x, y, z)`, `setProgress({...})`, `heal()`, `openBackpack(true)`, `closeDialog()`.
+   - Controles en el canvas: `W A S D` / flechas (caminar), `Shift` (correr), `Space` (saltar), `E` (interactuar / recoger), `1`–`3` (ítems de mochila).
 

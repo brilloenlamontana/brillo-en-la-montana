@@ -1,8 +1,8 @@
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc, where, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { getMissionSummary } from '@/game/challenges/desafio1/mission';
 import { getDesafio2Summary } from '@/game/challenges/desafio2/mission';
-import type { UserData } from '@/store/authStore';
-import { normalizeProgress, STARS, type GameProgress } from '@/store/progressStore';
+import { isDevUser, useAuthStore, type UserData } from '@/store/authStore';
+import { normalizeProgress, STARS, useProgressStore, type GameProgress } from '@/store/progressStore';
 import { db } from './firebase';
 import { signInWithGoogle, signOutUser } from './userService';
 
@@ -52,6 +52,7 @@ const grantAdminRole = (uid: string, extra: Partial<UserData> = {}) =>
 
 // Role as stored now (not the one cached in the session): it may have been granted a moment ago.
 export async function isAdminAccount(user: UserData): Promise<boolean> {
+  if (isDevUser(user.uid)) return user.role === 'admin';
   if (isConfiguredAdmin(user.email)) return true;
   const data = (await getDoc(userRef(user.uid))).data();
   return data?.role === 'admin' || data?.isAdmin === true;
@@ -59,6 +60,7 @@ export async function isAdminAccount(user: UserData): Promise<boolean> {
 
 // Whether any admin exists yet (otherwise the first institutional account may claim the role).
 export async function hasAnyAdmin(): Promise<boolean> {
+  if (isDevUser(useAuthStore.getState().user?.uid)) return true;
   const users = collection(db, 'users');
   try {
     const [byRole, byFlag] = await Promise.all([
@@ -85,7 +87,21 @@ export async function signInAsAdmin(): Promise<{ rejectedEmail?: string }> {
   return {};
 }
 
-export const claimFirstAdmin = (user: UserData) => grantAdminRole(user.uid, { email: user.email, name: user.name });
+export const claimFirstAdmin = (user: UserData) =>
+  isDevUser(user.uid) ? Promise.resolve() : grantAdminRole(user.uid, { email: user.email, name: user.name });
+
+const devAdminRecords = (): AdminUserRecord[] => {
+  const user = useAuthStore.getState().user;
+  if (!user) return [];
+  return [
+    {
+      ...user,
+      role: user.role ?? 'admin',
+      progress: useProgressStore.getState().progress,
+      progressUpdatedAt: new Date().toISOString(),
+    },
+  ];
+};
 
 const toRecord = (snapshot: QueryDocumentSnapshot): AdminUserRecord => {
   const data = snapshot.data();
@@ -103,8 +119,12 @@ const byName = (a: AdminUserRecord, b: AdminUserRecord) =>
   (a.nombresApellidos || a.name || a.email).toLowerCase().localeCompare((b.nombresApellidos || b.name || b.email).toLowerCase());
 
 // Follows the users collection live: the dashboard updates whenever a player advances. Returns the unsubscribe.
-export const subscribeToUsers = (onChange: (users: AdminUserRecord[]) => void, onError: (error: Error) => void): (() => void) =>
-  onSnapshot(
+export const subscribeToUsers = (onChange: (users: AdminUserRecord[]) => void, onError: (error: Error) => void): (() => void) => {
+  if (isDevUser(useAuthStore.getState().user?.uid)) {
+    onChange(devAdminRecords());
+    return useProgressStore.subscribe(() => onChange(devAdminRecords()));
+  }
+  return onSnapshot(
     collection(db, 'users'),
     (snapshot) => onChange(snapshot.docs.map(toRecord).sort(byName)),
     (error) => {
@@ -112,8 +132,10 @@ export const subscribeToUsers = (onChange: (users: AdminUserRecord[]) => void, o
       onError(error);
     },
   );
+};
 
 export async function fetchAllUsers(): Promise<AdminUserRecord[]> {
+  if (isDevUser(useAuthStore.getState().user?.uid)) return devAdminRecords();
   const snapshot = await getDocs(collection(db, 'users'));
   return snapshot.docs.map(toRecord).sort(byName);
 }
