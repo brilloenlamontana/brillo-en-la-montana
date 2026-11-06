@@ -21,6 +21,8 @@ function SpinningItem({ url, slot }: { url: string; slot: SlotRect }) {
   const spinRef = useRef<Group>(null);
   const model = useMemo(() => {
     const clone = scene.clone();
+    // Items also drawn in the world (Hedrig's) come from a frozen scene: let the clone's root follow the recentering.
+    clone.matrixAutoUpdate = true;
     const box = new Box3().setFromObject(clone);
     const size = box.getSize(new Vector3());
     clone.position.sub(box.getCenter(new Vector3()));
