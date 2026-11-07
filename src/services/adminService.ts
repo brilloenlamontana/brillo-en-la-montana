@@ -93,14 +93,37 @@ export const claimFirstAdmin = (user: UserData) =>
 const devAdminRecords = (): AdminUserRecord[] => {
   const user = useAuthStore.getState().user;
   if (!user) return [];
-  return [
-    {
-      ...user,
-      role: user.role ?? 'admin',
-      progress: useProgressStore.getState().progress,
-      progressUpdatedAt: new Date().toISOString(),
-    },
-  ];
+  const studentProgress = useProgressStore.getState().progress;
+  const student: AdminUserRecord = {
+    uid: 'dev-student-danna',
+    name: 'Danna Guerrero Vargas',
+    nombresApellidos: 'Danna Guerrero Vargas',
+    email: 'danna.guerrero@correounivalle.edu.co',
+    photoURL: '/sprites-2d/woman/Elfa.png',
+    codigoEstudiantil: '202427615',
+    sedeCodigo: '00',
+    sedeNombre: 'Cali (Meléndez)',
+    facultadCodigo: '05',
+    facultadNombre: 'Facultad de Ingeniería',
+    programaCodigo: '3743',
+    programaNombre: 'Ingeniería de Sistemas',
+    acceptedLaw1581: true,
+    acceptedLaw1581Date: '2026-10-12T19:10:00.000Z',
+    isRegistrationComplete: true,
+    nickname: 'Danna',
+    avatarName: 'Elfa',
+    gender: 'female',
+    role: 'student',
+    progress: studentProgress,
+    progressUpdatedAt: '2026-10-25T21:50:00.000Z',
+  };
+  const admin: AdminUserRecord = {
+    ...user,
+    role: 'admin',
+    progress: normalizeProgress(undefined),
+    progressUpdatedAt: '2026-10-28T15:00:00.000Z',
+  };
+  return [student, admin];
 };
 
 const toRecord = (snapshot: QueryDocumentSnapshot): AdminUserRecord => {

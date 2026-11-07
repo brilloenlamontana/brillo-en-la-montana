@@ -71,6 +71,9 @@ El motor requiere **Google Chrome real con soporte WebGPU** sobre `http://localh
    - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca.
    - `/mundo?dev=cumbre` (`relatoCierre`) — Salida de los túneles en la Cumbre (`x: 104.08, y: 113.6, z: -168.29`).
    - `/seleccion-personaje?dev=personaje` · `/login?dev=registro` · `/admin?dev=admin` — Flujos de registro, avatar y panel admin en memoria.
+   - **Identidades sandbox oficiales ya configuradas en `devSession.ts` y `adminService.ts` (úsalas tal cual en capturas y evidencias, sin sobrescribirlas con otros nombres):**
+     - Estudiante de prueba (`?dev=registro`, `?dev=personaje`, `/mundo?dev=...`): **`Danna Guerrero Vargas`** (`danna.guerrero@correounivalle.edu.co`, código `202427615`, alias `Danna`, rol `student`).
+     - Administrador (`/admin?dev=admin`): sesión activa de **`Fabian Stiven Valencia Cordoba`** (`fabian.cordoba@correounivalle.edu.co`, rol `admin`), listando en la tabla a **`Danna Guerrero Vargas`** (`ESTUDIANTE`, Misiones 1 y 2 completadas al 100 %) y a **`Fabian Stiven Valencia Cordoba`** (`ADMIN`).
    - Parámetros opcionales: `&spawn=x,y,z[,yaw]` y `&avatar=Elfa`.
 3. **API de inspección en consola (`window.__DEV_GAME__`) y controles:**
    - Verifica `window.__DEV_GAME__.status().ready === true` antes de enviar entradas al `<canvas>`.

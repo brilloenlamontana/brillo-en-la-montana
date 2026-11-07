@@ -23,7 +23,7 @@ const DESAFIO1_DONE: Partial<GameProgress> = {
   golemDefeated: true,
   zumbadoresDefeated: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   mision1Completada: true,
-  mision1CompletadaEn: '2026-01-01T00:00:00.000Z',
+  mision1CompletadaEn: '2026-10-18T19:20:00.000Z',
 };
 
 const DESAFIO2_DONE: Partial<GameProgress> = {
@@ -36,7 +36,7 @@ const DESAFIO2_DONE: Partial<GameProgress> = {
   frutosComidos: [1, 4, 7],
   mapaActivado: true,
   mision2Completada: true,
-  mision2CompletadaEn: '2026-01-01T01:00:00.000Z',
+  mision2CompletadaEn: '2026-10-25T21:45:00.000Z',
 };
 
 type DevPreset = {
@@ -151,10 +151,18 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
     },
   },
 
-  // Admin dashboard (/admin?dev=admin) — in-memory admin session with synthetic student data.
+  // Admin dashboard (/admin?dev=admin) — signed in as Fabian Stiven Valencia Cordoba (admin) with Danna Guerrero Vargas (student) in the table.
   admin: {
     progress: { ...DESAFIO2_DONE, llegoAlPueblo: true },
-    user: { role: 'admin' },
+    user: {
+      name: 'Fabian Stiven Valencia Cordoba',
+      nombresApellidos: 'Fabian Stiven Valencia Cordoba',
+      email: 'fabian.cordoba@correounivalle.edu.co',
+      codigoEstudiantil: '202176931',
+      acceptedLaw1581Date: '2026-09-02T19:00:00.000Z',
+      nickname: 'fsvc',
+      role: 'admin',
+    },
   },
 };
 
@@ -169,13 +177,13 @@ function buildDevUser(avatarParam: string | null, overrides?: Partial<UserData>)
   const chosen = CHARACTERS.find((c) => c.glbName.toLowerCase() === avatarParam?.toLowerCase()) ?? CHARACTERS[1]; // Elfa
   return {
     uid: DEV_USER_UID,
-    name: 'Explorador Dev (Local)',
-    email: 'dev.tester@correounivalle.edu.co',
+    name: 'Danna Guerrero Vargas',
+    email: 'danna.guerrero@correounivalle.edu.co',
     photoURL: chosen.imagePath,
     acceptedLaw1581: true,
-    acceptedLaw1581Date: '2026-01-01T00:00:00.000Z',
-    codigoEstudiantil: '202600000',
-    nombresApellidos: 'Explorador Dev Local',
+    acceptedLaw1581Date: '2026-10-12T19:10:00.000Z',
+    codigoEstudiantil: '202427615',
+    nombresApellidos: 'Danna Guerrero Vargas',
     sedeCodigo: '00',
     sedeNombre: 'Cali (Meléndez)',
     facultadCodigo: '05',
@@ -183,7 +191,7 @@ function buildDevUser(avatarParam: string | null, overrides?: Partial<UserData>)
     programaCodigo: '3743',
     programaNombre: 'Ingeniería de Sistemas',
     isRegistrationComplete: true,
-    nickname: 'Explorador',
+    nickname: 'Danna',
     avatarName: chosen.glbName,
     gender: chosen.gender,
     role: 'student',

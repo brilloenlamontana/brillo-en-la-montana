@@ -47,6 +47,9 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
    - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca en mochila.
    - `/mundo?dev=cumbre` (alias: `relatoCierre`) — Salida de los túneles en la Cumbre (`x: 104.08, y: 113.6, z: -168.29`).
    - `/seleccion-personaje?dev=personaje` · `/login?dev=registro` · `/admin?dev=admin` — Pantallas de onboarding y panel administrativo 100 % en memoria.
+   - **Identidades sandbox preconfiguradas (no cambiar por otros nombres ficticios en capturas):**
+     - Estudiante por defecto (`?dev=1`, `?dev=registro`, `?dev=personaje`, etc.): **`Danna Guerrero Vargas`** (`danna.guerrero@correounivalle.edu.co`, código `202427615`, alias `Danna`, rol `student`).
+     - Administrador (`/admin?dev=admin`): sesión iniciada como **`Fabian Stiven Valencia Cordoba`** (`fabian.cordoba@correounivalle.edu.co`, rol `admin`), mostrando en el listado de usuarios a la estudiante **`Danna Guerrero Vargas`** (`ESTUDIANTE`, Misiones 1 y 2 al 100 %) y al administrador **`Fabian Stiven Valencia Cordoba`** (`ADMIN`).
    - Parámetros extra opcionales: `&spawn=x,y,z[,yaw]` (coordenadas exactas) y `&avatar=Elfa`.
 3. **Inspector en vivo (`window.__DEV_GAME__`) y controles:**
    - Espera a que `window.__DEV_GAME__.status().ready === true` antes de interactuar con el mundo 3D.
