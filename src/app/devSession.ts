@@ -39,6 +39,21 @@ const DESAFIO2_DONE: Partial<GameProgress> = {
   mision2CompletadaEn: '2026-10-25T21:45:00.000Z',
 };
 
+const HEDRIG_HELP: Partial<GameProgress> = { llegoAlPueblo: true, interactedWithHedrig: true, hedrigHelp: 'accepted' };
+
+const DESAFIO3_DONE: Partial<GameProgress> = {
+  ...DESAFIO2_DONE,
+  ...HEDRIG_HELP,
+  collectedItems: [...IMERI_ITEMS, ...ELFO_ITEMS, ...HEDRIG_ITEMS],
+  espectroCalmado: true,
+  ogroVencido: true,
+  mision3Completada: true,
+  mision3CompletadaEn: '2026-11-08T22:10:00.000Z',
+};
+
+// Where the tunnels come out on the Summit of Desolation (same as relatoCierre's checkpoint; ground at 52.0).
+const SALIDA_CUMBRE: Spawn = { x: 107.7, y: 53.6, z: -161.85, yaw: 1.26 };
+
 type DevPreset = {
   progress?: Partial<GameProgress>;
   spawn?: Spawn;
@@ -105,32 +120,47 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
     progress: { ...DESAFIO2_DONE, llegoAlPueblo: true },
   },
 
+  // Bonus 1 — Next to the ruined hut of the statue, at the swamp exit (ground at 8.2).
+  choza: {
+    spawn: { x: -62, y: 9.9, z: -87.5, yaw: Math.PI },
+    progress: DESAFIO1_DONE,
+  },
+
+  // Bonus 2 — At the edge of the fairy's clearing near the forest exit, with the elven sword (ground at 14.3).
+  claro: {
+    spawn: { x: 40, y: 16, z: -221.5, yaw: Math.PI },
+    progress: { ...DESAFIO2_DONE },
+  },
+
   // Challenge 3 — By the mine mouth where the Summit tunnels begin, with Hedrig's 3 items in the backpack.
   tuneles: {
     spawn: { x: 97, y: 25.4, z: -196, yaw: 0 },
     progress: {
       ...DESAFIO2_DONE,
+      ...HEDRIG_HELP,
       collectedItems: [...IMERI_ITEMS, ...ELFO_ITEMS, ...HEDRIG_ITEMS],
-      llegoAlPueblo: true,
     },
   },
 
-  // Closing story — Tunnel exit on the Summit of Desolation plateau.
-  cumbre: {
-    spawn: { x: 104.08, y: 113.6, z: -168.29, yaw: 0 },
+  // Challenge 3 — In the Ogre's hall at the end of the maze (floor at 42.5), spectre already calmed.
+  ogro: {
+    spawn: { x: 111.5, y: 44, z: -166, yaw: 2 },
     progress: {
       ...DESAFIO2_DONE,
+      ...HEDRIG_HELP,
       collectedItems: [...IMERI_ITEMS, ...ELFO_ITEMS, ...HEDRIG_ITEMS],
-      llegoAlPueblo: true,
+      espectroCalmado: true,
     },
   },
-  relatoCierre: {
-    spawn: { x: 104.08, y: 113.6, z: -168.29, yaw: 0 },
-    progress: {
-      ...DESAFIO2_DONE,
-      collectedItems: [...IMERI_ITEMS, ...ELFO_ITEMS, ...HEDRIG_ITEMS],
-      llegoAlPueblo: true,
-    },
+
+  // Closing story — Tunnel exit on the Summit of Desolation plateau, Challenge 3 completed.
+  cumbre: { spawn: SALIDA_CUMBRE, progress: DESAFIO3_DONE },
+  relatoCierre: { spawn: SALIDA_CUMBRE, progress: DESAFIO3_DONE },
+
+  // Closing story — On the plaza in front of the sanctuary door, where the dryad waits (ground at 51.8).
+  santuario: {
+    spawn: { x: 147, y: 53.4, z: -153, yaw: Math.PI / 2 },
+    progress: DESAFIO3_DONE,
   },
 
   // Onboarding — Character selection screen (registered student without chosen avatar yet).

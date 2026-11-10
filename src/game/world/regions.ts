@@ -8,7 +8,8 @@ import {
   PANTANO_POLYGON,
   PANTANO_REGION_MARGIN,
   PUEBLO_HEDRIG_ZONE,
-  TUNEL_PATH,
+  TUNEL_FLOOR_MARGIN,
+  TUNEL_PATHS,
   TUNEL_RADIUS,
   VALLE_POLYGON,
   VILLA_BOJ_ZONE,
@@ -42,15 +43,20 @@ const NEIGHBORS: Record<Region, readonly Region[]> = {
 // last one visited is what shows first). Farther regions get ready the first time the player walks into them.
 export const warmupRegions = (start: Region): Region[] => [...NEIGHBORS[start], start];
 
-// 3D distance to the tunnel axis: the tunnels run under the town and the summit, so height matters.
+// Horizontal distance to the nearest gallery the point is in (between its floor and its ceiling); Infinity when it is
+// above or below every gallery, like the town or the summit over them.
 function distanceToTunnel(x: number, y: number, z: number): number {
   let best = Infinity;
-  for (let i = 1; i < TUNEL_PATH.length; i++) {
-    const [ax, ay, az] = TUNEL_PATH[i - 1];
-    const [bx, by, bz] = TUNEL_PATH[i];
-    const dx = bx - ax, dy = by - ay, dz = bz - az;
-    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy + (z - az) * dz) / (dx * dx + dy * dy + dz * dz || 1)));
-    best = Math.min(best, Math.hypot(x - (ax + t * dx), y - (ay + t * dy), z - (az + t * dz)));
+  for (const { floor, clear } of TUNEL_PATHS) {
+    for (let i = 1; i < floor.length; i++) {
+      const [ax, ay, az] = floor[i - 1];
+      const [bx, by, bz] = floor[i];
+      const dx = bx - ax, dz = bz - az;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+      const height = y - (ay + t * (by - ay));
+      if (height < -TUNEL_FLOOR_MARGIN || height > clear) continue;
+      best = Math.min(best, Math.hypot(x - (ax + t * dx), z - (az + t * dz)));
+    }
   }
   return best;
 }
@@ -60,13 +66,14 @@ const inCumbre = (x: number, y: number, z: number) => {
   return y > minY && ((x - center[0]) / radiusX) ** 2 + ((z - center[1]) / radiusZ) ** 2 < 1;
 };
 
-// Checked in priority order: the tunnels pass under other regions, and the swamp shore overlaps the house clearing
+// Checked in priority order: the tunnels pass under other regions (the summit, over them, goes first), and the swamp shore overlaps the house clearing
 // and the valley, so it goes last. `previous` adds hysteresis: leaving a region takes a few meters more than entering.
 export function classifyRegion(x: number, y: number, z: number, previous: Region): Region {
+  // The summit lies right over the last galleries: out of the exit pit it wins.
+  if (inCumbre(x, y, z)) return 'cumbre';
   if (distanceToTunnel(x, y, z) < (previous === 'tuneles' ? TUNEL_RADIUS.exit : TUNEL_RADIUS.enter)) return 'tuneles';
   if (isInZone(VILLA_BOJ_ZONE, x, z, previous === 'villa')) return 'villa';
   if (isInZone(CASA_IMERI_ZONE, x, z, previous === 'casa')) return 'casa';
-  if (inCumbre(x, y, z)) return 'cumbre';
   if (isInZone(PUEBLO_HEDRIG_ZONE, x, z, previous === 'pueblo')) return 'pueblo';
   if (isPointInPolygon(x, z, BOSQUE_POLYGON)) return 'bosque';
   if (isPointInPolygon(x, z, VALLE_POLYGON)) return 'valle';

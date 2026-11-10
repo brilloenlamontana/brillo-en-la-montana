@@ -9,9 +9,10 @@ import { TUNEL_CAMERA_BLOCKERS, TUNEL_COLLIDERS } from './tunelColliders';
 
 const { estructura: ESTRUCTURA_URL, objetos: OBJETOS_URL } = DESAFIO3_MODELS.tunelesCumbre;
 
-// "TunelesCumbre" collection of Map.blend: spiral tunnels inside the Summit of Desolation, from the mine mouth in
-// Hedrig's town up to the peak. The models are only drawn; the avatar and the camera collide with a few hundred boxes
-// laid along the tunnel axis (tunelColliders.ts) instead of the 27k-triangle galleries.
+// "TunelesCumbre" collection of Map.blend: the maze of galleries inside the Summit of Desolation, from the mine mouth in
+// Hedrig's town to the exit pit on the summit (true route, two loops and four dead ends; network in
+// world/tunelesRed.ts). The models are only drawn; the avatar and the camera collide with boxes measured on the real
+// galleries (tunelColliders.ts) instead of their heavy meshes.
 export function TunelesCumbre() {
   const estructuraVisible = useVisibleFrom(VISIBLE_FROM.tuneles);
   const objetosVisibles = useVisibleFrom(VISIBLE_FROM.tunelesObjetos);

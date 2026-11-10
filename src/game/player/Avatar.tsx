@@ -1,51 +1,87 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import type { AnimationClip, Group, SkinnedMesh } from 'three';
-import { avatarModelUrl } from '@/data/characters';
+import type { AnimationClip, Group, Mesh } from 'three';
+import { avatarModelUrl, findCharacter, genderFolder } from '@/data/characters';
 import { playOnceAndHold } from '@/game/engine/models/animation';
-import { useAuthStore } from '@/store/authStore';
-import { usePlayerStore, type PlayerAction } from './playerStore';
+import { useAuthStore, type AvatarGender } from '@/store/authStore';
+import { usePlayerStore } from './playerStore';
 
 const FADE_SECONDS = 0.2;
-// Mixamo clips shared by every character (only the female set exists for now).
-const ANIMATIONS_DIR = '/models-3d/animations/woman';
-const CLIPS: readonly PlayerAction[] = ['Idle', 'Walking', 'Running', 'Death'];
-const clipUrls = CLIPS.map((clip) => `${ANIMATIONS_DIR}/${clip}.glb`);
+const HIT_FADE_SECONDS = 0.08;
+const ANIMATIONS_DIR = '/models-3d/animations';
+// Every character shares the Mixamo skeleton, so the clips are skeleton-only files reused by all of them: the
+// locomotion set of the character's gender plus the clips common to everyone.
+const GENDER_CLIPS = ['Idle', 'Walking', 'Running'] as const;
+const SHARED_CLIPS = ['Death', 'Hit'] as const;
+const CLIP_NAMES = [...GENDER_CLIPS, ...SHARED_CLIPS];
+type ClipName = (typeof CLIP_NAMES)[number];
 
-// The character chosen by the player, animated from playerStore.action (crossfading between clips).
+const clipUrls = (gender: AvatarGender) => [
+  ...GENDER_CLIPS.map((clip) => `${ANIMATIONS_DIR}/${genderFolder(gender)}/${clip}.glb`),
+  ...SHARED_CLIPS.map((clip) => `${ANIMATIONS_DIR}/shared/${clip}.glb`),
+];
+
+// The character chosen by the player, animated from playerStore.action (crossfading between clips). Losing health
+// plays the Hit clip once over whatever the avatar was doing.
 export function Avatar() {
   const avatarRef = useRef<Group>(null);
   const avatarName = useAuthStore((state) => state.user?.avatarName);
   const action = usePlayerStore((state) => state.action);
+  const [hit, setHit] = useState(false);
 
-  const { nodes, materials } = useGLTF(avatarModelUrl(avatarName));
-  const clipFiles = useGLTF(clipUrls);
+  const character = findCharacter(avatarName);
+  const { scene } = useGLTF(avatarModelUrl(avatarName));
+  const clipFiles = useGLTF(clipUrls(character.gender));
   // Each file holds one clip; it is renamed after its action so useAnimations exposes actions.Idle, actions.Walking...
   const clips = useMemo(
     () =>
       clipFiles.flatMap(({ animations }, i): AnimationClip[] => {
         if (!animations.length) return [];
         const clip = animations[0].clone();
-        clip.name = CLIPS[i];
+        clip.name = CLIP_NAMES[i];
         return [clip];
       }),
     [clipFiles],
   );
   const { actions } = useAnimations(clips, avatarRef);
-  const body = nodes.Avatar as SkinnedMesh;
+
+  // The skinned body follows the bones far from its rest bounding box (death, big strides): never cull it.
+  useEffect(() => {
+    scene.traverse((object) => {
+      if ((object as Mesh).isMesh) object.frustumCulled = false;
+    });
+  }, [scene]);
 
   useEffect(() => {
     if (actions.Death) playOnceAndHold(actions.Death);
+    if (actions.Hit) playOnceAndHold(actions.Hit);
   }, [actions]);
 
+  // A blow that does not kill: the Hit clip plays once, then the avatar goes back to what it was doing.
   useEffect(() => {
-    const current = actions[action];
-    current?.reset().fadeIn(FADE_SECONDS).play();
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const unsubscribe = usePlayerStore.subscribe((state, previous) => {
+      if (state.health >= previous.health || state.health <= 0) return;
+      setHit(true);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => setHit(false), (actions.Hit?.getClip().duration ?? 0.7) * 1000);
+    });
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [actions]);
+
+  const shown: ClipName = action === 'Death' ? 'Death' : hit ? 'Hit' : action;
+  useEffect(() => {
+    const current = actions[shown];
+    const fade = shown === 'Hit' ? HIT_FADE_SECONDS : FADE_SECONDS;
+    current?.reset().fadeIn(fade).play();
     return () => {
       current?.fadeOut(FADE_SECONDS);
     };
-  }, [action, actions]);
+  }, [shown, actions]);
 
   // Shares the player's position every frame without re-renders or allocations (zones, enemies, items read it).
   useFrame(() => {
@@ -54,12 +90,9 @@ export function Avatar() {
 
   return (
     <group ref={avatarRef} dispose={null}>
-      <group rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-        <skinnedMesh geometry={body.geometry} material={materials.AvatarMaterial} skeleton={body.skeleton} />
-        <primitive object={nodes.mixamorigHips} />
-      </group>
+      <primitive object={scene} />
     </group>
   );
 }
 
-useGLTF.preload(clipUrls);
+useGLTF.preload(clipUrls('female'));

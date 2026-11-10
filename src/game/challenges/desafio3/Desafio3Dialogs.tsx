@@ -1,0 +1,14 @@
+import { CumbreAlcanzadaDialog } from './CumbreAlcanzadaDialog';
+import { HedrigDialog } from './npcs/HedrigDialog';
+import { OgroVencidoDialog } from './ogro/OgroVencidoDialog';
+
+// Dialogs of Challenge 3, drawn over the canvas (each renders only while open).
+export function Desafio3Dialogs() {
+  return (
+    <>
+      <HedrigDialog />
+      <OgroVencidoDialog />
+      <CumbreAlcanzadaDialog />
+    </>
+  );
+}

@@ -11,6 +11,8 @@ export const VISIBLE_FROM = {
   muroOculto: visibleFrom(['valle', 'bosque', 'pueblo']),
   // The trail the map reveals runs from the forest entrance to past the wall, at the edge of Hedrig's town.
   sendero: visibleFrom(['valle', 'bosque', 'pueblo']),
+  // Bonus 2: the fairy's clearing and its distant light, seen from the forest and from its exit toward the town.
+  claro: visibleFrom(['bosque', 'pueblo']),
 } as const;
 
 // Where the third-person camera collides with Challenge 2 geometry: the elf's house from its valley and from inside.

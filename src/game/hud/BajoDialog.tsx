@@ -1,6 +1,5 @@
 import { bajoDialog, type Bajo } from '@/game/challenges/progression';
 import { usePlayerStore } from '@/game/player/playerStore';
-import { clearCharacter } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 import { ParchmentButton, ParchmentDialog } from './ParchmentDialog';
@@ -25,15 +24,15 @@ const BAJOS: Record<Bajo, { title: string; paragraphs: string[]; button: string 
   3: {
     title: 'Caíste en tercer bajo',
     paragraphs: [
-      'Perdiste tu última estrella. Con tres bajos rendimientos ya no puedes continuar en la misma carrera.',
-      'Tu aventura termina aquí: elige un nuevo personaje y comienza desde el principio, con tres estrellas.',
+      'Perdiste tu última estrella. Acabas de perder: ya no puedes volver a jugar con este personaje.',
+      'Puedes volver a entrar, pero tienes que escoger otro personaje y comenzar desde cero, con tres estrellas. Tu programa académico sigue siendo el mismo: solo cambia el personaje.',
     ],
     button: 'Elegir otro personaje',
   },
 };
 
 // Explains the "bajo" just suffered (see challenges/progression.ts). After the third one, closing it forgets the
-// character: the onboarding then takes the player to the character selection.
+// character and records it as lost for good: the onboarding then takes the player to choose a different one.
 export function BajoDialog() {
   const dialog = useUIStore((state) => state.dialog);
   const bajo = ([1, 2, 3] as const).find((level) => dialog === bajoDialog(level));
@@ -45,8 +44,9 @@ export function BajoDialog() {
     if (bajo !== 3) return;
     const user = useAuthStore.getState().user;
     usePlayerStore.getState().reset();
-    useAuthStore.getState().updateUser({ nickname: undefined, avatarName: undefined, gender: undefined });
-    if (user) clearCharacter(user.uid).catch((error) => console.error('Could not clear the character:', error));
+    if (!user) return;
+    const lostCharacters = user.avatarName ? [...new Set([...(user.lostCharacters ?? []), user.avatarName])] : user.lostCharacters;
+    useAuthStore.getState().updateUser({ nickname: undefined, avatarName: undefined, gender: undefined, lostCharacters });
   };
 
   return (

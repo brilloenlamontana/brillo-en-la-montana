@@ -2,7 +2,7 @@ import { MAP_DIR } from '@/game/world/assets';
 
 const DIR = `${MAP_DIR}/Desafio3`;
 
-// Every file Challenge 3 loads, following the "Desafio3" collection of Map.blend.
+// Every file Challenge 3 loads. Map pieces follow the "Desafio3" collection of Map.blend.
 export const DESAFIO3_MODELS = {
   tunelesCumbre: {
     estructura: `${DIR}/TunelesCumbre/TunelesEstructura.glb`,
@@ -14,4 +14,8 @@ export const DESAFIO3_MODELS = {
     recogibles: `${DIR}/CasaDeHedrig/HedrigRecogibles`,
   },
   puebloMinero: `${DIR}/PuebloMinero.glb`,
+  hedrig: '/models-3d/npcs/Hedrig.glb',
+  ninaFantasma: '/models-3d/enemies/NinaFantasma.glb',
+  ninaClara: '/models-3d/npcs/NinaClara.glb',
+  ogro: '/models-3d/enemies/Ogro.glb',
 } as const;

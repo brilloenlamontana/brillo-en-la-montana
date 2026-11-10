@@ -27,6 +27,8 @@ export interface UserData {
   nickname?: string;
   avatarName?: string;
   gender?: AvatarGender;
+  // Characters (glbName) lost to a third "bajo": they can never be chosen again.
+  lostCharacters?: string[];
   role?: 'admin' | 'student';
 }
 

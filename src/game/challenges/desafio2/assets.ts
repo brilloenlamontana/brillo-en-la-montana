@@ -16,6 +16,13 @@ export const DESAFIO2_MODELS = {
     arbolGigante: `${DIR}/CasaDelElfo/ArbolGigante.glb`,
     recogibles: `${DIR}/CasaDelElfo/ElfoRecogibles`,
   },
+  // Bonus 2: the fairy's clearing near the forest exit.
+  claroDelHada: {
+    exterior: `${DIR}/ClaroDelHada/ClaroExterior.glb`,
+    interactivos: `${DIR}/ClaroDelHada/ClaroInteractivos.glb`,
+    recogibles: `${DIR}/ClaroDelHada/ClaroRecogibles`,
+  },
   elfo: '/models-3d/npcs/Elfo.glb',
+  hada: '/models-3d/npcs/Hada.glb',
   duende: '/models-3d/enemies/Duende.glb',
 } as const;

@@ -1,6 +1,9 @@
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc, where, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { getMissionSummary } from '@/game/challenges/desafio1/mission';
+import { getBonosSummary } from '@/game/challenges/bonos';
 import { getDesafio2Summary } from '@/game/challenges/desafio2/mission';
+import { getDesafio3Summary } from '@/game/challenges/desafio3/mission';
+import { getCierreSummary } from '@/game/challenges/relatoCierre/mission';
 import { isDevUser, useAuthStore, type UserData } from '@/store/authStore';
 import { normalizeProgress, STARS, useProgressStore, type GameProgress } from '@/store/progressStore';
 import { db } from './firebase';
@@ -203,6 +206,18 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
     'Duendes Derrotados',
     'Frutas Buenas Comidas',
     'Sendero Oculto (Mapa)',
+    'Misión 3 (Avance)',
+    'Misión 3 (Completada)',
+    'Ayuda de Hedrig',
+    'Objetos de Hedrig',
+    'Espectro Calmado (Muñeca)',
+    'Ogro Vencido (Guante)',
+    'Derrotas (Misión 3)',
+    'Dríada Escuchada',
+    'Cáliz Tomado',
+    'Juego Completado',
+    'Bono 1 (Anillo de Oro)',
+    'Bono 2 (Amuleto del Hada)',
     'Última Actividad',
     'Autorización de Datos',
     'Fecha de Autorización',
@@ -218,6 +233,11 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
   const missionColumns = (u: AdminUserRecord) => {
     const { steps, percent, completed } = getMissionSummary(u.progress);
     const desafio2 = getDesafio2Summary(u.progress);
+    const desafio3 = getDesafio3Summary(u.progress);
+    const cierre = getCierreSummary(u.progress);
+    const bonos = getBonosSummary(u.progress);
+    const done3 = (id: string) => desafio3.steps.find((s) => s.id === id)?.done ?? false;
+    const when = (iso: string | undefined) => (iso ? new Date(iso).toLocaleString('es-CO') : 'sin fecha');
     const step = (id: string) => steps.find((s) => s.id === id)!;
     const yesNo = (done: boolean) => (done ? 'Sí' : 'No');
     return [
@@ -243,6 +263,18 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
       escapeCSV(desafio2.steps.find((s) => s.id === 'duendes')!.status),
       escapeCSV(desafio2.steps.find((s) => s.id === 'frutos')!.status),
       escapeCSV(yesNo(desafio2.steps.find((s) => s.id === 'mapa')?.done ?? false)),
+      escapeCSV(desafio3.unlocked ? `${desafio3.percent}%` : 'Bloqueada'),
+      escapeCSV(desafio3.completed ? `Sí (${when(u.progress?.mision3CompletadaEn)})` : 'No'),
+      escapeCSV(desafio3.unlocked ? desafio3.steps.find((s) => s.id === 'hedrig')!.status : 'Bloqueada'),
+      escapeCSV(`${desafio3.steps.filter((s) => s.id.startsWith('recoger') && s.done).length} de 3`),
+      escapeCSV(yesNo(done3('espectro'))),
+      escapeCSV(yesNo(done3('ogro'))),
+      escapeCSV(u.progress.derrotas.desafio3 ?? 0),
+      escapeCSV(yesNo(cierre.steps.find((s) => s.id === 'driada')?.done ?? false)),
+      escapeCSV(yesNo(cierre.steps.find((s) => s.id === 'caliz')?.done ?? false)),
+      escapeCSV(cierre.completed ? `Sí (${when(u.progress?.juegoCompletadoEn)})` : 'No'),
+      escapeCSV(yesNo(bonos.steps.find((s) => s.id === 'anillo')?.done ?? false)),
+      escapeCSV(yesNo(bonos.steps.find((s) => s.id === 'amuleto')?.done ?? false)),
       escapeCSV(u.progressUpdatedAt ? new Date(u.progressUpdatedAt).toLocaleString('es-CO') : 'Sin actividad'),
     ];
   };

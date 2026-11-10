@@ -2,4 +2,5 @@
 export const DIALOG = {
   elfo: 'desafio2.elfo',
   bosqueSuperado: 'desafio2.bosqueSuperado',
+  hada: 'desafio2.hada',
 } as const;

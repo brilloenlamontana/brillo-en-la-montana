@@ -106,8 +106,8 @@ src/
       ├─ progression.ts     Desafío en curso y bajos (qué se pierde y dónde reaparece al morir)
       ├─ desafio1/          Pantano de la Tristeza (con lógica completa)
       ├─ desafio2/          Bosque de la Oscuridad (el elfo, su casa, su mochila, los duendes y las frutas con el lente)
-      ├─ desafio3/          Túneles de la Cumbre (solo se renderiza)
-      └─ relatoCierre/      Cumbre y santuario (solo se renderiza)
+      ├─ desafio3/          Túneles de la Cumbre: Hedrig, brújula, espectro y ogro
+      └─ relatoCierre/      Cumbre, dríada, santuario y cáliz (victoria final)
 ```
 
 ### Anatomía de un desafío

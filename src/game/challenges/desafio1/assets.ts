@@ -18,6 +18,12 @@ export const DESAFIO1_MODELS = {
     interior: `${DIR}/CasaDeImeri/ImeriInterior.glb`,
     recogibles: `${DIR}/CasaDeImeri/ImeriRecogibles`,
   },
+  // Bonus 1: the ruined hut with the statue, at the swamp exit.
+  chozaEstatua: {
+    exterior: `${DIR}/ChozaEstatua/ChozaExterior.glb`,
+    interior: `${DIR}/ChozaEstatua/ChozaInterior.glb`,
+    recogibles: `${DIR}/ChozaEstatua/ChozaRecogibles`,
+  },
   cartaAlcalde: '/models-3d/objects/Card.glb',
   aldeano: '/models-3d/npcs/Aldeano.glb',
   imeri: '/models-3d/npcs/Imeri.glb',

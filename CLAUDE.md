@@ -68,8 +68,12 @@ El motor requiere **Google Chrome real con soporte WebGPU** sobre `http://localh
    - `/mundo?dev=desafio2` (`elfo`) — Pie del árbol del Elfo (`x: -36.4, y: 11.9, z: -122.5`) con Desafío 1 completado.
    - `/mundo?dev=bosque` — Entrada del Bosque de la Oscuridad (`x: -25, y: 13.3, z: -182`) con espada, lente y mapa.
    - `/mundo?dev=desafio3` (`pueblo`) — Frente a la casa de Hedrig en el pueblo minero (`x: 82, y: 25.3, z: -211.6`).
-   - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca.
-   - `/mundo?dev=cumbre` (`relatoCierre`) — Salida de los túneles en la Cumbre (`x: 104.08, y: 113.6, z: -168.29`).
+   - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca (ayuda de Hedrig aceptada).
+   - `/mundo?dev=ogro` — Sala del Ogro al final del laberinto (`x: 111.5, y: 44, z: -166`), espectro ya calmado.
+   - `/mundo?dev=cumbre` (`relatoCierre`) — Salida de los túneles en la Cumbre (`x: 107.7, y: 53.6, z: -161.85`), Desafío 3 completado.
+   - `/mundo?dev=santuario` — Plaza frente a las puertas del Santuario, junto a la Dríada (`x: 147, y: 53.4, z: -153`).
+   - `/mundo?dev=choza` (Bono 1) — Junto a la choza de la estatua, a la salida del pantano (`x: -62, y: 9.9, z: -87.5`).
+   - `/mundo?dev=claro` (Bono 2) — Borde del Claro del Hada en el bosque (`x: 40, y: 16, z: -221.5`), con la espada élfica.
    - `/seleccion-personaje?dev=personaje` · `/login?dev=registro` · `/admin?dev=admin` — Flujos de registro, avatar y panel admin en memoria.
    - **Identidades sandbox oficiales ya configuradas en `devSession.ts` y `adminService.ts` (úsalas tal cual en capturas y evidencias, sin sobrescribirlas con otros nombres):**
      - Estudiante de prueba (`?dev=registro`, `?dev=personaje`, `/mundo?dev=...`): **`Danna Guerrero Vargas`** (`danna.guerrero@correounivalle.edu.co`, código `202427615`, alias `Danna`, rol `student`).
@@ -80,4 +84,10 @@ El motor requiere **Google Chrome real con soporte WebGPU** sobre `http://localh
    - `window.__DEV_GAME__.status()` reporta `{ ready, warming, loadStage, loadPercent, rendererError, region, interior, position, action, health, dialog, backpackOpen, progress }`.
    - Acciones rápidas en memoria: `window.__DEV_GAME__.teleport(x, y, z)`, `setProgress({...})`, `heal()`, `openBackpack(true)`, `closeDialog()`.
    - Controles en el canvas: `W A S D` / flechas (caminar), `Shift` (correr), `Space` (saltar), `E` (interactuar / recoger), `1`–`3` (ítems de mochila).
+
+---
+
+## 5. Skill de Informes Contractuales (`informes-contrato`)
+
+Cuando el usuario pida elaborar, actualizar o revisar el **Informe 4** (o cualquier cuota/informe mensual siguiente), reutilizar los documentos previos (`INFORME DE ACTIVIDADES Cuota N-1` e `Informe mensual al supervisor N-1`) o redactar el correo de entrega al **Equipo Proyecto MEN**, lee y sigue obligatoriamente **`.agents/skills/informes-contrato/SKILL.md`** (también disponible como `/informes-contrato` en `.claude/skills/informes-contrato/SKILL.md`), junto con su extractor/auditor `.agents/skills/informes-contrato/scripts/inspect_docx.py` y sus referencias en `.agents/skills/informes-contrato/references/`.
 

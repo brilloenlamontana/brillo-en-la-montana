@@ -44,8 +44,12 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
    - `/mundo?dev=desafio2` (alias: `elfo`) — Pie del árbol del Elfo (`x: -36.4, y: 11.9, z: -122.5`) tras superar el Desafío 1.
    - `/mundo?dev=bosque` — Entrada del Bosque de la Oscuridad (`x: -25, y: 13.3, z: -182`) con espada, lente y mapa en mochila.
    - `/mundo?dev=desafio3` (alias: `pueblo`) — Frente a la casa de Hedrig (`x: 82, y: 25.3, z: -211.6`) tras superar el Desafío 2.
-   - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca en mochila.
-   - `/mundo?dev=cumbre` (alias: `relatoCierre`) — Salida de los túneles en la Cumbre (`x: 104.08, y: 113.6, z: -168.29`).
+   - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca en mochila (ayuda de Hedrig aceptada).
+   - `/mundo?dev=ogro` — Sala del Ogro al final del laberinto (`x: 111.5, y: 44, z: -166`), espectro ya calmado.
+   - `/mundo?dev=cumbre` (alias: `relatoCierre`) — Salida de los túneles en la Cumbre (`x: 107.7, y: 53.6, z: -161.85`), Desafío 3 completado.
+   - `/mundo?dev=santuario` — Plaza frente a las puertas del Santuario, junto a la Dríada (`x: 147, y: 53.4, z: -153`).
+   - `/mundo?dev=choza` (Bono 1) — Junto a la choza de la estatua, a la salida del pantano (`x: -62, y: 9.9, z: -87.5`).
+   - `/mundo?dev=claro` (Bono 2) — Borde del Claro del Hada en el bosque (`x: 40, y: 16, z: -221.5`), con la espada élfica.
    - `/seleccion-personaje?dev=personaje` · `/login?dev=registro` · `/admin?dev=admin` — Pantallas de onboarding y panel administrativo 100 % en memoria.
    - **Identidades sandbox preconfiguradas (no cambiar por otros nombres ficticios en capturas):**
      - Estudiante por defecto (`?dev=1`, `?dev=registro`, `?dev=personaje`, etc.): **`Danna Guerrero Vargas`** (`danna.guerrero@correounivalle.edu.co`, código `202427615`, alias `Danna`, rol `student`).
@@ -86,4 +90,10 @@ pages ──► game (challenges ──► player / world ──► engine) ─�
   - Modelos exportados desde `Map.blend` en `public/models-3d/map/` en coordenadas de mundo (`glTF (x, y, z) = Blender (x, z, -y)`).
   - Colisiones únicamente con cuboides (`CuboidColliders`), salvo `Terreno` (trimesh) y `LimiteMapa`.
   - Visibilidad por región (`visibility.ts`), geometría repetida con `InstancedField`, mallas estáticas fusionadas (`merge`), selectores en stores de Zustand para no re-renderizar en movimiento, y cero `backdrop-blur` sobre el `<Canvas>`.
+
+---
+
+## Skills del Proyecto (`.agents/skills/`)
+
+- **`informes-contrato`** (`.agents/skills/informes-contrato/SKILL.md`): Usa esta skill siempre que el usuario pida crear, actualizar o auditar los informes contractuales mensuales para DEXIA / Proyecto MEN (**`INFORME DE ACTIVIDADES Cuota N`** e **`Informe mensual al supervisor N`** con evidencias APA y capturas WebGPU), extraer contenido/imágenes/firma de los informes previos (`.docx` / `.pdf`) o redactar el correo de entrega.
 

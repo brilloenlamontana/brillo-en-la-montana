@@ -16,6 +16,8 @@ export const VISIBLE_FROM = {
   // The inside of the wells only shows from the swamp; the lids cover the holes in the ground from farther away.
   pozos: visibleFrom(['pantano']),
   tapas: visibleFrom(['camino', 'casa', 'pantano', 'valle']),
+  // Bonus 1: the ruined hut of the statue, where the swamp ends and the valley begins.
+  choza: visibleFrom(['pantano', 'valle']),
 } as const;
 
 // Where the third-person camera collides with Challenge 1 geometry: only the meshes around the player are tested.
