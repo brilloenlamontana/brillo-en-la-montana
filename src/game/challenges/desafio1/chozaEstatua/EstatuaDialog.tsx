@@ -1,8 +1,9 @@
-import { ANILLO_ORO } from '@/game/challenges/bonos';
+import { ANILLO_ORO, EXTRA_STAR_TOAST, withExtraStar } from '@/game/challenges/bonos';
 import { playGlide } from '@/game/engine/audio/tones';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
+import { useToastStore } from '@/store/toastStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { DIALOG } from '../dialogs';
 
@@ -26,7 +27,8 @@ function encender() {
 function tomarAnillo() {
   const { progress } = useProgressStore.getState();
   playGlide(660, 1320, 0.6, 0.07, 'sine');
-  saveProgress({ collectedItems: [...new Set([...progress.collectedItems, ANILLO_ORO])], bono1Completado: true });
+  saveProgress({ collectedItems: [...new Set([...progress.collectedItems, ANILLO_ORO])], bono1Completado: true, vidasExtra: withExtraStar(progress) });
+  useToastStore.getState().showToast(EXTRA_STAR_TOAST);
 }
 
 const CUBIERTA: Stage = {

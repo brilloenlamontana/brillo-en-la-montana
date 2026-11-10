@@ -5,6 +5,8 @@ type HelpAnswer = 'pending' | 'accepted' | 'rejected';
 // Stars for the whole game. Each defeat is a "bajo" (low academic performance) and costs one: the third one ends the
 // run (see challenges/progression.ts).
 export const STARS = 3;
+// Each of the two bonuses gives one extra star (an extra life) on top of the three.
+export const MAX_EXTRA_STARS = 2;
 
 // Story progress, saved field by field in Firestore (users/{uid}.progress) by progressService.saveProgress.
 // Grouped by challenge; the rules that read it live in each challenge's mission.ts.
@@ -12,6 +14,11 @@ export interface GameProgress {
   // --- Whole game (kept when the story starts over) ---
   // Stars left.
   estrellas: number;
+  // Extra stars held right now (0 to 2): one is won with each bonus and they are lost before the three real ones.
+  // Losing one is not a "bajo": the player just goes back to the start of the challenge.
+  vidasExtra: number;
+  // Extra stars lost so far.
+  vidasExtraPerdidas: number;
   // Times the player was defeated, per challenge id.
   derrotas: Record<string, number>;
   // Times the story started over: 'segundoBajo' (back to Villa Boj from scratch) and 'tercerBajo' (new character).
@@ -118,10 +125,12 @@ export const STORY_START = {
   calizTomado: false,
   juegoCompletado: false,
   juegoCompletadoEn: undefined,
-} as const satisfies Omit<GameProgress, 'estrellas' | 'derrotas' | 'reinicios'>;
+} as const satisfies Omit<GameProgress, 'estrellas' | 'vidasExtra' | 'vidasExtraPerdidas' | 'derrotas' | 'reinicios'>;
 
 const DEFAULT_PROGRESS: GameProgress = {
   estrellas: STARS,
+  vidasExtra: 0,
+  vidasExtraPerdidas: 0,
   derrotas: {},
   reinicios: {},
   ...STORY_START,
@@ -160,6 +169,10 @@ export function normalizeProgress(saved: Partial<GameProgress> | undefined): Gam
   if (!saved?.imeriHelp && saved?.interactedWithImeri) progress.imeriHelp = 'accepted';
   const estrellas = Number(progress.estrellas);
   progress.estrellas = Number.isFinite(estrellas) ? Math.min(STARS, Math.max(1, Math.round(estrellas))) : STARS;
+  const extra = Number(progress.vidasExtra);
+  progress.vidasExtra = Number.isFinite(extra) ? Math.min(MAX_EXTRA_STARS, Math.max(0, Math.round(extra))) : 0;
+  const perdidas = Number(progress.vidasExtraPerdidas);
+  progress.vidasExtraPerdidas = Number.isFinite(perdidas) ? Math.max(0, Math.round(perdidas)) : 0;
   progress.derrotas = isRecord(progress.derrotas) ? progress.derrotas : {};
   progress.reinicios = isRecord(progress.reinicios) ? progress.reinicios : {};
   progress.collectedItems = list(progress.collectedItems);

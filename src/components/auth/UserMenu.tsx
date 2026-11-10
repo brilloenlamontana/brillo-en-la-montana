@@ -22,8 +22,8 @@ export function UserMenu({ leading }: { leading?: ReactNode }) {
           <button
             type="button"
             onClick={() => setIsProfileOpen(true)}
-            title="Editar perfil y avatar"
-            aria-label="Editar perfil y avatar"
+            title="Editar perfil"
+            aria-label="Editar perfil"
             className="relative flex items-center justify-center rounded-full hover:scale-105 active:scale-95 transition-all outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#C8102E]"
           >
             <img

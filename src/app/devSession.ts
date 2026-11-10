@@ -259,6 +259,8 @@ function installDevInspector() {
     teleport: (x: number, y: number, z: number) => usePlayerStore.getState().requestTeleport({ x, y, z }),
     setProgress: (changes: Partial<GameProgress>) => useProgressStore.getState().setProgress(changes),
     heal: () => usePlayerStore.getState().restoreHealth(),
+    // Damages the player (a defeat by default): to test the bajos and the extra stars.
+    hurt: (amount = 1000) => usePlayerStore.getState().takeDamage(amount),
     openBackpack: (open = true) => useUIStore.getState().setBackpackOpen(open),
     closeDialog: () => useUIStore.getState().closeDialog(),
   };

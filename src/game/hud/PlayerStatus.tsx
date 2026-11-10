@@ -10,13 +10,14 @@ function Bonus({ label, children }: { label: string; children: string }) {
   );
 }
 
-function Star({ lit }: { lit: boolean }) {
+// `extra`: a star won with a bonus (green), on top of the three.
+function Star({ lit, extra = false }: { lit: boolean; extra?: boolean }) {
   return (
     <svg viewBox="0 0 24 24" className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${lit ? 'scale-100' : 'scale-90 opacity-60'}`} aria-hidden="true">
       <path
         d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5-4.7-4.6 6.5-.9z"
-        fill={lit ? '#f4d03f' : 'none'}
-        stroke={lit ? '#b7791f' : '#94a3b8'}
+        fill={lit ? (extra ? '#34d399' : '#f4d03f') : 'none'}
+        stroke={lit ? (extra ? '#047857' : '#b7791f') : '#94a3b8'}
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
@@ -30,6 +31,7 @@ export function PlayerStatus() {
   const health = usePlayerStore((state) => state.health);
   const maxHealth = usePlayerStore((state) => state.maxHealth);
   const estrellas = useProgressStore((state) => state.progress.estrellas);
+  const vidasExtra = useProgressStore((state) => state.progress.vidasExtra);
   const bono1 = useProgressStore((state) => state.progress.bono1Completado);
   const bono2 = useProgressStore((state) => state.progress.bono2Completado);
   const percent = Math.max(0, Math.min(100, (health / maxHealth) * 100));
@@ -42,9 +44,12 @@ export function PlayerStatus() {
           <div className={`h-full transition-all duration-300 ease-in-out ${color}`} style={{ width: `${percent}%` }} />
         </div>
         <span className="text-slate-800 font-bold text-xs sm:text-base min-w-[28px] sm:min-w-[36px] text-right">{Math.ceil(health)}</span>
-        <div className="flex items-center" role="img" aria-label={`${estrellas} de ${STARS} estrellas`}>
+        <div className="flex items-center" role="img" aria-label={`${estrellas} de ${STARS} estrellas${vidasExtra ? ` y ${vidasExtra} extra` : ''}`}>
           {Array.from({ length: STARS }, (_, i) => (
             <Star key={i} lit={i < estrellas} />
+          ))}
+          {Array.from({ length: vidasExtra }, (_, i) => (
+            <Star key={`extra-${i}`} lit extra />
           ))}
         </div>
         {(bono1 || bono2) && (

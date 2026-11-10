@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { AMULETO_HADA } from '@/game/challenges/bonos';
+import { AMULETO_HADA, EXTRA_STAR_TOAST, withExtraStar } from '@/game/challenges/bonos';
 import { playGlide } from '@/game/engine/audio/tones';
 import { Collectibles, type Collectible } from '@/game/engine/interaction/Collectibles';
 import { InteractionSpot } from '@/game/engine/interaction/InteractionSpot';
@@ -49,7 +49,8 @@ function cortarZarzas() {
 function recogerAmuleto(id: string) {
   const { progress } = useProgressStore.getState();
   playGlide(660, 1320, 0.6, 0.07, 'sine');
-  saveProgress({ collectedItems: [...progress.collectedItems, id], bono2Completado: true });
+  saveProgress({ collectedItems: [...progress.collectedItems, id], bono2Completado: true, vidasExtra: withExtraStar(progress) });
+  useToastStore.getState().showToast(EXTRA_STAR_TOAST);
   useUIStore.getState().openDialog(DIALOG.hadaAmuleto);
 }
 

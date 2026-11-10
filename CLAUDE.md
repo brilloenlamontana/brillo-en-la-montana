@@ -82,7 +82,7 @@ El motor requiere **Google Chrome real con soporte WebGPU** sobre `http://localh
 3. **API de inspección en consola (`window.__DEV_GAME__`) y controles:**
    - Verifica `window.__DEV_GAME__.status().ready === true` antes de enviar entradas al `<canvas>`.
    - `window.__DEV_GAME__.status()` reporta `{ ready, warming, loadStage, loadPercent, rendererError, region, interior, position, action, health, dialog, backpackOpen, progress }`.
-   - Acciones rápidas en memoria: `window.__DEV_GAME__.teleport(x, y, z)`, `setProgress({...})`, `heal()`, `openBackpack(true)`, `closeDialog()`.
+   - Acciones rápidas en memoria: `window.__DEV_GAME__.teleport(x, y, z)`, `setProgress({...})`, `heal()`, `hurt()` (derrota al jugador: para probar bajos y estrellas extra), `openBackpack(true)`, `closeDialog()`.
    - Controles en el canvas: `W A S D` / flechas (caminar), `Shift` (correr), `Space` (saltar), `E` (interactuar / recoger), `1`–`3` (ítems de mochila).
 
 ---

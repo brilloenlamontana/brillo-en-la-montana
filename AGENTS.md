@@ -58,7 +58,7 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
 3. **Inspector en vivo (`window.__DEV_GAME__`) y controles:**
    - Espera a que `window.__DEV_GAME__.status().ready === true` antes de interactuar con el mundo 3D.
    - `window.__DEV_GAME__.status()` devuelve `{ ready, warming, loadStage, loadPercent, rendererError, region, interior, position, action, health, dialog, backpackOpen, progress }`.
-   - Helpers en memoria: `window.__DEV_GAME__.teleport(x, y, z)`, `setProgress({...})`, `heal()`, `openBackpack(true)`, `closeDialog()`.
+   - Helpers en memoria: `window.__DEV_GAME__.teleport(x, y, z)`, `setProgress({...})`, `heal()`, `hurt()` (derrota al jugador: para probar bajos y estrellas extra), `openBackpack(true)`, `closeDialog()`.
    - Teclado en el canvas: `W A S D` / flechas (mover), `Shift` (correr), `Space` (saltar), `E` (interactuar / recoger), `1`–`3` (usar ítems rápidos de la mochila).
 
 ---

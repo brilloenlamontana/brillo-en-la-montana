@@ -3,7 +3,7 @@ import { getMissionSummary } from '@/game/challenges/desafio1/mission';
 import { getBonosSummary } from '@/game/challenges/bonos';
 import { getDesafio2Summary } from '@/game/challenges/desafio2/mission';
 import { getDesafio3Summary } from '@/game/challenges/desafio3/mission';
-import { getCierreSummary } from '@/game/challenges/relatoCierre/mission';
+import { countDerrotas, getCierreSummary } from '@/game/challenges/relatoCierre/mission';
 import { isDevUser, useAuthStore, type UserData } from '@/store/authStore';
 import { normalizeProgress, STARS, useProgressStore, type GameProgress } from '@/store/progressStore';
 import { db } from './firebase';
@@ -30,6 +30,8 @@ export interface AdminUserRecord {
   isRegistrationComplete?: boolean;
   nickname?: string;
   avatarName?: string;
+  // Characters lost to a third bajo (they cannot be chosen again).
+  lostCharacters?: string[];
   gender?: string;
   role: 'admin' | 'student';
   progress: GameProgress;
@@ -195,6 +197,10 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
     'Zumbadores Derrotados',
     'Golem Desactivado',
     'Estrellas',
+    'Estrellas Extra (Bonos)',
+    'Estrellas Extra Perdidas',
+    'Derrotas Totales',
+    'Personajes Perdidos',
     'Derrotas (Misión 1)',
     'Derrotas (Misión 2)',
     'Segundos Bajos',
@@ -252,6 +258,10 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
       escapeCSV(step('zumbadores').status),
       escapeCSV(yesNo(step('golem').done)),
       escapeCSV(`${u.progress.estrellas} de ${STARS}`),
+      escapeCSV(u.progress.vidasExtra),
+      escapeCSV(u.progress.vidasExtraPerdidas),
+      escapeCSV(countDerrotas(u.progress)),
+      escapeCSV((u.lostCharacters ?? []).join(', ') || 'Ninguno'),
       escapeCSV(u.progress.derrotas.desafio1 ?? 0),
       escapeCSV(u.progress.derrotas.desafio2 ?? 0),
       escapeCSV(u.progress.reinicios.segundoBajo ?? 0),

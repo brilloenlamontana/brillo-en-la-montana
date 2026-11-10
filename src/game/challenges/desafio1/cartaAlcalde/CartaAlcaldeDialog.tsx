@@ -14,9 +14,12 @@ export function CartaAlcaldeDialog() {
   const ready = useWorldStore((state) => state.ready);
   const read = useProgressStore((state) => state.progress.openedMayorLetter);
 
+  // It waits for whatever dialog is open (the story starts over after a second or third bajo, whose dialog comes first).
+  const busy = useUIStore((state) => state.dialog !== null);
+
   useEffect(() => {
-    if (ready && !read) openCartaAlcalde();
-  }, [ready, read]);
+    if (ready && !read && !busy) openCartaAlcalde();
+  }, [ready, read, busy]);
 
   // The image is decoded ahead, so opening it later does not drop frames.
   useEffect(() => {

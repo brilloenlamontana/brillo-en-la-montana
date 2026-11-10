@@ -7,7 +7,7 @@ import { getMissionSummary } from '@/game/challenges/desafio1/mission';
 import { getBonosSummary } from '@/game/challenges/bonos';
 import { getDesafio2Summary } from '@/game/challenges/desafio2/mission';
 import { getDesafio3Summary } from '@/game/challenges/desafio3/mission';
-import { getCierreSummary } from '@/game/challenges/relatoCierre/mission';
+import { countDerrotas, getCierreSummary } from '@/game/challenges/relatoCierre/mission';
 import type { MissionStep } from '@/game/challenges/types';
 import {
   claimFirstAdmin,
@@ -871,6 +871,18 @@ export default function AdminPage() {
                         Estrellas: <strong>{selectedUser.progress.estrellas} de {STARS}</strong>
                       </span>
                       <span>
+                        Estrellas extra (bonos): <strong>{selectedUser.progress.vidasExtra}</strong>
+                      </span>
+                      <span>
+                        Estrellas extra perdidas: <strong>{selectedUser.progress.vidasExtraPerdidas}</strong>
+                      </span>
+                      <span>
+                        Vidas disponibles: <strong>{selectedUser.progress.estrellas + selectedUser.progress.vidasExtra}</strong>
+                      </span>
+                      <span>
+                        Derrotas totales: <strong>{countDerrotas(selectedUser.progress)}</strong>
+                      </span>
+                      <span>
                         Derrotas en el pantano: <strong>{selectedUser.progress.derrotas.desafio1 ?? 0}</strong>
                       </span>
                       <span>
@@ -881,6 +893,12 @@ export default function AdminPage() {
                       </span>
                       <span>
                         Terceros bajos: <strong>{selectedUser.progress.reinicios.tercerBajo ?? 0}</strong>
+                      </span>
+                      <span>
+                        Derrotas en la cumbre: <strong>{selectedUser.progress.derrotas.desafio3 ?? 0}</strong>
+                      </span>
+                      <span>
+                        Personajes perdidos: <strong>{(selectedUser.lostCharacters ?? []).join(', ') || 'Ninguno'}</strong>
                       </span>
                     </p>
 
