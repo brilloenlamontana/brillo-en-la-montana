@@ -9,11 +9,11 @@ import { isDesafio2Completado } from '../mission';
 
 // "Audio explicación del Elfo", from the scene schedule.
 const EXPLICACION = [
-  'El mago se compadece del aventurero. Hace mucho tiempo vive en el bosque y conoce bien los peligros del camino, pero no puede acompañarte: es su magia la que mantiene a raya a los dragones de los alrededores para que no ataquen los pueblos. Su ayuda viene en forma de consejos y de herramientas que puedes pedirle si lo deseas.',
-  'En el camino del bosque hay tres grandes peligros: los duendes salvajes, los árboles venenosos y los senderos cambiantes.',
-  'El bosque es espeso; algunos dicen que los árboles caminan. Hay que saber orientarse muy bien: alguien se puede perder con facilidad.',
-  'Los duendes merodean por el bosque y son muy agresivos en esta época del año. Hay que evitarlos con cuidado, o ser lo bastante fuerte para derrotarlos en combate.',
-  'Lo más peligroso del bosque son varias especies de frutales que, a pesar de ser casi idénticos a perales y manzanos, se cargan de frutos venenosos que matarían a cualquier ser imprudente.',
+  'Me compadezco de ti, aventurero. Vivo en este bosque desde hace mucho tiempo y conozco bien los peligros del camino, pero no puedo acompañarte: es mi magia la que mantiene a raya a los dragones, para que no ataquen los pueblos. Lo que sí puedo darte son consejos… y algunas herramientas, si las quieres.',
+  'En el bosque te esperan tres grandes peligros: los duendes salvajes, los árboles venenosos y los senderos que cambian.',
+  'Es un bosque espeso; hay quien dice que los árboles caminan. Tendrás que orientarte muy bien, porque aquí cualquiera se pierde.',
+  'Los duendes merodean por todas partes, y en esta época del año están muy agresivos. Evítalos con cuidado… o sé lo bastante fuerte para vencerlos.',
+  'Pero lo más peligroso son los frutales. Se ven casi idénticos a los perales y a los manzanos, y sin embargo se cargan de frutos venenosos que matarían a cualquier imprudente.',
 ];
 
 const FELICITACION = [
@@ -36,7 +36,7 @@ export function ElfoDialog() {
 
   if (completed) {
     return (
-      <ParchmentDialog title="El elfo del bosque" subtitle="Mago protector del bosque" paragraphs={FELICITACION}>
+      <ParchmentDialog title="El elfo del bosque" subtitle="Mago protector del bosque" paragraphs={FELICITACION} voice={['02_elfo_03']}>
         <div className="flex justify-end">
           <ParchmentButton onClick={close}>Gracias, elfo</ParchmentButton>
         </div>
@@ -56,7 +56,9 @@ export function ElfoDialog() {
   };
 
   return (
-    <ParchmentDialog title="El elfo del bosque" subtitle="Un mago elfo que vive en la copa de un árbol" paragraphs={EXPLICACION}>
+    <ParchmentDialog title="El elfo del bosque" subtitle="Un mago elfo que vive en la copa de un árbol" paragraphs={EXPLICACION}
+      voice={accepted ? ['02_elfo_02'] : ['02_elfo_02', '02_elfo_01']}
+    >
       {accepted ? (
         <div className="flex justify-end">
           <ParchmentButton onClick={close}>Entendido</ParchmentButton>

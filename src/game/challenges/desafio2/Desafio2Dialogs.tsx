@@ -1,4 +1,5 @@
 import { BosqueSuperadoDialog } from './bosqueOscuridad/BosqueSuperadoDialog';
+import { Desafio2Sounds } from './Desafio2Sounds';
 import { HadaDialog } from './claroDelHada/HadaDialog';
 import { ElfoDialog } from './npcs/ElfoDialog';
 
@@ -9,6 +10,7 @@ export function Desafio2Dialogs() {
       <ElfoDialog />
       <BosqueSuperadoDialog />
       <HadaDialog />
+      <Desafio2Sounds />
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { usePlayerStore } from '@/game/player/playerStore';
@@ -40,10 +41,12 @@ export function HambreDelBosque() {
       if (hambre === 0) player.takeDamage(STARVING_DAMAGE_PER_SECOND * delta);
       if (hambre < HUNGRY_AT && !warned.current.hungry) {
         warned.current.hungry = true;
+        playSfx('d2_hambre');
         toast('Tienes hambre. Los frutos del bosque se ven apetitosos, pero algunos están envenenados.');
       }
       if (hambre === 0 && !warned.current.starving) {
         warned.current.starving = true;
+        playSfx('d2_hambre');
         toast('¡Te mueres de hambre! Come una fruta buena o seguirás perdiendo vida.');
       }
     }

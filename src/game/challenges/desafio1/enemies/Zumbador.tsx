@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio'
 import { useGLTF } from '@react-three/drei'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
@@ -149,6 +150,7 @@ export function Zumbador({ index }: { index: number }) {
         const distance = flyTowards(player.x, player.y + 1.5, player.z, CHASE_SPEED * speedFactor, delta, wobble)
         if (distance < STING_RANGE) {
           if (now - brainState.lastSting > STING_COOLDOWN) {
+            playSfx('d1_zumbon_picadura')
             usePlayerStore.getState().takeDamage(STING_DAMAGE)
             brainState.lastSting = now
           }

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { playSfx } from '@/game/engine/audio/audio';
+import { useVoice } from '@/game/engine/audio/useVoice';
 import { CINEMATIC_SECONDS, FADE_SECONDS, SHOT_SECONDS, SHOTS, useCinematicaStore } from './cinematica';
 
 // What is drawn over the canvas during the final cinematic: black bars that hide the HUD, the caption of each shot, a
@@ -12,12 +14,22 @@ export function CinematicaOverlay() {
     const tick = () => setElapsed((performance.now() - startedAt) / 1000);
     tick();
     const interval = setInterval(tick, 100);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      setElapsed(0);
+    };
   }, [startedAt]);
 
-  if (startedAt === null) return null;
-
+  const playing = startedAt !== null;
   const index = Math.min(SHOTS.length - 1, Math.floor(elapsed / SHOT_SECONDS));
+  // The narrator reads each caption (04_narrador_03 … 08, one per shot); a soft whoosh marks every cut.
+  useVoice(playing ? [`04_narrador_0${index + 3}`] : null);
+  useEffect(() => {
+    if (playing && index > 0) playSfx('rc_cinematica_corte', { volume: 0.5 });
+  }, [playing, index]);
+
+  if (!playing) return null;
+
   const inShot = elapsed - index * SHOT_SECONDS;
   // Black at each end of a shot, clear in between.
   const black = Math.max(0, 1 - inShot / FADE_SECONDS, 1 - (SHOT_SECONDS - inShot) / FADE_SECONDS);

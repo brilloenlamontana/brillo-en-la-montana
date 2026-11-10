@@ -5,6 +5,7 @@ import { SnowEffect } from '@/components/SnowEffect';
 import { SEDES } from '@/data/univalle';
 import { getMissionSummary } from '@/game/challenges/desafio1/mission';
 import { getBonosSummary } from '@/game/challenges/bonos';
+import { useNoMusic } from '@/game/engine/audio/useMenuMusic';
 import { getDesafio2Summary } from '@/game/challenges/desafio2/mission';
 import { getDesafio3Summary } from '@/game/challenges/desafio3/mission';
 import { countDerrotas, getCierreSummary } from '@/game/challenges/relatoCierre/mission';
@@ -28,6 +29,7 @@ import { STARS } from '@/store/progressStore';
 export default function AdminPage() {
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
+  useNoMusic();
 
   // Authentication & authorization. `access` is the answer for one account: while it belongs to another (or there is
   // none yet) the permissions are still being checked.

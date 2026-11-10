@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import type { Backpack } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
@@ -21,6 +22,8 @@ function activarMapa() {
     return;
   }
   useBosqueStore.getState().usarMapa();
+  playSfx('d2_mapa');
+  playSfx('d2_sendero_cambia', { volume: 0.8 });
   const victory = saveDesafio2Victory({ mapaActivado: true });
   if (!victory) {
     toast('¡Activaste el mapa del bosque! El muro de piedra desciende y un sendero dorado aparece en el suelo: síguelo hasta la salida.');
@@ -31,12 +34,14 @@ function activarMapa() {
 function toggleLente() {
   const { lente, toggleLente } = useBosqueStore.getState();
   toggleLente();
+  playSfx('d2_lente', { volume: 0.8 });
   toast(lente ? 'Guardas el lente revelador.' : 'Miras a través del lente: las frutas buenas se ven amarillas y las venenosas siguen rojas.');
 }
 
 // A sword swing (click or hotkey, like the insecticide): every live goblin within reach falls.
 function swingSword() {
   useBosqueStore.getState().slash();
+  playSfx('d2_espada_tajo');
   const player = usePlayerStore.getState().position;
   const { progress } = useProgressStore.getState();
   const hit = useBosqueStore
@@ -46,6 +51,8 @@ function swingSword() {
     toast('Ningún duende está a tu alcance. Espera a que se acerquen.');
     return;
   }
+  playSfx('d2_espada_impacto');
+  playSfx('d2_duende_muere', { volume: 0.8 });
   const defeated = [...new Set([...progress.duendesDefeated, ...hit])];
   const victory = saveDesafio2Victory({ duendesDefeated: defeated });
   const left = DUENDE_COUNT - defeated.length;

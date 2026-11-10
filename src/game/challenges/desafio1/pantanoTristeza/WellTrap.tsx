@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { usePlayerStore } from '@/game/player/playerStore';
@@ -30,6 +31,7 @@ export function WellTrap() {
       const well = findWellUnder(wells, x, y, z, FALL_DEPTH);
       if (!well) return;
       fallen.current = well;
+      playSfx('d1_hundirse');
       player.setCameraDistance(WELL_CAMERA_DISTANCE);
       if (hasItem('soga', progress)) pantano.setTrappedInWell(true);
       else player.takeDamage(player.maxHealth);

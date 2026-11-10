@@ -6,10 +6,10 @@ import { DIALOG } from '../dialogs';
 
 // What happened in Villa Boj, from the scene schedule ("Relato inicial").
 const RELATO = [
-  'Hace una semana atacaron la villa durante la noche. Al amanecer encontramos a algunos guardias heridos y las puertas del templo rotas, abiertas de par en par.',
-  'El sacerdote estaba junto al altar, con su báculo roto y apenas con vida. Antes de perder el sentido señaló la pequeña capilla interior: faltaba el cáliz de madera con hojas de sauce grabadas, el que mantiene la tierra fértil y el frío controlado.',
-  'El alcalde mandó a los exploradores más experimentados tras los ladrones, pero ninguna partida ha vuelto. La gente de Arroyo Claro no lo tiene: alguien más se llevó el cáliz.',
-  'Anoche murió la anciana yerbatera, los animales están débiles y las cosechas se quemaron bajo la nieve. El frío es cada vez mayor y a la villa no le queda mucho tiempo.',
+  'Hace una semana nos atacaron de noche. Al amanecer encontramos a varios guardias heridos y las puertas del templo rotas, abiertas de par en par.',
+  'Al sacerdote lo hallamos junto al altar, con el báculo roto y apenas con vida. Antes de desmayarse alcanzó a señalar la capilla: faltaba el cáliz de madera, el de las hojas de sauce grabadas. Es el que mantiene la tierra fértil y el frío a raya.',
+  'El alcalde mandó a los mejores exploradores tras los ladrones, pero ninguno ha vuelto. Y la gente de Arroyo Claro tampoco lo tiene: alguien más se llevó el cáliz.',
+  'Anoche murió la anciana yerbatera. Los animales están débiles y las cosechas se quemaron bajo la nieve. Cada día hace más frío… a la villa no le queda mucho tiempo.',
 ];
 
 // The villager's dialog. YES: villagers point the way to Imeri, who waits in front of her house. NO: Imeri will not be
@@ -31,7 +31,7 @@ export function AldeanoDialog() {
   };
 
   return (
-    <ParchmentDialog title="Aldeano de Villa Boj" subtitle="Lo que pasó en la villa" paragraphs={RELATO}>
+    <ParchmentDialog title="Aldeano de la Villa de Boj" subtitle="Lo que pasó en la villa" paragraphs={RELATO} voice={['01_aldeano_01', '01_aldeano_02']}>
       <p className="font-bold text-sm sm:text-base mb-3">¿Necesitas ayuda para llegar a la Cumbre de la Desolación?</p>
       <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
         <ParchmentButton tone="decline" onClick={() => answer('rejected')}>

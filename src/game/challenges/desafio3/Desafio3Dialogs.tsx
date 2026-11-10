@@ -1,3 +1,4 @@
+import { Desafio3Sounds } from './Desafio3Sounds';
 import { CumbreAlcanzadaDialog } from './CumbreAlcanzadaDialog';
 import { HedrigDialog } from './npcs/HedrigDialog';
 import { OgroVencidoDialog } from './ogro/OgroVencidoDialog';
@@ -9,6 +10,7 @@ export function Desafio3Dialogs() {
       <HedrigDialog />
       <OgroVencidoDialog />
       <CumbreAlcanzadaDialog />
+      <Desafio3Sounds />
     </>
   );
 }

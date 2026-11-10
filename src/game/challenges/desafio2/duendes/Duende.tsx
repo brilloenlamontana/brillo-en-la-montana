@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import { useEffect, useMemo, useRef } from 'react';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
@@ -185,6 +186,7 @@ export function Duende({ index, home }: { index: number; home: readonly [number,
           const elapsed = now - b.swingStart;
           if (!b.swingHit && elapsed >= duration * ATTACK_HIT_MOMENT) {
             b.swingHit = true;
+            playSfx('d2_duende_ataque', { volume: 0.8 });
             if (playerDistance < ATTACK_RANGE + 0.5) player.takeDamage(ATTACK_DAMAGE);
           }
           if (elapsed >= duration) {

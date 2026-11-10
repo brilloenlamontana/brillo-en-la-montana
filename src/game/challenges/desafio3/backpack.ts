@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import type { Backpack } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useZoneStore } from '@/game/world/zoneStore';
@@ -20,6 +21,7 @@ function toggleBrujula() {
   const { brujulaActiva, toggleBrujula: toggle } = useTunelStore.getState();
   toggle();
   if (brujulaActiva) return toast('Guardas la brújula.');
+  playSfx('d3_brujula');
   toast(
     useZoneStore.getState().region === 'tuneles'
       ? 'La aguja de la brújula tiembla y un sendero de luz azul marca el camino hacia la salida de la cumbre.'

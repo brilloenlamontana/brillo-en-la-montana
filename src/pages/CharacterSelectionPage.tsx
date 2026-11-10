@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useOnboardingRedirect } from '@/app/onboarding';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { availableCharacters, CHARACTERS } from '@/data/characters';
+import { useMenuMusic } from '@/game/engine/audio/useMenuMusic';
+import { SoundToggle } from '@/game/hud/SoundToggle';
 import { saveCharacter } from '@/services/userService';
 import { useAuthStore, type AvatarGender } from '@/store/authStore';
 
@@ -14,6 +16,7 @@ const GENDERS: { gender: AvatarGender; label: string; imagePath: string }[] = [
 // onboarding and the redirect opens the world. Characters lost to a third "bajo" are no longer offered.
 export default function CharacterSelectionPage() {
   const step = useOnboardingRedirect('/seleccion-personaje');
+  useMenuMusic();
   const lostCharacters = useAuthStore((state) => state.user?.lostCharacters);
   const [gender, setGender] = useState<AvatarGender | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -92,7 +95,7 @@ export default function CharacterSelectionPage() {
             })}
           </div>
         </div>
-        <UserMenu />
+        <UserMenu leading={<SoundToggle />} />
       </div>
     );
   }
@@ -223,7 +226,7 @@ export default function CharacterSelectionPage() {
         </form>
       </div>
 
-      <UserMenu />
+      <UserMenu leading={<SoundToggle />} />
     </div>
   );
 }

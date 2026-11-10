@@ -17,7 +17,7 @@ const BAJOS: Record<Bajo, { title: string; paragraphs: string[]; button: string 
     title: 'Caíste en segundo bajo',
     paragraphs: [
       'Perdiste otra estrella. Un segundo bajo rendimiento te obliga a repetir el camino.',
-      'Vuelves a Villa de Boj y la aventura empieza desde cero: tendrás que volver a pedir ayuda, recoger los objetos y superar cada desafío otra vez. Te queda una sola estrella.',
+      'Vuelves a la Villa de Boj y la aventura empieza desde cero: tendrás que volver a pedir ayuda, recoger los objetos y superar cada desafío otra vez. Te queda una sola estrella.',
     ],
     button: 'Empezar de nuevo',
   },
@@ -48,6 +48,7 @@ export function BajoDialog() {
   const extra = dialog === VIDA_EXTRA_DIALOG;
   if (!bajo && !extra) return null;
   const { title, paragraphs, button } = bajo ? BAJOS[bajo] : VIDA_EXTRA;
+  const voice = bajo ? `05_narrador_0${bajo}` : '05_narrador_04';
 
   const close = () => {
     useUIStore.getState().closeDialog();
@@ -60,7 +61,7 @@ export function BajoDialog() {
   };
 
   return (
-    <ParchmentDialog title={title} subtitle={bajo ? 'Bajo rendimiento' : 'Estrella extra de un bono'} paragraphs={paragraphs}>
+    <ParchmentDialog title={title} subtitle={bajo ? 'Bajo rendimiento' : 'Estrella extra de un bono'} paragraphs={paragraphs} voice={[voice]}>
       <div className="flex justify-end">
         <ParchmentButton tone={bajo === 3 ? 'decline' : 'accept'} onClick={close}>
           {button}

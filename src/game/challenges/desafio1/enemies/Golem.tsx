@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import { useEffect, useRef } from 'react'
@@ -157,6 +158,7 @@ export function Golem() {
         const elapsed = now - brainState.swingStart
         if (!brainState.swingHit && elapsed >= swingDuration * ATTACK_HIT_MOMENT) {
           brainState.swingHit = true
+          playSfx('d1_golem_golpe')
           if (distance < ATTACK_HIT_RANGE) usePlayerStore.getState().takeDamage(ATTACK_DAMAGE)
         }
         if (elapsed >= swingDuration) {

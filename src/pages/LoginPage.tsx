@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useOnboardingRedirect } from '@/app/onboarding';
 import { LoginLayout } from '@/components/auth/LoginLayout';
+import { useMenuMusic } from '@/game/engine/audio/useMenuMusic';
 import { StudentRegistrationModal } from '@/components/modals/StudentRegistrationModal';
 import { isPopupDismissed, saveRegistration, signInWithGoogle, signOutUser, type RegistrationData } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
@@ -9,6 +10,7 @@ import { useAuthStore } from '@/store/authStore';
 // onboarding redirect takes the player to the character selection or straight to the world.
 export function LoginPage() {
   const step = useOnboardingRedirect('/login');
+  useMenuMusic();
   const user = useAuthStore((state) => state.user);
   const [signingIn, setSigningIn] = useState(false);
   const [saving, setSaving] = useState(false);

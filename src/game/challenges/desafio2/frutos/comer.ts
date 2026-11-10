@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
@@ -26,6 +27,7 @@ export function comerFruto(index: number): boolean {
   const player = usePlayerStore.getState();
   if (!isFrutoBueno(index)) {
     const lethal = player.health <= BAD_FRUIT_DAMAGE;
+    playSfx('d2_fruta_veneno');
     toast(
       lethal
         ? '¡Esa fruta estaba envenenada! El veneno consumió tus últimas fuerzas.'
@@ -39,6 +41,7 @@ export function comerFruto(index: number): boolean {
   const victory = saveDesafio2Victory({ frutosComidos });
   const bosque = useBosqueStore.getState();
   bosque.setHambre(MAX_HAMBRE, bosque.hambreActiva);
+  playSfx('d2_fruta_comer');
   player.heal(GOOD_FRUIT_HEALTH);
 
   if (!victory) {

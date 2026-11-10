@@ -3,6 +3,7 @@ import { KeyboardControls } from '@react-three/drei';
 import { Avatar } from './Avatar';
 import { KEYBOARD_MAP } from './keyboardMap';
 import { PlayerController } from './PlayerController';
+import { PlayerSounds } from './PlayerSounds';
 import type { Point, Spawn } from './playerStore';
 
 type PlayerProps = {
@@ -21,6 +22,7 @@ export function Player({ start, onRespawn }: PlayerProps) {
           <Avatar />
         </Suspense>
       </PlayerController>
+      <PlayerSounds />
     </KeyboardControls>
   );
 }

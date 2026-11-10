@@ -1,17 +1,22 @@
 import { useId, type ReactNode } from 'react';
+import { playSfx } from '@/game/engine/audio/audio';
+import { useVoice } from '@/game/engine/audio/useVoice';
 
 type ParchmentDialogProps = {
   title: string;
   subtitle?: string;
   paragraphs: readonly string[];
+  // Recorded voices that read it aloud, in order (ids of docs/sonido/guion_voces.csv).
+  voice?: readonly string[];
   // Footer: the question and its answers.
   children: ReactNode;
 };
 
 // Dialog of the story characters, drawn over the canvas. No backdrop blur: blurring a live 3D canvas every frame is
 // expensive on phones.
-export function ParchmentDialog({ title, subtitle, paragraphs, children }: ParchmentDialogProps) {
+export function ParchmentDialog({ title, subtitle, paragraphs, voice, children }: ParchmentDialogProps) {
   const titleId = useId();
+  useVoice(voice);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4 select-none">
       <div
@@ -40,7 +45,10 @@ export function ParchmentButton({ onClick, tone = 'accept', children }: Parchmen
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={() => {
+        playSfx('ui_boton', { volume: 0.6 });
+        onClick();
+      }}
       className={`px-4 py-2 sm:px-5 sm:py-2.5 text-sm sm:text-base font-bold cursor-pointer rounded-lg bg-[#5c3a21] border-2 border-[#3e2723] shadow-md hover:scale-105 active:scale-95 transition-transform ${
         tone === 'accept' ? 'text-[#f4d03f]' : 'text-[#ff6b6b]'
       }`}

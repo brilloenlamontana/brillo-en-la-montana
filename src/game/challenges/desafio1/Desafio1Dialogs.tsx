@@ -1,3 +1,4 @@
+import { Desafio1Sounds } from './Desafio1Sounds';
 import { CartaAlcaldeDialog } from './cartaAlcalde/CartaAlcaldeDialog';
 import { EstatuaDialog } from './chozaEstatua/EstatuaDialog';
 import { AldeanaDialog } from './npcs/Aldeana';
@@ -15,6 +16,7 @@ export function Desafio1Dialogs() {
       <PantanoSuperadoDialog />
       <AldeanaDialog />
       <EstatuaDialog />
+      <Desafio1Sounds />
     </>
   );
 }

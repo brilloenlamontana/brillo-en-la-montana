@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { AMULETO_HADA, EXTRA_STAR_TOAST, withExtraStar } from '@/game/challenges/bonos';
-import { playGlide } from '@/game/engine/audio/tones';
+import { playSfx } from '@/game/engine/audio/audio';
 import { Collectibles, type Collectible } from '@/game/engine/interaction/Collectibles';
 import { InteractionSpot } from '@/game/engine/interaction/InteractionSpot';
 import { setNodeVisible } from '@/game/engine/models/sceneUtils';
@@ -41,14 +41,15 @@ function cortarZarzas() {
     return toast('Las zarzas son duras como el hierro: solo la espada élfica podría cortarlas. Pídesela al elfo del árbol gigante.');
   }
   useBosqueStore.getState().slash();
-  playGlide(900, 300, 0.35, 0.07, 'triangle');
+  playSfx('d2_zarzas');
+  playSfx('d2_hada_libre', { volume: 0.8 });
   saveProgress({ hadaLiberada: true });
   useUIStore.getState().openDialog(DIALOG.hada);
 }
 
 function recogerAmuleto(id: string) {
   const { progress } = useProgressStore.getState();
-  playGlide(660, 1320, 0.6, 0.07, 'sine');
+  playSfx('d2_amuleto');
   saveProgress({ collectedItems: [...progress.collectedItems, id], bono2Completado: true, vidasExtra: withExtraStar(progress) });
   useToastStore.getState().showToast(EXTRA_STAR_TOAST);
   useUIStore.getState().openDialog(DIALOG.hadaAmuleto);

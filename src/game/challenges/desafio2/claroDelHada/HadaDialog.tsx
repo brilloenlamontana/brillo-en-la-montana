@@ -30,7 +30,7 @@ export function HadaDialog() {
 
   if (dialog === DIALOG.hadaAmuleto) {
     return (
-      <ParchmentDialog title="¡Bono 2 completado!" subtitle="Recibiste el amuleto del hada" paragraphs={AMULETO}>
+      <ParchmentDialog title="¡Bono 2 completado!" subtitle="Recibiste el amuleto del hada" paragraphs={AMULETO} voice={['02_narrador_13', '02_hada_02']}>
         <div className="flex justify-end">
           <ParchmentButton onClick={close}>Seguir el camino</ParchmentButton>
         </div>
@@ -40,7 +40,9 @@ export function HadaDialog() {
   if (dialog !== DIALOG.hada) return null;
 
   return (
-    <ParchmentDialog title="El hada del claro" subtitle="Bono 2 · Una lucecita entre los árboles" paragraphs={completado ? DESPEDIDA : AGRADECIMIENTO}>
+    <ParchmentDialog title="El hada del claro" subtitle="Bono 2 · Una lucecita entre los árboles" paragraphs={completado ? DESPEDIDA : AGRADECIMIENTO}
+      voice={completado ? ['02_hada_03', '02_narrador_14', '02_hada_04'] : ['02_narrador_12', '02_hada_01']}
+    >
       <div className="flex justify-end">
         <ParchmentButton onClick={close}>{completado ? 'Hasta pronto' : 'Recoger el amuleto'}</ParchmentButton>
       </div>

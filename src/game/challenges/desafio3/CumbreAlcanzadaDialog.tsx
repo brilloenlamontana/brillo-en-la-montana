@@ -15,7 +15,7 @@ export function CumbreAlcanzadaDialog() {
   if (!isOpen) return null;
 
   return (
-    <ParchmentDialog title="¡Llegaste a la Cumbre de la Desolación!" subtitle="Desafío 3 completado · tu vida se recuperó al 100 %" paragraphs={RELATO}>
+    <ParchmentDialog title="¡Llegaste a la Cumbre de la Desolación!" subtitle="Desafío 3 completado · tu vida se recuperó al 100 %" paragraphs={RELATO} voice={['03_narrador_14']}>
       <div className="flex justify-end">
         <ParchmentButton onClick={() => useUIStore.getState().closeDialog()}>Seguir hacia el santuario</ParchmentButton>
       </div>

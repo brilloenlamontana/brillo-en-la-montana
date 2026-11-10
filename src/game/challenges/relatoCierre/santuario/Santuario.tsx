@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { playGlide } from '@/game/engine/audio/tones';
 import { InteractionSpot } from '@/game/engine/interaction/InteractionSpot';
 import { CameraBlockers, StaticModel, TrimeshColliders } from '@/game/engine/models/StaticModel';
 import type { ColliderBox } from '@/game/engine/physics/colliderBoxes';
@@ -33,7 +32,6 @@ function tomarCaliz() {
   if (isCalizTomado(useProgressStore.getState().progress)) return;
   const now = new Date().toISOString();
   usePlayerStore.getState().restoreHealth();
-  playGlide(440, 1320, 1.2, 0.08, 'sine');
   saveProgress({ calizTomado: true, juegoCompletado: true, juegoCompletadoEn: now });
   // The glow of the chalice travels the whole map (final cinematic); the final victory is told when it ends.
   useCinematicaStore.getState().start();
