@@ -19,7 +19,7 @@ export const countBonos = (progress: Progress) => Number(isBono1Completado(progr
 // Steps of both bonuses, as the admin dashboard shows them for each player.
 export function getBonosSummary(progress: Progress) {
   const steps: MissionStep[] = [
-    { id: 'estatua-limpia', label: 'Bono 1 · Limpiar el moho de la estatua', detail: 'Choza en ruinas a la salida del pantano', done: progress?.estatuaLimpia === true },
+    { id: 'estatua-limpia', label: 'Bono 1 · Limpiar el rostro de la estatua', detail: 'Choza en ruinas a la salida del pantano', done: progress?.estatuaLimpia === true },
     { id: 'estatua-fuego', label: 'Bono 1 · Encender el fuego en el plato', detail: 'A los pies de la estatua', done: progress?.estatuaEncendida === true },
     { id: 'anillo', label: 'Bono 1 · Recibir el anillo de oro', detail: 'De las manos abiertas de la estatua', done: isBono1Completado(progress) },
     { id: 'hada', label: 'Bono 2 · Liberar al hada', detail: 'Cortando las zarzas con la espada élfica, en el claro del bosque', done: progress?.hadaLiberada === true },
@@ -27,5 +27,12 @@ export function getBonosSummary(progress: Progress) {
   ];
   const done = steps.filter((step) => step.done).length;
   const bonos = countBonos(progress);
-  return { steps, done, total: steps.length, percent: Math.round((done / steps.length) * 100), bonos, totalBonos: 2, completed: bonos === 2 };
+  // Each bonus on its own, for the dashboard: its steps done out of its total.
+  const part = (prefix: readonly string[]) => {
+    const own = steps.filter((step) => prefix.includes(step.id));
+    return { done: own.filter((step) => step.done).length, total: own.length };
+  };
+  const bono1 = { ...part(['estatua-limpia', 'estatua-fuego', 'anillo']), completed: isBono1Completado(progress) };
+  const bono2 = { ...part(['hada', 'amuleto']), completed: isBono2Completado(progress) };
+  return { steps, done, total: steps.length, percent: Math.round((done / steps.length) * 100), bonos, totalBonos: 2, completed: bonos === 2, bono1, bono2 };
 }

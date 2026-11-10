@@ -26,6 +26,7 @@ export const DESAFIO1_MODELS = {
   },
   cartaAlcalde: '/models-3d/objects/Card.glb',
   aldeano: '/models-3d/npcs/Aldeano.glb',
+  aldeana: '/models-3d/npcs/Aldeana.glb',
   imeri: '/models-3d/npcs/Imeri.glb',
   golem: '/models-3d/enemies/Golem.glb',
   zumbador: '/models-3d/enemies/Zumbador.glb',

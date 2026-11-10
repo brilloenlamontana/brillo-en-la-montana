@@ -195,8 +195,10 @@ export default function AdminPage() {
     const completed3 = filteredUsers.filter((u) => getDesafio3Summary(u.progress).completed).length;
     const finished = filteredUsers.filter((u) => getCierreSummary(u.progress).completed).length;
     const bonos = filteredUsers.reduce((sum, u) => sum + getBonosSummary(u.progress).bonos, 0);
+    const bono1 = filteredUsers.filter((u) => getBonosSummary(u.progress).bono1.completed).length;
+    const bono2 = filteredUsers.filter((u) => getBonosSummary(u.progress).bono2.completed).length;
 
-    return { players: filteredUsers.length, completed1, started1, average1, unlocked2, completed2, completed3, finished, bonos };
+    return { players: filteredUsers.length, completed1, started1, average1, unlocked2, completed2, completed3, finished, bonos, bono1, bono2 };
   }, [filteredUsers]);
 
 
@@ -359,7 +361,7 @@ export default function AdminPage() {
 
 
         {/* Missions summary (en vivo) */}
-        <section className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: 'Total Jugadores', value: missionStats.players, sub: `${missionStats.started1} han jugado` },
             { label: 'Misión 1: Pantano', value: `${missionStats.completed1} superaron`, sub: `${missionStats.average1}% avance promedio` },
@@ -367,6 +369,8 @@ export default function AdminPage() {
             { label: 'Misión 2: Completada', value: `${missionStats.completed2} superaron`, sub: 'Camino despejado' },
             { label: 'Misión 3: Cumbre', value: `${missionStats.completed3} superaron`, sub: 'Túneles, espectro y ogro' },
             { label: 'Juego completado', value: `${missionStats.finished} con el cáliz`, sub: `${missionStats.bonos} bonos obtenidos` },
+            { label: 'Bono 1: Estatua', value: `${missionStats.bono1} lo obtuvieron`, sub: 'Anillo de oro (pantano)' },
+            { label: 'Bono 2: Hada', value: `${missionStats.bono2} lo obtuvieron`, sub: 'Amuleto del hada (bosque)' },
           ].map(({ label, value, sub }) => (
             <div key={label} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
               <p className="text-xs uppercase tracking-wider font-semibold text-slate-500">{label}</p>
@@ -471,6 +475,7 @@ export default function AdminPage() {
                   <th className="py-4 px-5 min-w-[170px]">Misión 1: Pantano</th>
                   <th className="py-4 px-5 min-w-[170px]">Misión 2: Bosque</th>
                   <th className="py-4 px-5 min-w-[170px]">Misión 3 y cierre</th>
+                  <th className="py-4 px-5 min-w-[170px]">Bonos</th>
                   <th className="py-4 px-5 text-center">Datos Ley 1581</th>
                   <th className="py-4 px-5 text-center">Rol</th>
                   <th className="py-4 px-5 text-right">Ficha</th>
@@ -479,7 +484,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-slate-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="py-14 text-center text-slate-400">
+                    <td colSpan={11} className="py-14 text-center text-slate-400">
                       <div className="flex flex-col items-center justify-center gap-2.5">
                         <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -658,6 +663,19 @@ export default function AdminPage() {
                                 <p className="text-[11px] text-slate-400 mt-1">
                                   Cierre: {cierre.done} de {cierre.total} · Bonos: {bonos.bonos} de {bonos.totalBonos}
                                 </p>
+                              </div>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Bonuses: the statue's ring and the fairy's amulet */}
+                        <td className="py-4 px-5">
+                          {(() => {
+                            const { bono1, bono2 } = getBonosSummary(u.progress);
+                            return (
+                              <div className="flex flex-col gap-1.5 min-w-[150px]">
+                                <BonusChip label="Bono 1 · Estatua" part={bono1} />
+                                <BonusChip label="Bono 2 · Hada" part={bono2} />
                               </div>
                             );
                           })()}
@@ -981,6 +999,19 @@ export default function AdminPage() {
         </div>
       )}
     </div>
+  );
+}
+
+type BonusPart = { done: number; total: number; completed: boolean };
+
+// One bonus in the users table: obtained, under way (steps done) or not started.
+function BonusChip({ label, part }: { label: string; part: BonusPart }) {
+  const tone = part.completed ? 'bg-emerald-100 text-emerald-800' : part.done > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500';
+  return (
+    <span className={`inline-flex items-center justify-between gap-2 px-2.5 py-1 rounded-lg text-xs font-semibold ${tone}`}>
+      <span>{label}</span>
+      <span>{part.completed ? 'Obtenido' : `${part.done}/${part.total}`}</span>
+    </span>
   );
 }
 

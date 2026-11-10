@@ -2,6 +2,7 @@ import { CartaAlcalde } from './cartaAlcalde/CartaAlcalde';
 import { ChozaEstatua } from './chozaEstatua/ChozaEstatua';
 import { CasaDeImeri } from './casaDeImeri/CasaDeImeri';
 import { PantanoEnemies } from './enemies/PantanoEnemies';
+import { Aldeana } from './npcs/Aldeana';
 import { Aldeano } from './npcs/Aldeano';
 import { Imeri } from './npcs/Imeri';
 import { PantanoTristeza } from './pantanoTristeza/PantanoTristeza';
@@ -15,6 +16,7 @@ export function Desafio1World() {
       <VillaDeBoj />
       <CartaAlcalde />
       <Aldeano />
+      <Aldeana />
       <CasaDeImeri />
       <Imeri />
       <PantanoTristeza />

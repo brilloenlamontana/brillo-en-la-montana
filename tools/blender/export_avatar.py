@@ -5,6 +5,7 @@ import numpy as np
 from mathutils import Vector, Quaternion
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import glbtool
+import pesos
 
 a = sys.argv[sys.argv.index('--') + 1:]
 OUT, REP, REST = a[0], a[1], a[2]
@@ -96,6 +97,8 @@ try:
         pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
     bpy.context.view_layer.update()
     rep["legs_deg"] = straighten_legs(arm, body)
+    # capas, colas y faldones: su peso pasa de brazos y piernas al tronco (ver pesos.py)
+    rep["capas"] = pesos.despegar_capas(arm, body)
     rep["arm_scale"] = [round(x, 6) for x in arm.scale]
     rep["arm_loc"] = [round(x, 6) for x in arm.location]
     rep["arm_rot"] = [round(x, 6) for x in arm.rotation_euler]

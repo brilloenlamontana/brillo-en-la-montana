@@ -1,4 +1,6 @@
 import { CartaAlcaldeDialog } from './cartaAlcalde/CartaAlcaldeDialog';
+import { EstatuaDialog } from './chozaEstatua/EstatuaDialog';
+import { AldeanaDialog } from './npcs/Aldeana';
 import { AldeanoDialog } from './npcs/AldeanoDialog';
 import { ImeriDialog } from './npcs/ImeriDialog';
 import { PantanoSuperadoDialog } from './pantanoTristeza/PantanoSuperadoDialog';
@@ -11,6 +13,8 @@ export function Desafio1Dialogs() {
       <AldeanoDialog />
       <ImeriDialog />
       <PantanoSuperadoDialog />
+      <AldeanaDialog />
+      <EstatuaDialog />
     </>
   );
 }

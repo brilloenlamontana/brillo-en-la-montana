@@ -1,10 +1,11 @@
 # Exportacion por lotes (sincrona) de "Brillo en la montana": mapa nuevo + PNJ/criaturas a GLB Draco.
 # Uso:
-#   blender --background --python tools/blender/export_lote.py -- <reporte.json> [--solo mapa,tuneles,npcs] [--npc Ogro,Hada]
+#   blender --background --python tools/blender/export_lote.py -- <reporte.json> [--solo mapa,tuneles,npcs] [--npc Ogro,Hada] [--guardar]
 # - Mapa: abre Map.blend y exporta las colecciones cambiadas a public/models-3d/map (Draco 6).
 # - Tuneles: mide TunelesEstructura con rayos y escribe la red y los colisionadores de cuboides para el motor.
 # - PNJ: abre cada .blend, baja texturas a <= 1024 px, genera/retargetea sus animaciones y exporta con Draco.
-# NUNCA guarda los .blend: todo se hace en memoria.
+# No guarda los .blend (todo se hace en memoria) salvo con --guardar, que escribe en cada .blend de PNJ solo sus
+# animaciones nuevas y los nombres normalizados (Blender deja la version anterior como .blend1).
 import bpy, sys, os, json, math, time, traceback
 import numpy as np
 from mathutils import Vector, Quaternion
@@ -26,6 +27,8 @@ argv = sys.argv[sys.argv.index('--') + 1:]
 REPORT = argv[0]
 SOLO = set(argv[argv.index('--solo') + 1].split(',')) if '--solo' in argv else {'mapa', 'tuneles', 'npcs'}
 SOLO_NPC = set(argv[argv.index('--npc') + 1].split(',')) if '--npc' in argv else None
+# --guardar: deja en cada .blend de PNJ las acciones generadas (pistas NLA, una por clip) y guarda el archivo.
+GUARDAR = '--guardar' in argv
 rep = {"started": time.strftime('%H:%M:%S'), "map": {}, "npcs": {}, "errors": []}
 
 DRACO = dict(export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
@@ -858,6 +861,25 @@ def clip_atrapada(t, w, r):  # hada: encogida y temblando entre las zarzas
     return ops, U * (-0.12 * r.hip_h + 0.01 * r.hip_h * S(3 * w))
 
 
+def clip_volar(t, w, r):  # hada: vuela inclinada hacia delante, brazos abiertos y piernas recogidas atras
+    F, L, U = r.fwd, r.left, r.up
+    flap = 0.12 * S(2 * w)
+    ops = {
+        'Spine': [('rot', L, math.radians(16 + 2 * S(w)))],
+        'Spine2': [('rot', L, math.radians(8)), ('rot', U, math.radians(4 * S(w)))],
+        'Head': [('rot', L, math.radians(-24 + 3 * S(w + 0.7)))],
+        'LeftArm': [('aim', L * 0.8 - U * (0.3 + flap) - F * 0.35, 1.0)],
+        'RightArm': [('aim', L * -0.8 - U * (0.3 + flap) - F * 0.35, 1.0)],
+        'LeftForeArm': [('aim', L * 0.65 - U * (0.5 - flap) - F * 0.45, 1.0)],
+        'RightForeArm': [('aim', L * -0.65 - U * (0.5 - flap) - F * 0.45, 1.0)],
+        'LeftUpLeg': [('rot', L, math.radians(16 + 5 * S(w + 0.4)))],
+        'RightUpLeg': [('rot', L, math.radians(22 + 5 * S(w + 1.6)))],
+        'LeftLeg': [('rot', L, math.radians(18 + 8 * S(w + 1.2)))],
+        'RightLeg': [('rot', L, math.radians(12 + 8 * S(w + 2.4)))],
+    }
+    return ops, U * (0.03 * r.hip_h * S(2 * w))
+
+
 def clip_hablar(t, w, r):  # Hedrig: gesticula con la mano libre y asiente
     F, L, U = r.fwd, r.left, r.up
     ops = {
@@ -916,7 +938,8 @@ def build_hada(rig, c):
     src, acts = female_source()
     idle = retarget(rig, src, acts['IdleFemale'], 'Idle')
     base = sample_basis(rig, idle, 0)
-    return [('Idle', idle), ('Atrapada', procedural(rig, 'Atrapada', 2.0, clip_atrapada, base))]
+    return [('Idle', idle), ('Atrapada', procedural(rig, 'Atrapada', 2.0, clip_atrapada, base)),
+            ('Volar', procedural(rig, 'Volar', 1.6, clip_volar, base))]
 
 
 def build_hedrig(rig, c):
@@ -949,6 +972,8 @@ def export_npc(name):
     arm.name = name
     if len(meshes) == 1:
         meshes[0].name = 'Body'
+    originales = set(sc.objects)
+    acciones_previas = set(bpy.data.actions)
     clear_nla(arm)
     r["arm_rot"] = [round(x, 4) for x in arm.rotation_euler]
     r["arm_scale_src"] = [round(x, 5) for x in arm.scale]
@@ -976,6 +1001,29 @@ def export_npc(name):
         pb.rotation_euler = (0, 0, 0)
         pb.scale = (1, 1, 1)
     bpy.context.view_layer.update()
+    # una pista NLA por clip: el exportador saca una animacion por pista
+    ad = arm.animation_data
+    for clip, act in clips:
+        act.name = clip
+        act.use_fake_user = True
+        tr = ad.nla_tracks.new()
+        tr.name = clip
+        st = tr.strips.new(clip, int(round(act.frame_range[0])), act)
+        if hasattr(st, 'action_suitable_slots') and getattr(st, 'action_slot', None) is None and len(st.action_suitable_slots):
+            st.action_slot = st.action_suitable_slots[0]
+    if GUARDAR:
+        # Solo quedan en el archivo el personaje y sus clips: fuera los esqueletos y acciones de donde se retargeteo.
+        keep = {act for _, act in clips}
+        for o in [o for o in sc.objects if o not in originales]:
+            bpy.data.objects.remove(o, do_unlink=True)
+        for a in [a for a in bpy.data.actions if a not in keep and a not in acciones_previas]:
+            bpy.data.actions.remove(a)
+        for i, tr in enumerate(ad.nla_tracks):
+            tr.mute = i > 0
+        bpy.ops.wm.save_mainfile()
+        r["guardado"] = bpy.data.filepath
+        for tr in ad.nla_tracks:
+            tr.mute = False
     if standing:
         k = height / standing
     else:
@@ -984,15 +1032,6 @@ def export_npc(name):
     arm.scale = arm.scale * k
     r["scale"] = round(k, 5)
     any_alpha, r["textures"] = shrink_textures(meshes)
-    # una pista NLA por clip: el exportador saca una animacion por pista
-    ad = arm.animation_data
-    for clip, act in clips:
-        act.name = clip
-        tr = ad.nla_tracks.new()
-        tr.name = clip
-        st = tr.strips.new(clip, int(round(act.frame_range[0])), act)
-        if hasattr(st, 'action_suitable_slots') and getattr(st, 'action_slot', None) is None and len(st.action_suitable_slots):
-            st.action_slot = st.action_suitable_slots[0]
     dst = os.path.join(MODELS, folder, name + '.glb')
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     select_only([arm] + meshes)
