@@ -1,6 +1,15 @@
 import { usePlayerStore } from '@/game/player/playerStore';
 import { STARS, useProgressStore } from '@/store/progressStore';
 
+// A bonus reward already won (gold ring, fairy's amulet).
+function Bonus({ label, children }: { label: string; children: string }) {
+  return (
+    <span role="img" aria-label={label} title={label} className="text-sm sm:text-base leading-none">
+      {children}
+    </span>
+  );
+}
+
 function Star({ lit }: { lit: boolean }) {
   return (
     <svg viewBox="0 0 24 24" className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${lit ? 'scale-100' : 'scale-90 opacity-60'}`} aria-hidden="true">
@@ -15,12 +24,14 @@ function Star({ lit }: { lit: boolean }) {
   );
 }
 
-// Top left: health and the stars left in the current challenge. Subscribes only to those values, so walking around
+// Top left: health, the stars left and the bonuses won. Subscribes only to those values, so walking around
 // never re-renders it.
 export function PlayerStatus() {
   const health = usePlayerStore((state) => state.health);
   const maxHealth = usePlayerStore((state) => state.maxHealth);
   const estrellas = useProgressStore((state) => state.progress.estrellas);
+  const bono1 = useProgressStore((state) => state.progress.bono1Completado);
+  const bono2 = useProgressStore((state) => state.progress.bono2Completado);
   const percent = Math.max(0, Math.min(100, (health / maxHealth) * 100));
   const color = percent <= 25 ? 'bg-red-500' : percent <= 50 ? 'bg-amber-400' : 'bg-emerald-500';
 
@@ -36,6 +47,12 @@ export function PlayerStatus() {
             <Star key={i} lit={i < estrellas} />
           ))}
         </div>
+        {(bono1 || bono2) && (
+          <div className="flex items-center gap-1 pl-1.5 border-l border-slate-300">
+            {bono1 && <Bonus label="Bono 1: anillo de oro">💍</Bonus>}
+            {bono2 && <Bonus label="Bono 2: amuleto del hada">🧚</Bonus>}
+          </div>
+        )}
       </div>
     </div>
   );

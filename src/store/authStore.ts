@@ -2,6 +2,10 @@ import { create } from 'zustand';
 
 export type AvatarGender = 'male' | 'female';
 
+// UID reserved for local dev/agent test sessions (?dev=...); services never read or write it in Firestore.
+export const DEV_USER_UID = 'dev-local-tester';
+export const isDevUser = (uid: string | undefined): boolean => import.meta.env.DEV && uid === DEV_USER_UID;
+
 // The signed-in player's profile (Firestore users/{uid}).
 export interface UserData {
   uid: string;
@@ -23,6 +27,8 @@ export interface UserData {
   nickname?: string;
   avatarName?: string;
   gender?: AvatarGender;
+  // Characters (glbName) lost to a third "bajo": they can never be chosen again.
+  lostCharacters?: string[];
   role?: 'admin' | 'student';
 }
 

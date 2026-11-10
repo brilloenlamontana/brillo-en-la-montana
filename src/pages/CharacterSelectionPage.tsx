@@ -1,18 +1,35 @@
 import { useState, type FormEvent } from 'react';
 import { useOnboardingRedirect } from '@/app/onboarding';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { CHARACTERS as characters } from '@/data/characters';
+import { availableCharacters, CHARACTERS } from '@/data/characters';
 import { saveCharacter } from '@/services/userService';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, type AvatarGender } from '@/store/authStore';
 
-// The player picks a character and a nickname; saving it completes the onboarding and the redirect opens the world.
+const GENDERS: { gender: AvatarGender; label: string; imagePath: string }[] = [
+  { gender: 'female', label: 'Mujer', imagePath: '/sprites-2d/woman/Elfa.png' },
+  { gender: 'male', label: 'Hombre', imagePath: '/sprites-2d/man/Elfo.png' },
+];
+
+// The player first chooses woman or man, then one of that gender's characters and a nickname; saving it completes the
+// onboarding and the redirect opens the world. Characters lost to a third "bajo" are no longer offered.
 export default function CharacterSelectionPage() {
   const step = useOnboardingRedirect('/seleccion-personaje');
-  const [currentIndex, setCurrentIndex] = useState(1); // Elfa
+  const lostCharacters = useAuthStore((state) => state.user?.lostCharacters);
+  const [gender, setGender] = useState<AvatarGender | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [nickname, setNickname] = useState('');
 
   if (step !== 'personaje') return null;
 
+  const available = availableCharacters(lostCharacters);
+  const lost = CHARACTERS.filter((character) => !available.includes(character));
+  const characters = available.filter((character) => character.gender === gender);
+  const currentChar = characters[Math.min(currentIndex, characters.length - 1)];
+
+  const chooseGender = (next: AvatarGender | null) => {
+    setGender(next);
+    setCurrentIndex(0);
+  };
   const handleNext = () => setCurrentIndex((prev) => (prev + 1) % characters.length);
   const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + characters.length) % characters.length);
 
@@ -24,9 +41,8 @@ export default function CharacterSelectionPage() {
       alert('Por favor ingresa un nickname');
       return;
     }
-    if (!user) return;
-    const { glbName, gender } = characters[currentIndex];
-    const character = { nickname: name, avatarName: glbName, gender };
+    if (!user || !currentChar) return;
+    const character = { nickname: name, avatarName: currentChar.glbName, gender: currentChar.gender };
     try {
       await saveCharacter(user.uid, character);
       useAuthStore.getState().updateUser(character);
@@ -36,7 +52,50 @@ export default function CharacterSelectionPage() {
     }
   };
 
-  const currentChar = characters[currentIndex];
+  const lostNotice = lost.length > 0 && (
+    <div className="mb-5 sm:mb-6 w-full max-w-xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs sm:text-sm text-red-900 shadow-xs" role="status">
+      <p className="font-bold">Acabaste de perder: ya no puedes volver a jugar con {lost.map((character) => character.name).join(', ')}.</p>
+      <p className="mt-0.5">Puedes volver a entrar, pero tienes que escoger otro personaje. Tu programa académico sigue siendo el mismo.</p>
+    </div>
+  );
+
+  if (!gender || !currentChar) {
+    return (
+      <div className="flex flex-col items-center justify-between min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-red-50/25 to-slate-100 text-slate-800 font-sans relative overflow-y-auto px-4 py-8 sm:py-10 select-none">
+        <div className="h-10 sm:h-6" />
+        <div className="z-10 w-full max-w-4xl px-2 sm:px-4 flex flex-col items-center my-auto">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold mb-1.5 sm:mb-2 text-center text-slate-900 tracking-tight">
+            Crea tu Aventurero
+          </h1>
+          <p className="text-xs sm:text-base text-slate-500 mb-6 sm:mb-8 text-center max-w-md px-2 leading-relaxed">
+            Primero elige si tu aventurero será mujer u hombre
+          </p>
+          {lostNotice}
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 w-full max-w-xl">
+            {GENDERS.map((option) => {
+              const count = available.filter((character) => character.gender === option.gender).length;
+              return (
+                <button
+                  key={option.gender}
+                  type="button"
+                  disabled={count === 0}
+                  onClick={() => chooseGender(option.gender)}
+                  className="group flex flex-col items-center rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm transition-all hover:border-[#C8102E] hover:shadow-lg active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C8102E] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <img src={option.imagePath} alt="" className="h-40 sm:h-60 object-contain drop-shadow-xl transition-transform duration-300 group-hover:scale-105" />
+                  <span className="mt-3 text-lg sm:text-2xl font-bold text-slate-900">{option.label}</span>
+                  <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    {count === 0 ? 'Sin personajes disponibles' : `${count} ${count === 1 ? 'personaje' : 'personajes'}`}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <UserMenu />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-between min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-red-50/25 to-slate-100 text-slate-800 font-sans relative overflow-y-auto px-4 py-8 sm:py-10 select-none">
@@ -55,15 +114,27 @@ export default function CharacterSelectionPage() {
           Crea tu Aventurero
         </h1>
         <p className="text-xs sm:text-base text-slate-500 mb-6 sm:mb-8 text-center max-w-md px-2 leading-relaxed">
-          Elige el personaje con el que explorarás el mundo y dale un nickname legendario
+          Elige el personaje con el que explorarás el mundo y dale un nickname legendario. No podrás cambiar de personaje después.
         </p>
+
+        <button
+          type="button"
+          onClick={() => chooseGender(null)}
+          className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 shadow-xs hover:text-[#C8102E] hover:border-[#C8102E] transition-colors cursor-pointer"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>{gender === 'male' ? 'Hombre' : 'Mujer'} · cambiar</span>
+        </button>
 
         {/* Carousel */}
         <div className="relative flex items-center justify-center w-full max-w-2xl mb-4 sm:mb-8 h-56 sm:h-72 md:h-80">
           <button 
             type="button"
             onClick={handlePrev} 
-            className="absolute left-1 sm:left-3 z-20 p-2.5 sm:p-3 bg-white/90 hover:bg-white text-[#C8102E] backdrop-blur-md rounded-2xl shadow-md hover:shadow-lg border border-slate-200/80 active:scale-95 transition-all focus:outline-none cursor-pointer group"
+            className="absolute left-1 sm:left-3 z-20 p-2.5 sm:p-3 bg-white/90 hover:bg-white text-[#C8102E] backdrop-blur-md rounded-2xl shadow-md hover:shadow-lg border border-slate-200/80 active:scale-95 transition-all focus:outline-none cursor-pointer group disabled:hidden"
+            disabled={characters.length < 2}
             aria-label="Anterior personaje"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,12 +144,12 @@ export default function CharacterSelectionPage() {
           
           <div className="flex justify-center items-center overflow-hidden w-full h-full relative perspective-1000">
             {characters.map((char, index) => {
-              let relativeIndex = index - currentIndex;
+              let relativeIndex = index - characters.indexOf(currentChar);
               if (relativeIndex < -Math.floor(characters.length / 2)) relativeIndex += characters.length;
               if (relativeIndex > Math.floor(characters.length / 2)) relativeIndex -= characters.length;
               
               const isCenter = relativeIndex === 0;
-              const isVisible = Math.abs(relativeIndex) <= 2;
+              const isVisible = Math.abs(relativeIndex) <= 2 && (characters.length > 4 || Math.abs(relativeIndex) <= 1);
               
               if (!isVisible) return null;
 
@@ -107,7 +178,8 @@ export default function CharacterSelectionPage() {
           <button 
             type="button"
             onClick={handleNext} 
-            className="absolute right-1 sm:right-3 z-20 p-2.5 sm:p-3 bg-white/90 hover:bg-white text-[#C8102E] backdrop-blur-md rounded-2xl shadow-md hover:shadow-lg border border-slate-200/80 active:scale-95 transition-all focus:outline-none cursor-pointer group"
+            className="absolute right-1 sm:right-3 z-20 p-2.5 sm:p-3 bg-white/90 hover:bg-white text-[#C8102E] backdrop-blur-md rounded-2xl shadow-md hover:shadow-lg border border-slate-200/80 active:scale-95 transition-all focus:outline-none cursor-pointer group disabled:hidden"
+            disabled={characters.length < 2}
             aria-label="Siguiente personaje"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

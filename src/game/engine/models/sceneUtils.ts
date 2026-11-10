@@ -38,3 +38,9 @@ export function restPose(object: Object3D): { position: Vector3; quaternion: Qua
   object.userData.restPose = pose;
   return pose;
 }
+
+// Shows or hides a named node of a loaded model (a part that comes and goes with the story).
+export function setNodeVisible(scene: Object3D, name: string, visible: boolean) {
+  const node = scene.getObjectByName(name);
+  if (node) node.visible = visible;
+}

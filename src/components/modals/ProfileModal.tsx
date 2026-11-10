@@ -1,17 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { CHARACTERS, type CharacterOption } from '@/data/characters';
+import { findCharacter } from '@/data/characters';
 import { saveProfile } from '@/services/userService';
-import { useAuthStore, type AvatarGender, type UserData } from '@/store/authStore';
+import { useAuthStore, type UserData } from '@/store/authStore';
 
 type ProfileModalProps = { user: UserData; onClose: () => void };
 
-// Edit the display name, nickname and character. Saving updates the profile store, so the avatar in the world changes.
+// Edit the display name and nickname. The character is shown but cannot be changed: it is only replaced by losing it.
 export function ProfileModal({ user, onClose }: ProfileModalProps) {
   const [nickname, setNickname] = useState(user.nickname ?? '');
   const [displayName, setDisplayName] = useState(user.name);
-  const [selectedAvatar, setSelectedAvatar] = useState<string>(user.avatarName ?? 'Elfa');
-  const [selectedGender, setSelectedGender] = useState<AvatarGender>(user.gender ?? 'female');
-  const [genderFilter, setGenderFilter] = useState<'all' | 'female' | 'male'>('all');
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -23,17 +20,7 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const filteredCharacters = CHARACTERS.filter((char) => {
-    if (genderFilter === 'all') return true;
-    return char.gender === genderFilter;
-  });
-
-  const currentSelectedChar = CHARACTERS.find((c) => c.glbName === selectedAvatar) || CHARACTERS[0];
-
-  const handleSelectCharacter = (char: CharacterOption) => {
-    setSelectedAvatar(char.glbName);
-    setSelectedGender(char.gender);
-  };
+  const currentSelectedChar = findCharacter(user.avatarName);
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
@@ -45,10 +32,10 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
     try {
       setIsSaving(true);
       setFeedback(null);
-      const profile = { name: displayName.trim() || user.name, nickname: nickname.trim(), avatarName: selectedAvatar, gender: selectedGender };
+      const profile = { name: displayName.trim() || user.name, nickname: nickname.trim() };
       await saveProfile(user.uid, profile);
       useAuthStore.getState().updateUser(profile);
-      setFeedback({ type: 'success', message: '¡Perfil y avatar actualizados con éxito!' });
+      setFeedback({ type: 'success', message: '¡Perfil actualizado con éxito!' });
 
       setTimeout(() => {
         onClose();
@@ -88,7 +75,7 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
                 Perfil de Usuario • Identidad Virtual
               </span>
               <h2 id="profile-modal-title" className="text-base sm:text-xl font-bold tracking-tight text-slate-900 truncate">
-                Editar Perfil y Avatar
+                Editar Perfil
               </h2>
             </div>
           </div>
@@ -197,26 +184,6 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
                   />
                 </div>
 
-                {/* Current Selected Avatar Preview Badge */}
-                <div className="pt-2 border-t border-slate-200/80">
-                  <p className="text-[11px] sm:text-xs text-slate-500 mb-1.5 font-medium">Avatar actual seleccionado:</p>
-                  <div className="flex items-center gap-3 p-2 sm:p-2.5 bg-red-50/60 rounded-xl border border-red-100">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white p-1 flex items-center justify-center border border-red-100 overflow-hidden flex-shrink-0 shadow-xs">
-                      <img 
-                        src={currentSelectedChar.imagePath} 
-                        alt={currentSelectedChar.name} 
-                        className="w-full h-full object-contain" 
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{currentSelectedChar.name}</p>
-                      <span className="text-[10px] sm:text-[11px] text-[#C8102E] font-medium capitalize">
-                        {currentSelectedChar.gender === 'male' ? 'Hombre' : 'Mujer'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Academic Information Card */}
                 {user.codigoEstudiantil && (
                   <div className="pt-2 border-t border-slate-200/80 space-y-2">
@@ -270,93 +237,19 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
                 </div>
               </div>
 
-              {/* Right Column: Character Selection Grid */}
-              <div className="lg:col-span-7 space-y-3 sm:space-y-4 flex flex-col">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#C8102E] flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <polygon strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                    <span>Seleccionar Personaje 3D</span>
-                  </h3>
-
-                  {/* Filter Tabs */}
-                  <div className="grid grid-cols-3 sm:flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => setGenderFilter('all')}
-                      className={`px-3 py-1.5 rounded-lg transition-all text-center cursor-pointer ${
-                        genderFilter === 'all' ? 'bg-[#C8102E] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      Todos ({CHARACTERS.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setGenderFilter('female')}
-                      className={`px-3 py-1.5 rounded-lg transition-all text-center cursor-pointer ${
-                        genderFilter === 'female' ? 'bg-[#C8102E] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      Mujeres
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setGenderFilter('male')}
-                      className={`px-3 py-1.5 rounded-lg transition-all text-center cursor-pointer ${
-                        genderFilter === 'male' ? 'bg-[#C8102E] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      Hombres
-                    </button>
-                  </div>
+              {/* Right Column: the character (read-only) */}
+              <div className="lg:col-span-7 flex flex-col gap-3 sm:gap-4">
+                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#C8102E]">Tu personaje</h3>
+                <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-b from-red-50/50 to-white p-4 sm:p-6 shadow-xs">
+                  <img src={currentSelectedChar.imagePath} alt={currentSelectedChar.name} className="h-48 sm:h-72 object-contain drop-shadow-xl" />
+                  <p className="mt-3 text-lg sm:text-xl font-bold text-slate-900">{currentSelectedChar.name}</p>
+                  <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-[#C8102E]">
+                    {currentSelectedChar.gender === 'male' ? 'Hombre' : 'Mujer'}
+                  </span>
                 </div>
-
-                {/* Characters Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3.5 max-h-[280px] sm:max-h-[390px] overflow-y-auto pr-1">
-                  {filteredCharacters.map((char) => {
-                    const isSelected = selectedAvatar === char.glbName;
-                    return (
-                      <button
-                        key={char.glbName}
-                        type="button"
-                        onClick={() => handleSelectCharacter(char)}
-                        className={`group relative flex flex-col items-center p-2.5 sm:p-3 rounded-2xl border text-left transition-all duration-200 focus:outline-none cursor-pointer ${
-                          isSelected
-                            ? 'bg-red-50/50 border-2 border-[#C8102E] shadow-md shadow-red-500/10 scale-[1.02]'
-                            : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 shadow-xs hover:shadow-sm active:scale-95'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#C8102E] text-white flex items-center justify-center shadow-xs">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-
-                        <div className="w-full h-20 sm:h-28 flex items-center justify-center relative overflow-hidden my-1">
-                          <img 
-                            src={char.imagePath} 
-                            alt={char.name} 
-                            className={`max-h-full object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-105 ${
-                              isSelected ? 'scale-105' : 'grayscale-[20%]'
-                            }`}
-                          />
-                        </div>
-
-                        <div className="w-full mt-1 text-center">
-                          <p className={`text-xs font-bold truncate ${isSelected ? 'text-[#C8102E]' : 'text-slate-800'}`}>
-                            {char.name}
-                          </p>
-                          <span className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                            {char.gender === 'male' ? 'Hombre' : 'Mujer'}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] sm:text-xs text-amber-900">
+                  El personaje no se puede cambiar. Solo eliges uno nuevo si caes en tercer bajo rendimiento, y el que pierdes no vuelve a estar disponible.
+                </p>
               </div>
             </div>
           </div>

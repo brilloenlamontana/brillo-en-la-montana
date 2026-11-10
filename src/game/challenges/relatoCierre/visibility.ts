@@ -4,6 +4,8 @@ import { visibleFrom } from '@/game/world/visibility';
 export const VISIBLE_FROM = {
   cumbre: visibleFrom(['pantano', 'valle', 'bosque', 'pueblo', 'cumbre'], ['santuario']),
   santuarioInterior: visibleFrom(['cumbre'], ['santuario']),
+  // The dryad waits on the sanctuary porch.
+  driada: visibleFrom(['cumbre'], ['santuario']),
 } as const;
 
 export const CAMERA_BLOCKS_IN = {

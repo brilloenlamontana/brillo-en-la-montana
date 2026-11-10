@@ -6,3 +6,8 @@ export function playOnceAndHold(action: AnimationAction) {
   action.clampWhenFinished = true;
 }
 
+
+// Plays a clip faster or slower (1 = as animated), e.g. to keep a walk in step with the real ground speed.
+export function setPace(action: AnimationAction | null | undefined, timeScale: number) {
+  if (action) action.timeScale = timeScale;
+}

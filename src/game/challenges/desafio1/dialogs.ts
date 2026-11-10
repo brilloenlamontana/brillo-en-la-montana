@@ -4,4 +4,6 @@ export const DIALOG = {
   aldeano: 'desafio1.aldeano',
   imeri: 'desafio1.imeri',
   pantanoSuperado: 'desafio1.pantanoSuperado',
+  aldeana: 'desafio1.aldeana',
+  estatua: 'desafio1.estatua',
 } as const;

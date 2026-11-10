@@ -19,6 +19,44 @@ npm run lint           # oxlint
 El navegador debe soportar **WebGPU** (Chrome/Edge recientes, Safari 26+). Si no lo soporta, el juego muestra un aviso en
 lugar del mundo: no hay respaldo a WebGL.
 
+## Docker (desarrollo y producción)
+
+El proyecto cuenta con un `Dockerfile` multietapa (`dev` con Vite HMR sobre Node 24 y `prod` compilando con `tsc -b && vite build` y sirviendo con Nginx) y dos archivos Compose que comparten nombre de proyecto (`brillo-en-la-montana`), lo que permite **alternar directamente entre desarrollo y producción** con `--remove-orphans` (apaga el otro entorno de forma automática).
+
+Asegúrate de tener configurado tu archivo `.env` en la raíz antes de levantar cualquiera de los dos entornos (`cp .env.example .env`).
+
+### Entorno de desarrollo (`docker-compose.dev.yml` → `http://localhost:5174`)
+
+```bash
+# Levantar desarrollo (o cambiar de prod a dev automáticamente)
+docker compose -f docker-compose.dev.yml up -d --build --remove-orphans
+# equivalente con npm: npm run docker:dev
+
+# Ver logs en vivo del servidor Vite
+docker compose -f docker-compose.dev.yml logs -f
+
+# Detener desarrollo
+docker compose -f docker-compose.dev.yml down
+# equivalente con npm: npm run docker:dev:down
+```
+
+### Entorno de producción (`docker-compose.prod.yml` → `http://localhost:8081`)
+
+```bash
+# Construir y levantar producción con Nginx (o cambiar de dev a prod automáticamente)
+docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
+# equivalente con npm: npm run docker:prod
+
+# Ver logs de Nginx
+docker compose -f docker-compose.prod.yml logs -f
+
+# Detener producción
+docker compose -f docker-compose.prod.yml down
+# equivalente con npm: npm run docker:prod:down
+```
+
+> **Puertos personalizables:** por defecto usa `5174` en desarrollo y `8081` en producción para no colisionar con otros contenedores locales (`5173` / `8080` / `3000`). Puedes cambiarlos definiendo `DEV_PORT` o `PROD_PORT` en `.env` o en la terminal. Abre siempre el juego desde `http://localhost:<puerto>` para que el navegador habilite el contexto seguro requerido por **WebGPU** y el inicio de sesión con Google.
+
 ## Arquitectura
 
 Monolito en capas. Las dependencias van en un solo sentido, de arriba hacia abajo:
@@ -68,8 +106,8 @@ src/
       ├─ progression.ts     Desafío en curso y bajos (qué se pierde y dónde reaparece al morir)
       ├─ desafio1/          Pantano de la Tristeza (con lógica completa)
       ├─ desafio2/          Bosque de la Oscuridad (el elfo, su casa, su mochila, los duendes y las frutas con el lente)
-      ├─ desafio3/          Túneles de la Cumbre (solo se renderiza)
-      └─ relatoCierre/      Cumbre y santuario (solo se renderiza)
+      ├─ desafio3/          Túneles de la Cumbre: Hedrig, brújula, espectro y ogro
+      └─ relatoCierre/      Cumbre, dríada, santuario y cáliz (victoria final)
 ```
 
 ### Anatomía de un desafío

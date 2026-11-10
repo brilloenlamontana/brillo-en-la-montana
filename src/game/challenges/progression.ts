@@ -1,6 +1,8 @@
 import type { Point, Spawn } from '@/game/player/playerStore';
 import { useZoneStore } from '@/game/world/zoneStore';
 import { saveProgress } from '@/services/progressService';
+import { loseCharacter } from '@/services/userService';
+import { useAuthStore } from '@/store/authStore';
 import { STARS, STORY_START, useProgressStore, type GameProgress } from '@/store/progressStore';
 import { useUIStore } from '@/store/uiStore';
 import { CHALLENGES } from './registry';
@@ -46,6 +48,9 @@ export function handleDefeat(): Point {
   } else {
     // The three stars come back with the new character (chosen when the dialog is closed, see BajoDialog).
     saveProgress({ ...STORY_START, derrotas, estrellas: STARS, reinicios: increment(progress.reinicios, 'tercerBajo') });
+    // The lost character is recorded right away: leaving the game before closing the dialog must not keep it.
+    const user = useAuthStore.getState().user;
+    if (user) loseCharacter(user.uid, user.avatarName).catch((error) => console.error('Could not record the lost character:', error));
   }
   useUIStore.getState().openDialog(bajoDialog(bajo));
   return bajo === 1 ? challenge.startPoint : villa;

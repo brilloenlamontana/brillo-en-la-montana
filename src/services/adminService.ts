@@ -1,8 +1,11 @@
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc, where, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { getMissionSummary } from '@/game/challenges/desafio1/mission';
+import { getBonosSummary } from '@/game/challenges/bonos';
 import { getDesafio2Summary } from '@/game/challenges/desafio2/mission';
-import type { UserData } from '@/store/authStore';
-import { normalizeProgress, STARS, type GameProgress } from '@/store/progressStore';
+import { getDesafio3Summary } from '@/game/challenges/desafio3/mission';
+import { getCierreSummary } from '@/game/challenges/relatoCierre/mission';
+import { isDevUser, useAuthStore, type UserData } from '@/store/authStore';
+import { normalizeProgress, STARS, useProgressStore, type GameProgress } from '@/store/progressStore';
 import { db } from './firebase';
 import { signInWithGoogle, signOutUser } from './userService';
 
@@ -52,6 +55,7 @@ const grantAdminRole = (uid: string, extra: Partial<UserData> = {}) =>
 
 // Role as stored now (not the one cached in the session): it may have been granted a moment ago.
 export async function isAdminAccount(user: UserData): Promise<boolean> {
+  if (isDevUser(user.uid)) return user.role === 'admin';
   if (isConfiguredAdmin(user.email)) return true;
   const data = (await getDoc(userRef(user.uid))).data();
   return data?.role === 'admin' || data?.isAdmin === true;
@@ -59,6 +63,7 @@ export async function isAdminAccount(user: UserData): Promise<boolean> {
 
 // Whether any admin exists yet (otherwise the first institutional account may claim the role).
 export async function hasAnyAdmin(): Promise<boolean> {
+  if (isDevUser(useAuthStore.getState().user?.uid)) return true;
   const users = collection(db, 'users');
   try {
     const [byRole, byFlag] = await Promise.all([
@@ -85,7 +90,44 @@ export async function signInAsAdmin(): Promise<{ rejectedEmail?: string }> {
   return {};
 }
 
-export const claimFirstAdmin = (user: UserData) => grantAdminRole(user.uid, { email: user.email, name: user.name });
+export const claimFirstAdmin = (user: UserData) =>
+  isDevUser(user.uid) ? Promise.resolve() : grantAdminRole(user.uid, { email: user.email, name: user.name });
+
+const devAdminRecords = (): AdminUserRecord[] => {
+  const user = useAuthStore.getState().user;
+  if (!user) return [];
+  const studentProgress = useProgressStore.getState().progress;
+  const student: AdminUserRecord = {
+    uid: 'dev-student-danna',
+    name: 'Danna Guerrero Vargas',
+    nombresApellidos: 'Danna Guerrero Vargas',
+    email: 'danna.guerrero@correounivalle.edu.co',
+    photoURL: '/sprites-2d/woman/Elfa.png',
+    codigoEstudiantil: '202427615',
+    sedeCodigo: '00',
+    sedeNombre: 'Cali (Meléndez)',
+    facultadCodigo: '05',
+    facultadNombre: 'Facultad de Ingeniería',
+    programaCodigo: '3743',
+    programaNombre: 'Ingeniería de Sistemas',
+    acceptedLaw1581: true,
+    acceptedLaw1581Date: '2026-10-12T19:10:00.000Z',
+    isRegistrationComplete: true,
+    nickname: 'Danna',
+    avatarName: 'Elfa',
+    gender: 'female',
+    role: 'student',
+    progress: studentProgress,
+    progressUpdatedAt: '2026-10-25T21:50:00.000Z',
+  };
+  const admin: AdminUserRecord = {
+    ...user,
+    role: 'admin',
+    progress: normalizeProgress(undefined),
+    progressUpdatedAt: '2026-10-28T15:00:00.000Z',
+  };
+  return [student, admin];
+};
 
 const toRecord = (snapshot: QueryDocumentSnapshot): AdminUserRecord => {
   const data = snapshot.data();
@@ -103,8 +145,12 @@ const byName = (a: AdminUserRecord, b: AdminUserRecord) =>
   (a.nombresApellidos || a.name || a.email).toLowerCase().localeCompare((b.nombresApellidos || b.name || b.email).toLowerCase());
 
 // Follows the users collection live: the dashboard updates whenever a player advances. Returns the unsubscribe.
-export const subscribeToUsers = (onChange: (users: AdminUserRecord[]) => void, onError: (error: Error) => void): (() => void) =>
-  onSnapshot(
+export const subscribeToUsers = (onChange: (users: AdminUserRecord[]) => void, onError: (error: Error) => void): (() => void) => {
+  if (isDevUser(useAuthStore.getState().user?.uid)) {
+    onChange(devAdminRecords());
+    return useProgressStore.subscribe(() => onChange(devAdminRecords()));
+  }
+  return onSnapshot(
     collection(db, 'users'),
     (snapshot) => onChange(snapshot.docs.map(toRecord).sort(byName)),
     (error) => {
@@ -112,8 +158,10 @@ export const subscribeToUsers = (onChange: (users: AdminUserRecord[]) => void, o
       onError(error);
     },
   );
+};
 
 export async function fetchAllUsers(): Promise<AdminUserRecord[]> {
+  if (isDevUser(useAuthStore.getState().user?.uid)) return devAdminRecords();
   const snapshot = await getDocs(collection(db, 'users'));
   return snapshot.docs.map(toRecord).sort(byName);
 }
@@ -158,6 +206,18 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
     'Duendes Derrotados',
     'Frutas Buenas Comidas',
     'Sendero Oculto (Mapa)',
+    'Misión 3 (Avance)',
+    'Misión 3 (Completada)',
+    'Ayuda de Hedrig',
+    'Objetos de Hedrig',
+    'Espectro Calmado (Muñeca)',
+    'Ogro Vencido (Guante)',
+    'Derrotas (Misión 3)',
+    'Dríada Escuchada',
+    'Cáliz Tomado',
+    'Juego Completado',
+    'Bono 1 (Anillo de Oro)',
+    'Bono 2 (Amuleto del Hada)',
     'Última Actividad',
     'Autorización de Datos',
     'Fecha de Autorización',
@@ -173,6 +233,11 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
   const missionColumns = (u: AdminUserRecord) => {
     const { steps, percent, completed } = getMissionSummary(u.progress);
     const desafio2 = getDesafio2Summary(u.progress);
+    const desafio3 = getDesafio3Summary(u.progress);
+    const cierre = getCierreSummary(u.progress);
+    const bonos = getBonosSummary(u.progress);
+    const done3 = (id: string) => desafio3.steps.find((s) => s.id === id)?.done ?? false;
+    const when = (iso: string | undefined) => (iso ? new Date(iso).toLocaleString('es-CO') : 'sin fecha');
     const step = (id: string) => steps.find((s) => s.id === id)!;
     const yesNo = (done: boolean) => (done ? 'Sí' : 'No');
     return [
@@ -198,6 +263,18 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
       escapeCSV(desafio2.steps.find((s) => s.id === 'duendes')!.status),
       escapeCSV(desafio2.steps.find((s) => s.id === 'frutos')!.status),
       escapeCSV(yesNo(desafio2.steps.find((s) => s.id === 'mapa')?.done ?? false)),
+      escapeCSV(desafio3.unlocked ? `${desafio3.percent}%` : 'Bloqueada'),
+      escapeCSV(desafio3.completed ? `Sí (${when(u.progress?.mision3CompletadaEn)})` : 'No'),
+      escapeCSV(desafio3.unlocked ? desafio3.steps.find((s) => s.id === 'hedrig')!.status : 'Bloqueada'),
+      escapeCSV(`${desafio3.steps.filter((s) => s.id.startsWith('recoger') && s.done).length} de 3`),
+      escapeCSV(yesNo(done3('espectro'))),
+      escapeCSV(yesNo(done3('ogro'))),
+      escapeCSV(u.progress.derrotas.desafio3 ?? 0),
+      escapeCSV(yesNo(cierre.steps.find((s) => s.id === 'driada')?.done ?? false)),
+      escapeCSV(yesNo(cierre.steps.find((s) => s.id === 'caliz')?.done ?? false)),
+      escapeCSV(cierre.completed ? `Sí (${when(u.progress?.juegoCompletadoEn)})` : 'No'),
+      escapeCSV(yesNo(bonos.steps.find((s) => s.id === 'anillo')?.done ?? false)),
+      escapeCSV(yesNo(bonos.steps.find((s) => s.id === 'amuleto')?.done ?? false)),
       escapeCSV(u.progressUpdatedAt ? new Date(u.progressUpdatedAt).toLocaleString('es-CO') : 'Sin actividad'),
     ];
   };

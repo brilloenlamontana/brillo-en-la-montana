@@ -1,5 +1,6 @@
 import { BosqueOscuridad } from './bosqueOscuridad/BosqueOscuridad';
 import { CasaDelElfo } from './casaDelElfo/CasaDelElfo';
+import { ClaroDelHada } from './claroDelHada/ClaroDelHada';
 import { BosqueDuendes } from './duendes/BosqueDuendes';
 import { HambreDelBosque } from './frutos/HambreDelBosque';
 import { SenderoMapa } from './mapa/SenderoMapa';
@@ -16,6 +17,7 @@ export function Desafio2World() {
       <BosqueDuendes />
       <HambreDelBosque />
       <SenderoMapa />
+      <ClaroDelHada />
     </group>
   );
 }

@@ -34,6 +34,10 @@ export interface GameProgress {
   zumbadoresDefeated: number[];
   mision1Completada: boolean;
   mision1CompletadaEn?: string;
+  // Bonus 1 (the statue of the ruined hut at the swamp exit): its moss cleaned, its fire lit, and the gold ring taken.
+  estatuaLimpia: boolean;
+  estatuaEncendida: boolean;
+  bono1Completado: boolean;
 
   // Challenge 2
   interactedWithElfo: boolean;
@@ -47,10 +51,30 @@ export interface GameProgress {
   mapaActivado: boolean;
   mision2Completada: boolean;
   mision2CompletadaEn?: string;
+  // Bonus 2 (the fairy's clearing): the brambles cut with the elven sword, and the fairy's amulet taken.
+  hadaLiberada: boolean;
+  bono2Completado: boolean;
 
   // Challenge 3
   // Reached Hedrig's mining town after the forest: the forest trail goes away and the backpack switches to hers.
   llegoAlPueblo: boolean;
+  interactedWithHedrig: boolean;
+  // Hedrig: with 'accepted' her door unlocks and her three items can be picked up.
+  hedrigHelp: HelpAnswer;
+  // The girl's spectre received her doll (Simona) and left in peace.
+  espectroCalmado: boolean;
+  // The Ogre lost the arm wrestling against the miner's glove and lets the player climb.
+  ogroVencido: boolean;
+  // Reached the summit through the tunnels.
+  mision3Completada: boolean;
+  mision3CompletadaEn?: string;
+
+  // Closing story
+  // Listened to the dryad at the sanctuary door: it unlocks.
+  interactedWithDriada: boolean;
+  calizTomado: boolean;
+  juegoCompletado: boolean;
+  juegoCompletadoEn?: string;
 }
 
 interface ProgressState {
@@ -71,6 +95,9 @@ export const STORY_START = {
   zumbadoresDefeated: [],
   mision1Completada: false,
   mision1CompletadaEn: undefined,
+  estatuaLimpia: false,
+  estatuaEncendida: false,
+  bono1Completado: false,
   interactedWithElfo: false,
   elfoHelp: 'pending',
   duendesDefeated: [],
@@ -78,7 +105,19 @@ export const STORY_START = {
   mapaActivado: false,
   mision2Completada: false,
   mision2CompletadaEn: undefined,
+  hadaLiberada: false,
+  bono2Completado: false,
   llegoAlPueblo: false,
+  interactedWithHedrig: false,
+  hedrigHelp: 'pending',
+  espectroCalmado: false,
+  ogroVencido: false,
+  mision3Completada: false,
+  mision3CompletadaEn: undefined,
+  interactedWithDriada: false,
+  calizTomado: false,
+  juegoCompletado: false,
+  juegoCompletadoEn: undefined,
 } as const satisfies Omit<GameProgress, 'estrellas' | 'derrotas' | 'reinicios'>;
 
 const DEFAULT_PROGRESS: GameProgress = {
@@ -94,6 +133,23 @@ const DEFAULT_PROGRESS: GameProgress = {
   mision2Completada: false,
   mision2CompletadaEn: undefined,
 };
+
+// Flags added with Challenge 3, the two bonuses and the closing story.
+const BOOLEAN_FLAGS = [
+  'estatuaLimpia',
+  'estatuaEncendida',
+  'bono1Completado',
+  'hadaLiberada',
+  'bono2Completado',
+  'llegoAlPueblo',
+  'interactedWithHedrig',
+  'espectroCalmado',
+  'ogroVencido',
+  'mision3Completada',
+  'interactedWithDriada',
+  'calizTomado',
+  'juegoCompletado',
+] as const satisfies readonly (keyof GameProgress)[];
 
 const isRecord = (value: unknown): value is Record<string, number> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const list = <T,>(value: unknown): T[] => (Array.isArray(value) ? value : []);
@@ -112,6 +168,13 @@ export function normalizeProgress(saved: Partial<GameProgress> | undefined): Gam
   progress.frutosComidos = list(progress.frutosComidos);
   progress.mapaActivado = Boolean(progress.mapaActivado);
   progress.mision2Completada = Boolean(progress.mision2Completada);
+  // Saves from before Challenge 3, the bonuses and the closing story lack their fields (or hold something else).
+  if (progress.hedrigHelp !== 'accepted' && progress.hedrigHelp !== 'rejected') progress.hedrigHelp = 'pending';
+  for (const flag of BOOLEAN_FLAGS) progress[flag] = progress[flag] === true;
+  // Reaching the summit is only possible past the Ogre, and the chalice ends the game.
+  if (progress.calizTomado) progress.juegoCompletado = true;
+  if (progress.juegoCompletado) progress.mision3Completada = true;
+  if (progress.mision3Completada) progress.ogroVencido = true;
   return progress;
 }
 

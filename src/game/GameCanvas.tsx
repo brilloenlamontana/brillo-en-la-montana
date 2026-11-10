@@ -9,6 +9,7 @@ import { RenderGate } from './engine/rendering/RenderGate';
 import { createRenderer } from './engine/rendering/renderer';
 import { START_DPR } from './engine/rendering/resolution';
 import { Player } from './player/Player';
+import { usePlayerStore } from './player/playerStore';
 import { Ambience } from './world/Ambience';
 import { Mapa } from './world/mapa/Mapa';
 import { classifyRegion } from './world/regions';
@@ -20,7 +21,7 @@ import { ZoneTracker } from './world/ZoneTracker';
 // prepares that part of the map. Warmup goes last inside the Suspense so it starts once everything has loaded.
 export function GameCanvas() {
   const [start] = useState(() => {
-    const spawn = resumeSpawn(useProgressStore.getState().progress);
+    const spawn = usePlayerStore.getState().consumeInitialSpawn() ?? resumeSpawn(useProgressStore.getState().progress);
     return { spawn, region: classifyRegion(spawn.x, spawn.y, spawn.z, 'villa') };
   });
 

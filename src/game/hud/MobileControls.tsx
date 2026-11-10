@@ -40,8 +40,6 @@ export const MobileControls: React.FC<MobileControlsProps> = ({ show = true }) =
             background: 'radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(241, 245, 249, 0.75) 100%)',
             border: '2px solid rgba(226, 232, 240, 0.9)',
             boxShadow: '0 8px 32px rgba(15, 23, 42, 0.15), inset 0 0 12px rgba(200, 16, 46, 0.08)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
             borderRadius: '50%',
           }}
           joystickKnobStyle={{

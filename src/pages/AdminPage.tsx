@@ -4,7 +4,10 @@ import { LoginLayout } from '@/components/auth/LoginLayout';
 import { SnowEffect } from '@/components/SnowEffect';
 import { SEDES } from '@/data/univalle';
 import { getMissionSummary } from '@/game/challenges/desafio1/mission';
+import { getBonosSummary } from '@/game/challenges/bonos';
 import { getDesafio2Summary } from '@/game/challenges/desafio2/mission';
+import { getDesafio3Summary } from '@/game/challenges/desafio3/mission';
+import { getCierreSummary } from '@/game/challenges/relatoCierre/mission';
 import type { MissionStep } from '@/game/challenges/types';
 import {
   claimFirstAdmin,
@@ -178,7 +181,7 @@ export default function AdminPage() {
     });
   }, [users, searchQuery, sedeFilter, roleFilter]);
 
-  // Summary of Mission 1 & 2 across filtered users (administrators who play also count).
+  // Summary of the three missions, the closing story and the bonuses across filtered users (administrators who play also count).
   const missionStats = useMemo(() => {
     const summaries1 = filteredUsers.map((u) => getMissionSummary(u.progress));
     const completed1 = summaries1.filter((m) => m.completed).length;
@@ -189,7 +192,13 @@ export default function AdminPage() {
     const unlocked2 = summaries2.filter((m) => m.unlocked).length;
     const completed2 = summaries2.filter((m) => m.completed).length;
 
-    return { players: filteredUsers.length, completed1, started1, average1, unlocked2, completed2 };
+    const completed3 = filteredUsers.filter((u) => getDesafio3Summary(u.progress).completed).length;
+    const finished = filteredUsers.filter((u) => getCierreSummary(u.progress).completed).length;
+    const bonos = filteredUsers.reduce((sum, u) => sum + getBonosSummary(u.progress).bonos, 0);
+    const bono1 = filteredUsers.filter((u) => getBonosSummary(u.progress).bono1.completed).length;
+    const bono2 = filteredUsers.filter((u) => getBonosSummary(u.progress).bono2.completed).length;
+
+    return { players: filteredUsers.length, completed1, started1, average1, unlocked2, completed2, completed3, finished, bonos, bono1, bono2 };
   }, [filteredUsers]);
 
 
@@ -358,6 +367,10 @@ export default function AdminPage() {
             { label: 'Misión 1: Pantano', value: `${missionStats.completed1} superaron`, sub: `${missionStats.average1}% avance promedio` },
             { label: 'Misión 2: En el Bosque', value: `${missionStats.unlocked2} llegaron`, sub: 'Desafío desbloqueado' },
             { label: 'Misión 2: Completada', value: `${missionStats.completed2} superaron`, sub: 'Camino despejado' },
+            { label: 'Misión 3: Cumbre', value: `${missionStats.completed3} superaron`, sub: 'Túneles, espectro y ogro' },
+            { label: 'Juego completado', value: `${missionStats.finished} con el cáliz`, sub: `${missionStats.bonos} bonos obtenidos` },
+            { label: 'Bono 1: Estatua', value: `${missionStats.bono1} lo obtuvieron`, sub: 'Anillo de oro (pantano)' },
+            { label: 'Bono 2: Hada', value: `${missionStats.bono2} lo obtuvieron`, sub: 'Amuleto del hada (bosque)' },
           ].map(({ label, value, sub }) => (
             <div key={label} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
               <p className="text-xs uppercase tracking-wider font-semibold text-slate-500">{label}</p>
@@ -461,6 +474,8 @@ export default function AdminPage() {
                   <th className="py-4 px-5">Personaje</th>
                   <th className="py-4 px-5 min-w-[170px]">Misión 1: Pantano</th>
                   <th className="py-4 px-5 min-w-[170px]">Misión 2: Bosque</th>
+                  <th className="py-4 px-5 min-w-[170px]">Misión 3 y cierre</th>
+                  <th className="py-4 px-5 min-w-[170px]">Bonos</th>
                   <th className="py-4 px-5 text-center">Datos Ley 1581</th>
                   <th className="py-4 px-5 text-center">Rol</th>
                   <th className="py-4 px-5 text-right">Ficha</th>
@@ -469,7 +484,7 @@ export default function AdminPage() {
               <tbody className="divide-y divide-slate-100">
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-14 text-center text-slate-400">
+                    <td colSpan={11} className="py-14 text-center text-slate-400">
                       <div className="flex flex-col items-center justify-center gap-2.5">
                         <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -608,6 +623,59 @@ export default function AdminPage() {
                                     ? `Superado: ${new Date(u.progress.mision2CompletadaEn).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`
                                     : `${desafio2.steps.find((s) => s.id === 'duendes')?.status} duendes · ${desafio2.steps.find((s) => s.id === 'frutos')?.status} frutas`}
                                 </p>
+                              </div>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Mission 3, closing story and bonuses */}
+                        <td className="py-4 px-5">
+                          {(() => {
+                            const desafio3 = getDesafio3Summary(u.progress);
+                            const cierre = getCierreSummary(u.progress);
+                            const bonos = getBonosSummary(u.progress);
+                            if (!desafio3.unlocked) {
+                              return (
+                                <div>
+                                  <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg font-medium inline-block">Bloqueada</span>
+                                  {bonos.bonos > 0 && (
+                                    <p className="text-[11px] text-slate-400 mt-1">
+                                      Bonos: {bonos.bonos} de {bonos.totalBonos}
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return (
+                              <div className="min-w-[150px]">
+                                <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                                  <span className={desafio3.completed ? 'text-emerald-700 font-bold' : 'text-slate-700'}>
+                                    {cierre.completed ? 'Juego completado' : desafio3.completed ? 'Completada' : `${desafio3.done} de ${desafio3.total} pasos`}
+                                  </span>
+                                  <span className="text-slate-500">{desafio3.percent}%</span>
+                                </div>
+                                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full ${desafio3.completed ? 'bg-emerald-500' : desafio3.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
+                                    style={{ width: `${desafio3.percent}%` }}
+                                  />
+                                </div>
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                  Cierre: {cierre.done} de {cierre.total} · Bonos: {bonos.bonos} de {bonos.totalBonos}
+                                </p>
+                              </div>
+                            );
+                          })()}
+                        </td>
+
+                        {/* Bonuses: the statue's ring and the fairy's amulet */}
+                        <td className="py-4 px-5">
+                          {(() => {
+                            const { bono1, bono2 } = getBonosSummary(u.progress);
+                            return (
+                              <div className="flex flex-col gap-1.5 min-w-[150px]">
+                                <BonusChip label="Bono 1 · Estatua" part={bono1} />
+                                <BonusChip label="Bono 2 · Hada" part={bono2} />
                               </div>
                             );
                           })()}
@@ -865,6 +933,33 @@ export default function AdminPage() {
                 );
               })()}
 
+              {/* Section 3c: Challenge 3, closing story and bonuses */}
+              {(() => {
+                const desafio3 = getDesafio3Summary(selectedUser.progress);
+                const cierre = getCierreSummary(selectedUser.progress);
+                const bonos = getBonosSummary(selectedUser.progress);
+                const date = (iso: string | undefined) => (iso ? new Date(iso).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' }) : 'sin fecha');
+                return (
+                  <>
+                    <MissionSection
+                      title="Misión 3: Los Túneles de la Cumbre"
+                      summary={desafio3}
+                      unlocked={desafio3.unlocked}
+                      note={desafio3.completed ? `Completada el ${date(selectedUser.progress?.mision3CompletadaEn)}` : 'Brújula para el laberinto, muñeca para el espectro y guante para el ogro'}
+                      locked="Se habilita al completar la Misión 2 (Bosque de la Oscuridad): Hedrig espera junto a la fogata de su casa, al pie de la cumbre."
+                    />
+                    <MissionSection
+                      title="Relato de cierre: El Santuario y el Cáliz"
+                      summary={cierre}
+                      unlocked={cierre.unlocked}
+                      note={cierre.completed ? `Juego completado el ${date(selectedUser.progress?.juegoCompletadoEn)}` : 'La dríada abre el santuario; el cáliz está sobre el altar'}
+                      locked="Se habilita al llegar a la Cumbre de la Desolación (Misión 3 completada)."
+                    />
+                    <MissionSection title="Bonos: La Estatua y el Hada" summary={bonos} unlocked note={`${bonos.bonos} de ${bonos.totalBonos} bonos obtenidos (opcionales)`} locked="" />
+                  </>
+                );
+              })()}
+
               {/* Section 4: Consent & Authorization */}
               <div>
                 <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] mb-3 flex items-center gap-2">
@@ -902,6 +997,59 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+type BonusPart = { done: number; total: number; completed: boolean };
+
+// One bonus in the users table: obtained, under way (steps done) or not started.
+function BonusChip({ label, part }: { label: string; part: BonusPart }) {
+  const tone = part.completed ? 'bg-emerald-100 text-emerald-800' : part.done > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500';
+  return (
+    <span className={`inline-flex items-center justify-between gap-2 px-2.5 py-1 rounded-lg text-xs font-semibold ${tone}`}>
+      <span>{label}</span>
+      <span>{part.completed ? 'Obtenido' : `${part.done}/${part.total}`}</span>
+    </span>
+  );
+}
+
+type MissionSectionProps = {
+  title: string;
+  summary: { steps: MissionStep[]; done: number; total: number; percent: number; completed: boolean };
+  unlocked: boolean;
+  // Line under the progress bar.
+  note: string;
+  // Shown instead of the steps while it is locked.
+  locked: string;
+};
+
+// A mission in the player's record: its title, how far it got and its steps.
+function MissionSection({ title, summary, unlocked, note, locked }: MissionSectionProps) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2.5 gap-2">
+        <h4 className="font-bold text-sm uppercase tracking-wider text-[#C8102E]">{title}</h4>
+        <span
+          className={`text-xs sm:text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap ${summary.completed ? 'bg-emerald-100 text-emerald-800' : unlocked ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-400'}`}
+        >
+          {summary.completed ? 'Completada' : unlocked ? `${summary.done} de ${summary.total} pasos (${summary.percent}%)` : 'Bloqueada'}
+        </span>
+      </div>
+      {unlocked ? (
+        <>
+          <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-2">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${summary.completed ? 'bg-emerald-500' : summary.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
+              style={{ width: `${summary.percent}%` }}
+            />
+          </div>
+          <p className="text-xs text-slate-500 mb-3.5">{note}</p>
+          <MissionSteps steps={summary.steps} />
+        </>
+      ) : (
+        <p className="text-xs text-slate-500 bg-slate-50 p-3.5 rounded-xl border border-slate-100">{locked}</p>
       )}
     </div>
   );

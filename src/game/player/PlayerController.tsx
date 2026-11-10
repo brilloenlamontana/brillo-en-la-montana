@@ -5,9 +5,11 @@ import { Ecctrl, type EcctrlHandle } from 'ecctrl';
 import { EcctrlCameraControls, type EcctrlCameraControlsHandle } from 'ecctrl/camera';
 import { useButtonStore, useJoystickStore } from 'ecctrl/input';
 import { Vector3 } from 'three';
+import { findCharacter } from '@/data/characters';
 import { useCameraColliderStore } from '@/game/engine/camera/cameraColliderStore';
 import { PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useAuthStore } from '@/store/authStore';
 import { isGameplayPaused } from '@/store/uiStore';
 import type { Control } from './keyboardMap';
 import { usePlayerStore, type PlayerAction, type Point, type Spawn } from './playerStore';
@@ -19,16 +21,24 @@ const CAPSULE_RADIUS = 0.3;
 // The avatar's feet sit at the bottom of the capsule.
 const FEET_OFFSET: [number, number, number] = [0, -(CAPSULE_HALF_HEIGHT + CAPSULE_RADIUS + 0.1), 0];
 
+// Jump: ecctrl only pushes up for `jumpDuration`, and while its ground ray still reaches the floor its floating spring
+// pulls the capsule back down. With the default ray (1.3 m for this taller capsule) a jump was cut at 0.2 m, standing or
+// running; a shorter ray and a longer push give a real jump of about 1 m at any speed.
+const JUMP_VELOCITY = 3.3;
+const JUMP_SECONDS = 0.28;
+const GROUND_RAY_LENGTH = 0.8;
+
 const CAMERA_DISTANCE = 2;
 // Initial camera: behind the avatar, slightly above (polar angle measured from the zenith).
 const CAMERA_START_POLAR = Math.PI * 0.42;
 const CAMERA_MIN_POLAR = Math.PI * 0.15;
 const CAMERA_MAX_POLAR = Math.PI * 0.55;
-const CAMERA_TARGET_HEIGHT = 0.5;
+// The camera aims near the head: this fraction of the character's height above its feet.
+const CAMERA_TARGET_FRACTION = 0.86;
 
-// The Death clip lasts 2.37 s; a short pause follows before respawning.
-const DEATH_RESPAWN_DELAY = 2.8;
-// A joystick pushed this far counts as moving; past RUN it runs.
+// The Death clip lasts 3.63 s; a short pause follows before respawning.
+const DEATH_RESPAWN_DELAY = 4.1;
+// A joystick pushed this far counts as moving; past RUN it runs (same speeds as walking and Shift on a keyboard).
 const JOYSTICK_DEADZONE = 0.05;
 const JOYSTICK_RUN = 0.75;
 
@@ -63,6 +73,9 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
   const cameraPlaced = useRef(false);
   const appliedCameraDistance = useRef<number | null>(null);
   const diedAt = useRef<number | null>(null);
+  // Every character uses the same capsule; only the point the camera looks at follows the character's height.
+  const avatarName = useAuthStore((state) => state.user?.avatarName);
+  const cameraTargetHeight = findCharacter(avatarName).height * CAMERA_TARGET_FRACTION + FEET_OFFSET[1];
   useMouseLook(cameraControls, !useIsMobile());
 
   useEffect(() => {
@@ -95,11 +108,11 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
     // camera-controls takes its distance and angle from the <Canvas> camera: the first time, snap it behind the avatar.
     if (!cameraPlaced.current) {
       cameraPlaced.current = true;
-      controls.moveTo(target.x, target.y + CAMERA_TARGET_HEIGHT, target.z, false);
+      controls.moveTo(target.x, target.y + cameraTargetHeight, target.z, false);
       controls.rotateTo(initial.cameraAzimuth, CAMERA_START_POLAR, false);
       controls.dollyTo(CAMERA_DISTANCE, false);
     }
-    controls.moveTo(target.x, target.y + CAMERA_TARGET_HEIGHT, target.z, true);
+    controls.moveTo(target.x, target.y + cameraTargetHeight, target.z, true);
     cameraUp.current.copy(ecctrl.upAxis);
     camera.up.lerp(cameraUp.current, 0.1);
     controls.setUp(camera.up);
@@ -144,7 +157,9 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
     const joystickY = joystick?.active ? joystick.y : 0;
     const joystickPush = Math.hypot(joystickX, joystickY);
     const buttons = useButtonStore.getState().buttons;
-    const run = keys.run || Boolean(buttons['run']);
+    // ecctrl ignores how far the joystick is pushed (it only takes its direction), so the push itself chooses between
+    // walking and running: a phone reaches exactly the keyboard's walking and running speeds.
+    const run = keys.run || Boolean(buttons['run']) || joystickPush > JOYSTICK_RUN;
 
     ecctrl.setMovement({
       forward: keys.forward,
@@ -153,11 +168,11 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
       rightward: keys.rightward,
       run,
       jump: keys.jump || Boolean(buttons['jump']),
-      joystick: { x: joystickX, y: joystickY },
+      joystick: joystickPush > JOYSTICK_DEADZONE ? { x: joystickX, y: joystickY } : STAND_STILL.joystick,
     });
 
     const moving = keys.forward || keys.backward || keys.leftward || keys.rightward || joystickPush > JOYSTICK_DEADZONE;
-    const action: PlayerAction = !moving ? 'Idle' : run || joystickPush > JOYSTICK_RUN ? 'Running' : 'Walking';
+    const action: PlayerAction = !moving ? 'Idle' : run ? 'Running' : 'Walking';
     if (player.action !== action) player.setAction(action);
 
     followWithCamera();
@@ -182,6 +197,9 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
         rotation={initial.rotation}
         friction={1}
         enableToggleRun={false}
+        jumpVel={JUMP_VELOCITY}
+        jumpDuration={JUMP_SECONDS}
+        rayLength={GROUND_RAY_LENGTH}
         userData={PLAYER_USER_DATA}
       >
         <group position={FEET_OFFSET}>{children}</group>

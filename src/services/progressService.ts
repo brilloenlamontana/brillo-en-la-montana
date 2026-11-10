@@ -1,5 +1,5 @@
 import { deleteField, doc, setDoc, updateDoc } from 'firebase/firestore';
-import { useAuthStore } from '@/store/authStore';
+import { isDevUser, useAuthStore } from '@/store/authStore';
 import { useProgressStore, type GameProgress } from '@/store/progressStore';
 import { db } from './firebase';
 
@@ -13,6 +13,7 @@ export async function saveProgress(changes: Partial<GameProgress>) {
     console.warn('saveProgress: no signed-in user yet', changes);
     return;
   }
+  if (isDevUser(uid)) return;
 
   const userRef = doc(db, 'users', uid);
   const progressUpdatedAt = new Date().toISOString();

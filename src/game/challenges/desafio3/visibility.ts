@@ -4,8 +4,10 @@ import { visibleFrom } from '@/game/world/visibility';
 export const VISIBLE_FROM = {
   puebloHedrig: visibleFrom(['bosque', 'pueblo', 'tuneles'], ['hedrig']),
   casaHedrigInterior: visibleFrom(['pueblo'], ['hedrig']),
+  hedrig: visibleFrom(['bosque', 'pueblo'], ['hedrig']),
   // Inside the mountain nothing outside shows except at the openings.
   tuneles: visibleFrom(['pueblo', 'tuneles', 'cumbre']),
+  // Props, the spectre, the Ogre and the compass trail only exist inside the tunnels.
   tunelesObjetos: visibleFrom(['tuneles']),
 } as const;
 
