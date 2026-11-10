@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import type { Backpack } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useZoneStore } from '@/game/world/zoneStore';
@@ -20,6 +21,7 @@ function toggleBrujula() {
   const { brujulaActiva, toggleBrujula: toggle } = useTunelStore.getState();
   toggle();
   if (brujulaActiva) return toast('Guardas la brújula.');
+  playSfx('d3_brujula');
   toast(
     useZoneStore.getState().region === 'tuneles'
       ? 'La aguja de la brújula tiembla y un sendero de luz azul marca el camino hacia la salida de la cumbre.'
@@ -40,9 +42,9 @@ export function collectHedrigItem(id: string) {
 // Backpack of Challenge 3: replaces the elf's once the player arrives at Hedrig's mining town.
 export const DESAFIO3_BACKPACK: Backpack = {
   items: [
-    { id: 'guante', name: 'Guante de minero', model: MODEL.guante, Icon: GuanteIcon, hotkey: '1' },
-    { id: 'brujula', name: 'Brújula', model: MODEL.brujula, Icon: BrujulaIcon, hotkey: '2' },
-    { id: 'muneca', name: 'Muñeca de trapo', model: MODEL.muneca, Icon: MunecaIcon, hotkey: '3' },
+    { id: 'guante', name: 'Guante de minero', model: MODEL.guante, Icon: GuanteIcon, hotkey: '1', gesture: 'UseGlove' },
+    { id: 'brujula', name: 'Brújula', model: MODEL.brujula, Icon: BrujulaIcon, hotkey: '2', gesture: 'UseCompass' },
+    { id: 'muneca', name: 'Muñeca de trapo', model: MODEL.muneca, Icon: MunecaIcon, hotkey: '3', gesture: 'UseOffer' },
   ],
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as HedrigItemId, progress),

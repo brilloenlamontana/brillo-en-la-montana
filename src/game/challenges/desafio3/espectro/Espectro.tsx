@@ -3,7 +3,7 @@ import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useRapier, type RapierCollider } from '@react-three/rapier';
 import { Color, MathUtils, Quaternion, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type SkinnedMesh } from 'three';
-import { playGlide } from '@/game/engine/audio/tones';
+import { playSfx, shout } from '@/game/engine/audio/audio';
 import { isBodyNamed, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
@@ -37,6 +37,11 @@ const HIT_SECONDS = 1.3;
 // The cold on the screen starts this far away.
 const COLD_RANGE = 12;
 const WARNING_SECONDS = 9;
+// While she follows the player she keeps crying out for her doll (recorded line 03_nina_01), this often (seconds,
+// picked at random each time) and louder the closer she is.
+const CRY_SECONDS: readonly [number, number] = [6, 9];
+const CRY_CLIP = '03_nina_01';
+const nextCryIn = () => MathUtils.randFloat(...CRY_SECONDS);
 
 // The girl says goodbye: she rejoices where she stands, then walks away while she fades.
 const JOY_SECONDS = 2.8;
@@ -91,7 +96,7 @@ function Fantasma() {
   const { scene, animations } = useGLTF(FANTASMA_URL);
   const { actions } = useAnimations(animations, group);
   const position = useRef(new Vector3(...CAMARA_SIMONA));
-  const brain = useRef({ chasing: false, nextHit: 0, lastWarning: -Infinity });
+  const brain = useRef({ chasing: false, nextHit: 0, lastWarning: -Infinity, nextCry: 0, warned: false });
   const work = useMemo(() => ({ step: new Vector3(), facing: new Quaternion() }), []);
 
   useLayoutEffect(() => {
@@ -127,17 +132,36 @@ function Fantasma() {
     if (haunting) {
       const step = work.step.set(player.position.x - p.x, player.position.y + HOVER - p.y, player.position.z - p.z);
       const distance = step.length();
-      if (distance < AWARE_RANGE) b.chasing = true;
+      if (distance < AWARE_RANGE && !b.chasing) {
+        // She has noticed the player: an icy gust, and her first cry soon after.
+        b.chasing = true;
+        b.nextCry = now + 1.5;
+        playSfx('d3_espectro_aparece', { volume: 0.8 });
+      }
       if (b.chasing) {
+        if (!paused && now >= b.nextCry) {
+          b.nextCry = now + nextCryIn();
+          shout(CRY_CLIP, { volume: Math.max(0.1, 0.95 * (1 - distance / AWARE_RANGE) ** 1.5), rate: MathUtils.randFloat(0.96, 1.05) });
+        }
         if (!paused && distance > KEEP_DISTANCE) p.addScaledVector(step, Math.min(distance - KEEP_DISTANCE, CHASE_SPEED * delta) / distance);
         if (!paused && distance < HIT_RANGE && now >= b.nextHit) {
           b.nextHit = now + HIT_SECONDS;
           player.takeDamage(HIT_DAMAGE);
           tunel.tocar();
-          playGlide(640, 210, 0.8, 0.06);
+          playSfx('d3_frio_dano');
           if (now - b.lastWarning > WARNING_SECONDS) {
             b.lastWarning = now;
-            useToastStore.getState().showToast('El espectro de la niña te alcanza entre llantos: «¡Devuélvanme a Simona!». Su frío te quita la vida: entrégale la muñeca.');
+            // The narrator explains it the first time only (see sound/voices.ts): after that she speaks for herself.
+            useToastStore
+              .getState()
+              .showToast(
+                b.warned
+                  ? 'El frío del espectro te quita la vida: entrégale la muñeca para que deje de perseguirte.'
+                  : 'El espectro de la niña te alcanza entre llantos: «¡Devuélvanme a Simona!». Su frío te quita la vida: entrégale la muñeca.',
+              );
+            // Her line is part of that narration: she waits for it to end before crying out again.
+            if (!b.warned) b.nextCry = now + 11;
+            b.warned = true;
           }
         }
         frio = MathUtils.clamp(1 - distance / COLD_RANGE, 0, 1);

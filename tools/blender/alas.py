@@ -244,6 +244,22 @@ def animar_alas(arm, action, aleteos, amplitud_grados, paso=1):
     return hechas
 
 
+def quitar_astillas(body, largo=0.15):
+    """Borra los vertices sueltos del escaneo que forman astillas: aquellos cuyas aristas son todas larguisimas (un pico
+    que sale del cuerpo). Devuelve cuantos quito."""
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    malos = [v for v in bm.verts if v.link_edges and min(e.calc_length() for e in v.link_edges) > largo]
+    n = len(malos)
+    if n:
+        bmesh.ops.delete(bm, geom=malos, context='VERTS')
+        bm.to_mesh(body.data)
+        body.data.update()
+    bm.free()
+    return n
+
+
 def fijar_baculo(arm, body):
     """El baculo (una pieza suelta, larga y delgada) queda pesado por completo a la mano que lo sostiene: rigido y
     siempre en esa mano, haga lo que haga el resto del cuerpo. Devuelve lo que hizo, o None si no hay baculo."""
@@ -285,4 +301,93 @@ def fijar_baculo(arm, body):
         if vg.index != g.index:
             vg.remove(comp)
     g.add(comp, 1.0, 'REPLACE')
+    global ULTIMO_BACULO
+    ULTIMO_BACULO = (comp, mano.name)
     return {"vertices": len(comp), "largo": round(largo, 3), "mano": mano.name}
+
+
+# (indices de los vertices del baculo, hueso de la mano) de la ultima llamada a fijar_baculo
+ULTIMO_BACULO = None
+
+
+def hueso_baculo(arm, body, comp, nombre='Baculo'):
+    """El baculo con hueso propio y sin padre: no lo arrastra ningun gesto del cuerpo, asi que queda plantado y derecho;
+    es la mano la que se ancla a el (anclar_mano en export_lote.py) y, si un clip lo levanta, van los dos juntos."""
+    import bpy
+    pts = np.array([body.data.vertices[i].co for i in comp])
+    centro = pts.mean(0)
+    for o in bpy.context.view_layer.objects:
+        o.select_set(False)
+    arm.hide_set(False)
+    arm.select_set(True)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode='EDIT')
+    eb = arm.data.edit_bones
+    b = eb.get(nombre) or eb.new(nombre)
+    b.parent = None
+    b.head = (centro[0], centro[1], float(pts[:, 2].min()))
+    b.tail = (centro[0], centro[1], float(pts[:, 2].max()))
+    b.roll = 0
+    b.use_deform = True
+    bpy.ops.object.mode_set(mode='OBJECT')
+    g = body.vertex_groups.get(nombre) or body.vertex_groups.new(name=nombre)
+    for vg in body.vertex_groups:
+        if vg.index != g.index:
+            vg.remove(comp)
+    g.add(comp, 1.0, 'REPLACE')
+    return nombre
+
+
+def centro_baculo(body, comp, z, margen=0.03):
+    """Centro del baculo (vertical) a la altura z, en el espacio de la malla."""
+    pts = np.array([body.data.vertices[i].co for i in comp])
+    cerca = pts[np.abs(pts[:, 2] - z) < margen]
+    return Vector((cerca if len(cerca) else pts).mean(0))
+
+
+def colocar_baculo(body, comp, z, xy):
+    """Mueve el baculo en horizontal para que a la altura z pase por xy (el agarre). Es absoluto: repetirlo no lo
+    desplaza otra vez. Devuelve cuanto se movio."""
+    c = centro_baculo(body, comp, z)
+    d = Vector((xy[0] - c.x, xy[1] - c.y, 0))
+    if d.length > 1e-4:
+        for i in comp:
+            body.data.vertices[i].co += d
+        body.data.update()
+    return [round(x, 3) for x in d]
+
+
+def agarre(arm, body, comp, mano, z, giro_mano=((-0.25, -0.95, -0.1), (0, 0, 1)), curl=(62, 55, 45)):
+    """Como tiene que quedar la mano `mano` para empunar el baculo a la altura z: devuelve (desplazamiento, giro) de la
+    mano respecto al reposo y {hueso de dedo: (eje, angulo)} para cerrar los dedos alrededor. giro_mano = hacia donde
+    apuntan los nudillos y hacia donde va el pulgar (el baculo es vertical: la palma lo abraza de lado)."""
+    from mathutils import Matrix
+    B = arm.data.bones
+    lado = 'Left' if 'Left' in mano else 'Right'
+    pre = mano  # p. ej. mixamorig:LeftHand
+    cab = lambda n: B[pre + n].head_local
+    h0 = (cab('Middle1') - cab('')).normalized()
+    a0 = cab('Index1') - cab('Pinky1')
+    a0 = (a0 - h0 * a0.dot(h0)).normalized()
+    n0 = h0.cross(a0) if lado == 'Left' else a0.cross(h0)  # normal de la palma
+    h1 = Vector(giro_mano[0]).normalized()
+    a1 = Vector(giro_mano[1])
+    a1 = (a1 - h1 * a1.dot(h1)).normalized()
+    n1 = h1.cross(a1) if lado == 'Left' else a1.cross(h1)
+    M0 = Matrix((h0, a0, n0)).transposed()
+    M1 = Matrix((h1, a1, n1)).transposed()
+    giro = (M1 @ M0.transposed()).to_quaternion()
+    pts = np.array([body.data.vertices[i].co for i in comp])
+    cerca = pts[np.abs(pts[:, 2] - z) < 0.03]
+    radio = float(np.linalg.norm(cerca[:, :2] - cerca[:, :2].mean(0), axis=1).max()) if len(cerca) else 0.01
+    palma = h0 * (cab('Middle1') - cab('')).length * 0.8 + n0 * (radio + 0.006)  # del hueso de la mano al eje del baculo
+    c = centro_baculo(body, comp, z)
+    destino = Vector((c.x, c.y, z)) - giro @ palma
+    eje = -a1 if lado == 'Left' else a1  # cerrar los dedos: de los nudillos hacia la palma
+    dedos = {}
+    for dedo in ('Index', 'Middle', 'Ring', 'Pinky'):
+        for i, ang in enumerate(curl, 1):
+            dedos[pre + dedo + str(i)] = (eje, math.radians(ang))
+    for i, ang in enumerate((20, 30, 25), 1):  # el pulgar cierra por el otro lado
+        dedos[pre + 'Thumb' + str(i)] = (-eje, math.radians(ang))
+    return destino - cab(''), giro, dedos, radio

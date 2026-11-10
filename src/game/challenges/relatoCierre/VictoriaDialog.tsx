@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import { getBonosSummary } from '@/game/challenges/bonos';
+import { useVoice } from '@/game/engine/audio/useVoice';
 import { ParchmentButton } from '@/game/hud/ParchmentDialog';
 import { STARS, useProgressStore } from '@/store/progressStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
@@ -42,9 +43,10 @@ export function VictoriaDialog() {
   const isOpen = useDialogOpen(DIALOG.victoria);
   const progress = useProgressStore((state) => state.progress);
   const titleId = useId();
+  const bonos = getBonosSummary(progress);
+  useVoice(isOpen ? ['04_narrador_09', bonos.completed ? '04_narrador_10' : '04_narrador_11'] : null);
   if (!isOpen) return null;
 
-  const bonos = getBonosSummary(progress);
   const derrotas = countDerrotas(progress);
 
   return (

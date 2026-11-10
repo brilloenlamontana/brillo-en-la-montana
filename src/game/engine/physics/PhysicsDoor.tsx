@@ -2,6 +2,8 @@ import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import { MathUtils, Quaternion, Vector3, type Mesh, type Object3D } from 'three';
+import type { SfxId } from '@/game/engine/audio/catalog';
+import { playSfxAt } from '@/game/engine/audio/spatial';
 import { restPose } from '@/game/engine/models/sceneUtils';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { measureLeaf } from './doorLeaf';
@@ -10,6 +12,27 @@ const UP = new Vector3(0, 1, 0);
 // The leaf starts turning when the avatar gets this close to it (capsule radius 0.3 + a margin), so the avatar pushes
 // it before touching it and never gets stuck on its edge.
 const PUSH_RADIUS = 0.5;
+
+// What a leaf sounds like: a house door creaks open, thuds shut and rattles while locked; a gate groans open.
+type DoorSound = { open: SfxId; close?: SfxId; locked: SfxId };
+const DOOR_SOUNDS: Record<'door' | 'gate', DoorSound> = {
+  door: { open: 'obj_puerta_abrir', close: 'obj_puerta_cerrar', locked: 'obj_puerta_bloqueada' },
+  gate: { open: 'obj_porton', locked: 'obj_puerta_bloqueada' },
+};
+// The leaf counts as open past OPEN_FROM radians and as shut again under SHUT_UNDER.
+const OPEN_FROM = 0.2;
+const SHUT_UNDER = 0.04;
+const EARSHOT = 14;
+// The leaves of one gate open together and a locked door is pushed frame after frame: each sound waits this long
+// (seconds) before it can be heard again, whichever leaf asks.
+const SOUND_AGAIN: Partial<Record<SfxId, number>> = { obj_porton: 4, obj_puerta_bloqueada: 2.5 };
+const lastHeard = new Map<SfxId, number>();
+function soundOnce(id: SfxId, at: Vector3) {
+  const now = performance.now() / 1000;
+  if (now - (lastHeard.get(id) ?? -Infinity) < (SOUND_AGAIN[id] ?? 0.4)) return;
+  lastHeard.set(id, now);
+  playSfxAt(id, at, EARSHOT);
+}
 
 type DoorPose = { hinge: Vector3; targetPosition: Vector3; targetQuaternion: Quaternion };
 
@@ -37,13 +60,15 @@ type PhysicsDoorProps = {
   locked?: boolean;
   // How far it swings to either side.
   openAngle?: number;
+  // What it sounds like when pushed: a house door (the default), a heavy gate, or nothing.
+  sound?: 'door' | 'gate' | null;
 };
 
 // A door leaf the avatar opens by walking into it. The leaf is a kinematic body: contacts with the frame or the walls
 // never move it, so it stays exactly where it was left (closed until someone pushes it). Each frame, if the avatar is
 // within reach of the leaf, the leaf turns just enough to clear it, away from the avatar and in either direction, so
 // the way out is never blocked. Locked doors ignore the avatar and stay closed.
-export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn = 0, locked = false, openAngle = MathUtils.degToRad(100) }: PhysicsDoorProps) {
+export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn = 0, locked = false, openAngle = MathUtils.degToRad(100), sound = 'door' }: PhysicsDoorProps) {
   const body = useRef<RapierRigidBody>(null);
 
   const door = useMemo(() => {
@@ -84,13 +109,14 @@ export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn 
   }, [node, target, hingeProp, closedTurn]);
 
   // Current angle of the leaf (0 = closed) and the one last applied to the body and the drawing.
-  const swing = useRef({ angle: 0, applied: 0, rotation: new Quaternion() });
+  const swing = useRef({ angle: 0, applied: 0, rotation: new Quaternion(), open: false });
 
   // Drawn closed before the first frame.
   useLayoutEffect(() => {
     const state = swing.current;
     state.angle = 0;
     state.applied = 0;
+    state.open = false;
     state.rotation.identity();
     placeLeaf(target, door, state.rotation);
   }, [target, door]);
@@ -100,25 +126,36 @@ export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn 
     if (!rigidBody) return;
     const state = swing.current;
 
-    if (locked) {
-      state.angle = 0;
-    } else {
-      const { x, y, z } = usePlayerStore.getState().position;
-      const px = x - door.hinge.x;
-      const pz = z - door.hinge.z;
-      const distance = Math.hypot(px, pz);
-      // The avatar's feet between just under the leaf's bottom and its top, and within the swing of the leaf.
-      if (y > door.bottom - 0.6 && y < door.top && distance > PUSH_RADIUS && distance < door.length + PUSH_RADIUS) {
-        // Angle of the avatar around the hinge, measured like the leaf (0 = closed, same sense as a Y rotation).
-        const { x: dx, z: dz } = door.direction;
-        const playerAngle = Math.atan2(dz * px - dx * pz, dx * px + dz * pz);
-        const reach = Math.asin(PUSH_RADIUS / distance);
-        const offset = wrap(state.angle - playerAngle);
-        if (Math.abs(offset) < reach) {
+    const sounds = sound ? DOOR_SOUNDS[sound] : null;
+    if (locked) state.angle = 0;
+    const { x, y, z } = usePlayerStore.getState().position;
+    const px = x - door.hinge.x;
+    const pz = z - door.hinge.z;
+    const distance = Math.hypot(px, pz);
+    // The avatar's feet between just under the leaf's bottom and its top, and within the swing of the leaf.
+    if (y > door.bottom - 0.6 && y < door.top && distance > PUSH_RADIUS && distance < door.length + PUSH_RADIUS) {
+      // Angle of the avatar around the hinge, measured like the leaf (0 = closed, same sense as a Y rotation).
+      const { x: dx, z: dz } = door.direction;
+      const playerAngle = Math.atan2(dz * px - dx * pz, dx * px + dz * pz);
+      const reach = Math.asin(PUSH_RADIUS / distance);
+      const offset = wrap(state.angle - playerAngle);
+      if (Math.abs(offset) < reach) {
+        if (locked) {
+          // Pushing a locked leaf only rattles it.
+          if (sounds) soundOnce(sounds.locked, door.hinge);
+        } else {
           const pushed = offset <= 0 ? playerAngle - reach : playerAngle + reach;
           state.angle = MathUtils.clamp(wrap(pushed), -openAngle, openAngle);
         }
       }
+    }
+
+    const open = state.open ? Math.abs(state.angle) > SHUT_UNDER : Math.abs(state.angle) > OPEN_FROM;
+    if (open !== state.open) {
+      state.open = open;
+      // A leaf that is locked while open (the story started over) shuts without a sound.
+      const heard = open ? sounds?.open : locked ? undefined : sounds?.close;
+      if (heard) soundOnce(heard, door.hinge);
     }
 
     if (state.angle === state.applied) return;

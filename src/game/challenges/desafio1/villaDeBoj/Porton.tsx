@@ -30,7 +30,7 @@ export function Porton() {
     <>
       <primitive object={scene} />
       {leaves.map(({ object, closedTurn }) => (
-        <PhysicsDoor key={object.name} node={object} closedTurn={closedTurn} openAngle={OPEN_ANGLE} />
+        <PhysicsDoor key={object.name} node={object} closedTurn={closedTurn} openAngle={OPEN_ANGLE} sound="gate" />
       ))}
     </>
   );

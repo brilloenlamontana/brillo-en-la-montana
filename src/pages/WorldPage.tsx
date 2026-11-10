@@ -15,7 +15,9 @@ import { MobileControls } from '@/game/hud/MobileControls';
 import { MobileControlsToggle } from '@/game/hud/MobileControlsToggle';
 import { PlayerStatus } from '@/game/hud/PlayerStatus';
 import { RendererErrorScreen } from '@/game/hud/RendererErrorScreen';
+import { SoundToggle } from '@/game/hud/SoundToggle';
 import { WorldLoadingScreen } from '@/game/hud/WorldLoadingScreen';
+import { GameSound } from '@/game/sound/GameSound';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 // The game: the 3D world with its HUD and the dialogs of every challenge drawn over it.
@@ -36,11 +38,19 @@ export default function WorldPage() {
   return (
     <main className="w-screen h-screen relative overflow-hidden select-none">
       {webgpu === 'ok' && <GameCanvas />}
+      <GameSound />
       {CHALLENGES.map(({ id, Hud }) => Hud && <Hud key={id} />)}
       {isMobile && (
         <MobileControlsToggle showMobileControls={showTouchControls} detectedMobile={isMobile} setManualControlsToggle={setTouchControls} />
       )}
-      <UserMenu leading={<BackpackButton />} />
+      <UserMenu
+        leading={
+          <>
+            <SoundToggle />
+            <BackpackButton />
+          </>
+        }
+      />
       <MobileControls show={showTouchControls} />
       <QuickItemBar raised={showTouchControls} />
       <PlayerStatus />

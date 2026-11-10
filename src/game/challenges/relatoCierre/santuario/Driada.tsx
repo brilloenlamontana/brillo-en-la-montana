@@ -1,0 +1,147 @@
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Html, useAnimations, useGLTF } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
+import { Quaternion, Vector3, type Group, type SkinnedMesh } from 'three';
+import { createFootsteps } from '@/game/engine/audio/spatial';
+import { InteractionPrompt } from '@/game/engine/interaction/InteractionPrompt';
+import { useInteractKey } from '@/game/engine/interaction/useInteractKey';
+import { usePlayerStore } from '@/game/player/playerStore';
+import { useProgressStore } from '@/store/progressStore';
+import { useDialogOpen, useUIStore } from '@/store/uiStore';
+import { RELATO_CIERRE_MODELS } from '../assets';
+import { DIALOG } from '../dialogs';
+import { isCalizTomado, isSantuarioAbierto } from '../mission';
+
+const URL = RELATO_CIERRE_MODELS.driada;
+const FADE_SECONDS = 0.35;
+const UP = new Vector3(0, 1, 0);
+// She waits on the landing before the silver willow door (floor at 52.47), looking down the avenue.
+const DOOR: [number, number, number] = [151.9, 52.47, -152.2];
+const DOOR_YAW = -Math.PI / 2;
+// Where she meets the player: on the plaza at the foot of the steps (ground at 51.85), beside the way in. Facing the
+// player who stands before the door, the door is exactly on her right: that is where her free arm points.
+const SPOT: [number, number, number] = [149.7, 51.86, -150.2];
+const SPOT_YAW = -2.38;
+// She comes out to meet whoever gets this close (m), at this pace (m/s).
+const MEET_RANGE = 16;
+const WALK_SPEED = 1;
+// Length of her 'Bienvenida' clip (s): played once on arriving.
+const WELCOME_SECONDS = 3.4;
+const TALK_RANGE = 3.4;
+const BODY_CAPSULE: [number, number] = [0.5, 0.35];
+const BODY_CENTER: [number, number, number] = [0, 0.85, 0];
+const PROMPT_HEIGHT = 2.5;
+
+// espera: at the door · camina: coming out to meet the player · bienvenida: welcoming bow · lista: met, at her spot.
+type Phase = 'espera' | 'camina' | 'bienvenida' | 'lista';
+type Clip = 'Idle' | 'Caminar' | 'Bienvenida' | 'Talking' | 'Senalar' | 'Reverencia';
+
+const openDialog = () => useUIStore.getState().openDialog(DIALOG.driada);
+
+// The dryad of the sanctuary, as the scene schedule tells it: a slender figure comes out to meet the player, welcomes
+// them, speaks (her dialog) and then points at the inside of the sanctuary, inviting them in; once the chalice shines
+// again she bows. Her staff stays planted in her left hand throughout (it is part of every clip).
+export function Driada({ visible }: { visible: boolean }) {
+  const body = useRef<RapierRigidBody>(null);
+  const group = useRef<Group>(null);
+  const { scene, animations } = useGLTF(URL);
+  const { actions } = useAnimations(animations, group);
+  const abierto = useProgressStore((state) => isSantuarioAbierto(state.progress));
+  const tomado = useProgressStore((state) => isCalizTomado(state.progress));
+  const talking = useDialogOpen(DIALOG.driada);
+  // Already spoken to on an earlier visit: she is at her spot.
+  const [initial] = useState<Phase>(() => (isSantuarioAbierto(useProgressStore.getState().progress) ? 'lista' : 'espera'));
+  const [phase, setPhase] = useState<Phase>(initial);
+  const [near, setNear] = useState(false);
+  const live = useRef({ phase: initial, near: false, welcomeAt: 0, position: new Vector3(...(initial === 'lista' ? SPOT : DOOR)) });
+  const work = useMemo(() => ({ step: new Vector3(), facing: new Quaternion() }), []);
+  const footsteps = useMemo(() => createFootsteps('rc_driada_pasos', 0.6, 14, 0.6), []);
+
+  const clip: Clip =
+    phase === 'camina' ? 'Caminar' : phase === 'bienvenida' ? 'Bienvenida' : phase === 'espera' ? 'Idle' : talking ? 'Talking' : tomado ? 'Reverencia' : abierto ? 'Senalar' : 'Idle';
+
+  // A skinned mesh is posed by its skeleton, so its bounding sphere does not follow the animation: never cull it.
+  useLayoutEffect(() => {
+    scene.traverse((object) => {
+      if ((object as SkinnedMesh).isSkinnedMesh) object.frustumCulled = false;
+    });
+  }, [scene]);
+
+  useEffect(() => {
+    if (!visible) {
+      Object.values(actions).forEach((action) => action?.stop());
+      return;
+    }
+    const action = actions[clip] ?? actions.Idle;
+    action?.reset().fadeIn(FADE_SECONDS).play();
+    return () => {
+      action?.fadeOut(FADE_SECONDS);
+    };
+  }, [actions, clip, visible]);
+
+  useFrame((_, rawDelta) => {
+    if (!body.current || !group.current || !visible) return;
+    const delta = Math.min(rawDelta, 0.1);
+    const l = live.current;
+    const player = usePlayerStore.getState().position;
+    let next = l.phase;
+    let yaw = l.phase === 'espera' ? DOOR_YAW : SPOT_YAW;
+
+    if (l.phase === 'espera' && Math.hypot(player.x - SPOT[0], player.z - SPOT[2]) < MEET_RANGE) next = 'camina';
+    if (l.phase === 'camina') {
+      const step = work.step.set(SPOT[0] - l.position.x, SPOT[1] - l.position.y, SPOT[2] - l.position.z);
+      const distance = step.length();
+      if (distance > 0.05) {
+        const moved = Math.min(distance, WALK_SPEED * delta);
+        l.position.addScaledVector(step, moved / distance);
+        footsteps(moved, l.position);
+        yaw = Math.atan2(step.x, step.z);
+      } else {
+        next = 'bienvenida';
+        l.welcomeAt = performance.now();
+      }
+    }
+    if (l.phase === 'bienvenida' && performance.now() - l.welcomeAt > WELCOME_SECONDS * 1000) next = 'lista';
+
+    body.current.setNextKinematicTranslation(l.position);
+    work.facing.setFromAxisAngle(UP, yaw);
+    group.current.quaternion.slerp(work.facing, Math.min(1, 5 * delta));
+
+    if (next !== l.phase) {
+      l.phase = next;
+      setPhase(next);
+    }
+    const met = l.phase === 'bienvenida' || l.phase === 'lista';
+    const nextNear = met && Math.abs(player.y - l.position.y) < 2.5 && Math.hypot(player.x - l.position.x, player.z - l.position.z) < TALK_RANGE;
+    if (nextNear !== l.near) {
+      l.near = nextNear;
+      setNear(nextNear);
+    }
+  });
+
+  const canTalk = visible && near && !talking;
+  const startTalk = useCallback(() => {
+    // Spoken to in the middle of her welcome: she goes straight on to talk.
+    live.current.phase = 'lista';
+    setPhase('lista');
+    openDialog();
+  }, []);
+  useInteractKey(canTalk, startTalk);
+
+  return (
+    <RigidBody ref={body} type="kinematicPosition" colliders={false} position={initial === 'lista' ? SPOT : DOOR}>
+      <CapsuleCollider args={BODY_CAPSULE} position={BODY_CENTER} />
+      <group ref={group} visible={visible} rotation={[0, initial === 'lista' ? SPOT_YAW : DOOR_YAW, 0]}>
+        <primitive object={scene} />
+      </group>
+      {canTalk && (
+        <Html position={[0, PROMPT_HEIGHT, 0]} center>
+          <InteractionPrompt action="hablar con la dríada" onActivate={startTalk} />
+        </Html>
+      )}
+    </RigidBody>
+  );
+}
+
+useGLTF.preload(URL);

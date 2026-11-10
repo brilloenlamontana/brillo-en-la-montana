@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { MathUtils, Vector3, type AnimationClip, type Group, type Mesh } from 'three';
+import { AnimationUtils, LoopOnce, MathUtils, Vector3, type AnimationClip, type Group, type Mesh } from 'three';
 import { avatarModelUrl, findCharacter, genderFolder } from '@/data/characters';
 import { playOnceAndHold, setPace } from '@/game/engine/models/animation';
 import { useAuthStore, type AvatarGender } from '@/store/authStore';
+import { AvatarGestures } from './AvatarGestures';
+import { GESTURE_NAMES, keepGestureTracks, type GestureName } from './gestureStore';
 import { usePlayerStore } from './playerStore';
 
 const FADE_SECONDS = 0.25;
@@ -12,7 +14,7 @@ const ANIMATIONS_DIR = '/models-3d/animations';
 // Every character shares the Mixamo skeleton, so the clips are skeleton-only files reused by all of them: the
 // locomotion set of the character's gender plus the clips common to everyone.
 const GENDER_CLIPS = ['Idle', 'Walking', 'Running'] as const;
-const SHARED_CLIPS = ['Death'] as const;
+const SHARED_CLIPS = ['Death', 'Hit', ...GESTURE_NAMES] as const;
 const CLIP_NAMES = [...GENDER_CLIPS, ...SHARED_CLIPS];
 type ClipName = (typeof CLIP_NAMES)[number];
 
@@ -24,6 +26,12 @@ const CLIP_SPEED: Record<AvatarGender, { Walking: number; Running: number }> = {
   male: { Walking: 0.92, Running: 2.95 },
 };
 const TIME_SCALE_RANGE: [number, number] = [0.65, 1.6];
+// The flinch of a blow (shared/Hit.glb, hand-made in tools/blender/golpe.py) is added on top of whatever the avatar
+// is doing, a little exaggerated so it reads from the third-person camera. Damage smaller than HIT_MIN_DAMAGE (the
+// slow drain of hunger) does not flinch, and a flinch is not restarted before HIT_AGAIN_SECONDS.
+const HIT_WEIGHT = 1.25;
+const HIT_MIN_DAMAGE = 2;
+const HIT_AGAIN_SECONDS = 0.3;
 // The run clip takes over once the avatar is really running (it accelerates from the walk for a moment), and gives way
 // to the walk again a little lower, so the two never flicker.
 const RUN_FROM_SPEED = 3.4;
@@ -54,6 +62,9 @@ export function Avatar() {
         if (!animations.length) return [];
         const clip = animations[0].clone();
         clip.name = CLIP_NAMES[i];
+        // Only what the flinch changes from its first frame is kept: it adds to the clip being played.
+        if (clip.name === 'Hit') AnimationUtils.makeClipAdditive(clip);
+        if (GESTURE_NAMES.includes(clip.name as GestureName)) keepGestureTracks(clip, clip.name as GestureName);
         return [clip];
       }),
     [clipFiles],
@@ -69,6 +80,21 @@ export function Avatar() {
 
   useEffect(() => {
     if (actions.Death) playOnceAndHold(actions.Death);
+  }, [actions]);
+
+  // A blow makes the avatar flinch; a defeat plays Death instead.
+  useEffect(() => {
+    const hit = actions.Hit;
+    if (!hit) return;
+    hit.setLoop(LoopOnce, 1);
+    let last = -Infinity;
+    return usePlayerStore.subscribe((state, previous) => {
+      if (state.health <= 0) return void hit.stop();
+      const now = performance.now() / 1000;
+      if (previous.health - state.health < HIT_MIN_DAMAGE || now - last < HIT_AGAIN_SECONDS) return;
+      last = now;
+      hit.reset().setEffectiveWeight(HIT_WEIGHT).play();
+    });
   }, [actions]);
 
   const shown: ClipName = action === 'Running' && !atRunSpeed ? 'Walking' : action;
@@ -112,6 +138,7 @@ export function Avatar() {
   return (
     <group ref={avatarRef} dispose={null}>
       <primitive object={scene} />
+      <AvatarGestures actions={actions} scene={scene} height={character.height} />
     </group>
   );
 }

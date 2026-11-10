@@ -5,6 +5,7 @@ import { TERRAIN_BODY_NAME } from '@/game/engine/physics/bodies';
 import { MAPA_MODELS } from '@/game/world/assets';
 import { splitTerrain } from '@/game/engine/models/splitTerrain';
 import { freeze } from '@/game/engine/models/sceneUtils';
+import { registerTerrainMaterials } from '@/game/engine/models/terrainTextures';
 
 // Terreno collection from Map.blend: a single mesh containing valleys and mountains, rendered as the visual and physical ground.
 // Features openings over each swamp well and tunnel entrances. Traversable boundaries are constrained by LimiteMapa colliders.
@@ -16,6 +17,8 @@ const TERRAIN_USER_DATA = { name: TERRAIN_BODY_NAME };
 export function Terreno() {
   const { scene } = useGLTF(TERRENO_URL);
   useLayoutEffect(() => freeze(scene), [scene]);
+  // Its colour texture is swapped for the green one when the world recovers (MundoRecuperado).
+  useLayoutEffect(() => registerTerrainMaterials(scene), [scene]);
   // Rendered in chunks (only camera-visible chunks are drawn); physics uses the hidden full mesh.
   const chunks = useMemo(() => splitTerrain(scene), [scene]);
 

@@ -1,8 +1,9 @@
-import { ANILLO_ORO } from '@/game/challenges/bonos';
-import { playGlide } from '@/game/engine/audio/tones';
+import { ANILLO_ORO, EXTRA_STAR_TOAST, withExtraStar } from '@/game/challenges/bonos';
+import { playSfx } from '@/game/engine/audio/audio';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
+import { useToastStore } from '@/store/toastStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { DIALOG } from '../dialogs';
 
@@ -10,23 +11,25 @@ import { DIALOG } from '../dialogs';
 const INSCRIPCION = '«Ayudo a quienes me mantienen en la luz y el calor»';
 const RUNAS = '«Limpia mi rostro, enciende mi espíritu»';
 
-type Stage = { title: string; subtitle: string; paragraphs: string[]; button: string; act?: () => void };
+type Stage = { title: string; subtitle: string; paragraphs: string[]; voice: string; button: string; act?: () => void };
 
 const close = () => useUIStore.getState().closeDialog();
 
 function limpiar() {
+  playSfx('d1_estatua_limpiar');
   saveProgress({ estatuaLimpia: true });
 }
 
 function encender() {
-  playGlide(180, 520, 0.7, 0.07, 'triangle');
+  playSfx('d1_estatua_fuego');
   saveProgress({ estatuaEncendida: true });
 }
 
 function tomarAnillo() {
   const { progress } = useProgressStore.getState();
-  playGlide(660, 1320, 0.6, 0.07, 'sine');
-  saveProgress({ collectedItems: [...new Set([...progress.collectedItems, ANILLO_ORO])], bono1Completado: true });
+  playSfx('d1_anillo');
+  saveProgress({ collectedItems: [...new Set([...progress.collectedItems, ANILLO_ORO])], bono1Completado: true, vidasExtra: withExtraStar(progress) });
+  useToastStore.getState().showToast(EXTRA_STAR_TOAST);
 }
 
 const CUBIERTA: Stage = {
@@ -37,6 +40,7 @@ const CUBIERTA: Stage = {
     `En la base alcanzas a leer una inscripción: ${INSCRIPCION}. Debajo, casi borradas, unas runas más pequeñas: ${RUNAS}.`,
     'El moho le cubre por completo el rostro. Detenerte aquí te costará tiempo, pero algo en esa mirada escondida pide ayuda.',
   ],
+  voice: '01_narrador_06',
   button: 'Limpiar el moho de su rostro',
   act: limpiar,
 };
@@ -48,6 +52,7 @@ const LIMPIA: Stage = {
     'Con paciencia retiras el moho y la humedad: bajo la costra verde aparece un rostro sereno, con los ojos cerrados y las manos juntas contra el pecho.',
     `Las runas lo decían en orden: ${RUNAS}. El rostro está limpio; falta el espíritu. El plato de piedra a sus pies tiene restos de ceniza muy vieja.`,
   ],
+  voice: '01_narrador_07',
   button: 'Encender un fuego en el plato',
   act: encender,
 };
@@ -59,6 +64,7 @@ const ENCENDIDA: Stage = {
     'Enciendes un fuego en el plato. Las llamas suben, envuelven la estatua, queman lo que quedaba de moho e iluminan cada rincón de la choza.',
     'Cuando el fuego baja, la estatua aparece con las manos abiertas: en ellas te ofrece un anillo de oro.',
   ],
+  voice: '01_narrador_08',
   button: 'Tomar el anillo de oro',
   act: tomarAnillo,
 };
@@ -70,6 +76,7 @@ const COMPLETADO: Stage = {
     'El anillo aún está tibio por el fuego. En su interior lleva grabadas las mismas palabras de la base: «Ayudo a quienes me mantienen en la luz y el calor».',
     'La estatua queda con las manos abiertas y el fuego encendido a sus pies. Perdiste un poco de tiempo, pero no sales del pantano con las manos vacías.',
   ],
+  voice: '01_narrador_09',
   button: 'Seguir el camino',
 };
 
@@ -85,7 +92,7 @@ export function EstatuaDialog() {
   const stage = completado ? COMPLETADO : encendida ? ENCENDIDA : limpia ? LIMPIA : CUBIERTA;
 
   return (
-    <ParchmentDialog title={stage.title} subtitle={stage.subtitle} paragraphs={stage.paragraphs}>
+    <ParchmentDialog title={stage.title} subtitle={stage.subtitle} paragraphs={stage.paragraphs} voice={[stage.voice]}>
       <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
         {stage.act && (
           <ParchmentButton tone="decline" onClick={close}>

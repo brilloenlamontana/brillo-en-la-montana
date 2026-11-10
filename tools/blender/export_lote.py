@@ -30,6 +30,7 @@ SOLO = set(argv[argv.index('--solo') + 1].split(',')) if '--solo' in argv else {
 SOLO_NPC = set(argv[argv.index('--npc') + 1].split(',')) if '--npc' in argv else None
 # --guardar: deja en cada .blend de PNJ las acciones generadas (pistas NLA, una por clip) y guarda el archivo.
 GUARDAR = '--guardar' in argv
+VISTA = argv[argv.index('--vista') + 1] if '--vista' in argv else None
 rep = {"started": time.strftime('%H:%M:%S'), "map": {}, "npcs": {}, "errors": []}
 
 DRACO = dict(export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
@@ -740,9 +741,60 @@ def retarget(rig, src_arm, src_action, name, max_samples=80):
     return write_action(rig, name, frames, rots, locs)
 
 
-def procedural(rig, name, seconds, fn, base=None, fps=24, step=2):
+def anclar_mano(rig, Wt, hip_off, ancla, extra):
+    """La mano de ancla['chain'] (roles brazo, antebrazo, mano) se queda quieta en el espacio, mueva lo que mueva el
+    resto del cuerpo (IK de dos huesos): asi lo que sostiene, el baculo, sigue plantado y derecho. ancla['agarre'] =
+    (desplazamiento, giro) de la mano respecto al reposo y ancla['dedos'] = {hueso: (eje, angulo)} la cierran sobre el
+    baculo; `extra` = (desplazamiento, giro) de un clip para levantarlo o inclinarlo a proposito. Devuelve los huesos
+    que fijo."""
+    arm_b, fore_b, hand_b = (rig.roles[r] for r in ancla['chain'])
+    off_a, giro_a = ancla.get('agarre', (Vector(), Quaternion()))
+    off_c, giro_c = extra if extra else (Vector(), Quaternion())
+    off, giro = off_a + Vector(off_c), giro_c @ giro_a
+    dedos = ancla.get('dedos', {})
+    P = {}
+
+    def pos(b):  # cabeza del hueso por cinematica directa
+        if b not in P:
+            p = rig.parent[b]
+            P[b] = (rig.head[b] + hip_off) if p is None else pos(p) + (Wt[p] @ rig.R[p].inverted()) @ (rig.head[b] - rig.head[p])
+        return P[b]
+
+    hombro = pos(arm_b)
+    l1 = (rig.head[fore_b] - rig.head[arm_b]).length
+    l2 = (rig.head[hand_b] - rig.head[fore_b]).length
+    v = rig.head[hand_b] + Vector(off) - hombro
+    d = max(abs(l1 - l2) * 1.001, min(v.length, (l1 + l2) * 0.999))
+    vn = v.normalized()
+    v0 = (rig.head[hand_b] - rig.head[arm_b]).normalized()
+    e0 = rig.head[fore_b] - rig.head[arm_b]
+    polo = e0 - v0 * e0.dot(v0)
+    if polo.length < 1e-4:
+        polo = -rig.fwd
+    polo = v0.rotation_difference(vn) @ polo  # el codo dobla hacia donde ya doblaba en el reposo
+    polo -= vn * polo.dot(vn)
+    polo.normalize()
+    ca = max(-1.0, min(1.0, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)))
+    codo = hombro + vn * (l1 * ca) + polo * (l1 * math.sqrt(1 - ca * ca))
+    for b, direccion in ((arm_b, codo - hombro), (fore_b, hombro + vn * d - codo)):
+        Wt[b] = (rig.R[b] @ Y).rotation_difference(direccion.normalized()) @ rig.R[b]
+    Wt[hand_b] = giro @ rig.R[hand_b]
+    fijos = {arm_b, fore_b, hand_b}
+    siguen = set(fijos)
+    for b in rig.names:  # los dedos siguen a la mano, cerrados sobre lo que empuna
+        if b not in siguen and rig.parent[b] in siguen:
+            Wt[b] = Wt[rig.parent[b]] @ rig.L[b]
+            if b in dedos:
+                Wt[b] = Quaternion(giro_c @ Vector(dedos[b][0]), dedos[b][1]) @ Wt[b]
+                fijos.add(b)
+            siguen.add(b)
+    return fijos
+
+
+def procedural(rig, name, seconds, fn, base=None, fps=24, step=2, ancla=None):
     """fn(t, w, rig) -> ({rol: [ops]}, desplazamiento de cadera en espacio del esqueleto). ops: ('rot', eje, rad) o
-    ('aim', direccion, peso), en ejes del esqueleto y aplicadas sobre la pose base heredada."""
+    ('aim', direccion, peso), en ejes del esqueleto y aplicadas sobre la pose base heredada. `ancla` = la mano que no se
+    mueve del sitio (ver anclar_mano; ops['_ancla'] = (desplazamiento, giro) de mas en ese clip)."""
     n = int(round(seconds * fps / step))
     frames = [i * step for i in range(n + 1)]
     base = base or {}
@@ -766,9 +818,19 @@ def procedural(rig, name, seconds, fn, base=None, fps=24, step=2):
                     q = (cur @ Y).rotation_difference(Vector(op[1]).normalized())
                     cur = Quaternion().slerp(q, op[2]) @ cur
             Wt[b] = cur
-            rest_inherit = (Wt[p] @ rig.L[b]) if p else rig.R[b]
-            if b in base or role_of.get(b) in ops:
-                rots.setdefault(b, []).append(rest_inherit.inverted() @ cur)
+        fijos = anclar_mano(rig, Wt, Vector(hip_shift), ancla, ops.get('_ancla')) if ancla else ()
+        if ancla and ancla.get('objeto'):
+            # lo que empuna (hueso sin padre) va con la mano: gira sobre el agarre y se desplaza lo mismo que ella
+            ob = ancla['objeto']
+            off_c, giro_c = ops.get('_ancla') or (Vector(), Quaternion())
+            brazo = rig.head[ob] - (rig.head[rig.roles[ancla['chain'][2]]] + ancla['agarre'][0])
+            rots.setdefault(ob, []).append(rig.R[ob].inverted() @ (giro_c @ rig.R[ob]))
+            locs.setdefault(ob, []).append(rig.R[ob].inverted() @ (Vector(off_c) + giro_c @ brazo - brazo))
+        for b in rig.names:
+            p = rig.parent[b]
+            if b in base or role_of.get(b) in ops or b in fijos:
+                rest_inherit = (Wt[p] @ rig.L[b]) if p else rig.R[b]
+                rots.setdefault(b, []).append(rest_inherit.inverted() @ Wt[b])
         base_loc = base[rig.hips][1] if rig.hips in base else Vector()
         locs[rig.hips].append(base_loc + rig.R[rig.hips].inverted() @ Vector(hip_shift))
     # huesos de la base con posicion propia (rig a medida de Hedrig)
@@ -881,28 +943,83 @@ def clip_volar(t, w, r):  # hada: vuela inclinada hacia delante, brazos abiertos
     return ops, U * (0.03 * r.hip_h * S(2 * w))
 
 
-def clip_reverencia(t, w, r):  # driada: se inclina con la mano libre al pecho
-    F, L, U = r.fwd, r.left, r.up
-    bow = 0.5 - 0.5 * math.cos(w)
-    ops = {
-        'Spine': [('rot', L, math.radians(20 * bow))],
-        'Spine2': [('rot', L, math.radians(12 * bow))],
-        'Head': [('rot', L, math.radians(12 * bow))],
-        'RightArm': [('aim', L * -0.25 - U * 0.9 + F * 0.3, 0.5 + 0.5 * bow)],
-        'RightForeArm': [('aim', L * 0.75 + U * 0.45 + F * 0.5, 0.5 + 0.5 * bow)],
-    }
-    return ops, U * (-0.02 * r.hip_h * bow)
+# La driada viene esculpida en su pose: el baculo plantado y derecho en la mano izquierda y la derecha en alto. Sus clips
+# parten de ese reposo y solo mueven el torso, la cabeza y el brazo derecho; la mano izquierda va anclada (anclar_mano).
+D = math.radians
 
 
-def clip_senalar(t, w, r):  # driada: invita a pasar senalando con el brazo libre hacia su derecha y atras
+def _mano_al_pecho(F, L, U, k):  # brazo derecho: la mano abierta sobre el pecho
+    return {'RightArm': [('aim', -U * 0.85 - L * 0.3 + F * 0.4, k)],
+            'RightForeArm': [('aim', L * 0.85 + U * 0.5 + F * 0.3, k)],
+            'RightHand': [('aim', L * 0.8 + U * 0.6, k)]}
+
+
+def clip_driada_idle(t, w, r):  # respira y mira a quien llega
     F, L, U = r.fwd, r.left, r.up
     ops = {
-        'Spine2': [('rot', U, math.radians(-20 + 3 * S(w)))],
-        'Head': [('rot', U, math.radians(-28 + 4 * S(w + 0.8)))],
-        'RightArm': [('aim', L * -0.85 - F * 0.35 + U * (0.04 + 0.04 * S(w)), 1.0)],
-        'RightForeArm': [('aim', L * -0.8 - F * 0.5 + U * (0.1 + 0.05 * S(w + 0.5)), 1.0)],
-        'RightHand': [('aim', L * -0.8 - F * 0.5 + U * 0.05, 1.0)],
+        'Spine': [('rot', L, D(1.2 * S(w)))],
+        'Spine2': [('rot', U, D(2.5 * S(w + 0.5)))],
+        'Head': [('rot', U, D(6 * S(w))), ('rot', L, D(2 * S(2 * w)))],
+        'RightForeArm': [('rot', L, D(4 * S(w + 1.0)))],
+        'RightHand': [('rot', F, D(6 * S(w + 1.6)))],
     }
+    return ops, U * 0
+
+
+def clip_driada_caminar(t, w, r):  # sale al encuentro: pasos cortos y el baculo en vilo, que acompana el paso
+    F, L, U = r.fwd, r.left, r.up
+    ops = {
+        'LeftUpLeg': [('rot', L, D(9 * S(w)))],
+        'RightUpLeg': [('rot', L, D(-9 * S(w)))],
+        'LeftLeg': [('rot', L, D(7 + 7 * S(w - 1.2)))],
+        'RightLeg': [('rot', L, D(7 - 7 * S(w - 1.2)))],
+        'Spine': [('rot', F, D(1.5 * S(w))), ('rot', L, D(3))],
+        'Spine2': [('rot', U, D(3 * S(w)))],
+        'Head': [('rot', U, D(-3 * S(w)))],
+        'RightArm': [('rot', L, D(5 * S(w)))],
+        '_ancla': (U * 0.03 + F * (0.025 * S(w)), Quaternion(L, D(5 * S(w)))),
+    }
+    return ops, U * (0.006 * S(2 * w))
+
+
+def clip_driada_bienvenida(t, w, r):  # da la bienvenida: inclina el torso con la mano en el pecho y vuelve
+    F, L, U = r.fwd, r.left, r.up
+    k = min(1.0, 1.5 * math.sin(w / 2) ** 2)
+    ops = {'Spine': [('rot', L, D(13 * k))], 'Spine2': [('rot', L, D(9 * k))], 'Head': [('rot', L, D(10 * k))]}
+    ops.update(_mano_al_pecho(F, L, U, k))
+    return ops, U * 0
+
+
+def clip_driada_hablar(t, w, r):  # habla: gesticula con la mano derecha, asiente y ladea la cabeza
+    F, L, U = r.fwd, r.left, r.up
+    ops = {
+        'Spine2': [('rot', U, D(4 * S(w)))],
+        'Head': [('rot', L, D(4 * S(2 * w))), ('rot', U, D(6 * S(w + 0.6))), ('rot', F, D(3 * S(w)))],
+        'RightArm': [('aim', -U * 0.8 + F * 0.45 - L * 0.4, 0.7)],
+        'RightForeArm': [('aim', F * 0.8 + U * (0.35 + 0.3 * S(2 * w)) - L * (0.3 + 0.25 * S(w)), 0.9)],
+        'RightHand': [('aim', F * 0.7 + U * (0.5 + 0.3 * S(2 * w + 0.6)) - L * 0.3, 0.8)],
+    }
+    return ops, U * 0
+
+
+def clip_driada_senalar(t, w, r):  # invita a pasar: gira hacia la puerta (a su derecha) y la senala con el brazo tendido
+    F, L, U = r.fwd, r.left, r.up
+    ops = {
+        'Spine': [('rot', U, D(-6))],
+        'Spine2': [('rot', U, D(-12 + 2 * S(w)))],
+        'Head': [('rot', U, D(-14 + 12 * S(w))), ('rot', L, D(2 * S(2 * w)))],
+        'RightArm': [('aim', -L * 0.9 - U * 0.3 + F * 0.3, 1.0)],
+        'RightForeArm': [('aim', -L * 0.95 + U * (0.04 + 0.06 * S(2 * w)) + F * 0.25, 1.0)],
+        'RightHand': [('aim', -L * 0.95 + F * 0.25 - U * (0.05 + 0.08 * S(2 * w + 0.5)), 1.0)],
+    }
+    return ops, U * 0
+
+
+def clip_driada_reverencia(t, w, r):  # el caliz vuelve a brillar: reverencia honda y sostenida, la mano en el pecho
+    F, L, U = r.fwd, r.left, r.up
+    k = min(1.0, 1.8 * math.sin(w / 2) ** 2)
+    ops = {'Spine': [('rot', L, D(20 * k))], 'Spine2': [('rot', L, D(13 * k))], 'Head': [('rot', L, D(14 * k))]}
+    ops.update(_mano_al_pecho(F, L, U, k))
     return ops, U * 0
 
 
@@ -964,12 +1081,23 @@ def build_idle_talking(rig, c):
     return [('Idle', idle), ('Talking', retarget(rig, src2, acts2['Talking'], 'Talking'))]
 
 
+MANO_BACULO = ('LeftArm', 'LeftForeArm', 'LeftHand')
+# Altura a la que la driada empuna el baculo y por donde pasa alli (espacio de la malla, que mide 1 de alto).
+AGARRE_Z, AGARRE_XY = 0.70, (0.20, -0.22)
+
+
 def build_driada(rig, c):
-    clips = build_idle_talking(rig, c)
-    base = sample_basis(rig, clips[0][1], 0)
-    # relato de cierre: invita a pasar al santuario y hace una reverencia cuando el caliz vuelve a brillar
-    return clips + [('Senalar', procedural(rig, 'Senalar', 2.6, clip_senalar, base)),
-                    ('Reverencia', procedural(rig, 'Reverencia', 2.4, clip_reverencia, base))]
+    body = next(o for o in rig.arm.children if o.type == 'MESH')
+    comp, mano = alas.ULTIMO_BACULO
+    # la mano izquierda sube hasta el baculo y lo empuna; el baculo (hueso propio) no se mueve del sitio
+    off, giro, dedos, radio = alas.agarre(rig.arm, body, comp, mano, AGARRE_Z)
+    c["agarre"] = {"desplazamiento": [round(x, 3) for x in off], "radio": round(radio, 4)}
+    ancla = {'chain': MANO_BACULO, 'agarre': (off, giro), 'dedos': dedos, 'objeto': c["baculo_hueso"]}
+    # Relato de cierre (CronogramaEscenas.md): sale al encuentro, da la bienvenida, habla, senala el interior del
+    # santuario y, cuando el caliz vuelve a brillar, hace una reverencia. Siempre con el baculo en la mano izquierda.
+    guion = [('Idle', 5.0, clip_driada_idle), ('Caminar', 1.2, clip_driada_caminar), ('Bienvenida', 3.4, clip_driada_bienvenida),
+             ('Talking', 3.2, clip_driada_hablar), ('Senalar', 3.6, clip_driada_senalar), ('Reverencia', 5.0, clip_driada_reverencia)]
+    return [(clip, procedural(rig, clip, seconds, fn, ancla=ancla)) for clip, seconds, fn in guion]
 
 
 def build_hada(rig, c):
@@ -991,12 +1119,19 @@ def prep_hada(arm, body, r):
     r["baculo"] = alas.fijar_baculo(arm, body)
 
 
-def prep_baculo(arm, body, r):
+def prep_driada(arm, body, r):
+    r["astillas"] = alas.quitar_astillas(body)
     r["baculo"] = alas.fijar_baculo(arm, body)
+    comp, _ = alas.ULTIMO_BACULO
+    # el escaneo trae el baculo flotando delante de la mano abierta: se acerca al cuerpo y recibe su propio hueso
+    r["baculo_movido"] = alas.colocar_baculo(body, comp, AGARRE_Z, AGARRE_XY)
+    r["baculo_hueso"] = alas.hueso_baculo(arm, body, comp)
 
 
 # Preparacion del modelo antes de animarlo (huesos y pesos que el .blend no traia); con --guardar queda en el archivo.
-PREP = {'Hada': prep_hada, 'Driada': prep_baculo}
+PREP = {'Hada': prep_hada, 'Driada': prep_driada}
+# Ejes (izquierda, frente) de quien viene esculpido con los hombros girados: no se pueden deducir de sus brazos.
+EJES = {'Driada': ((1, 0, 0), (0, -1, 0))}
 # El aleteo es rapido: el hada se exporta muestreando cada fotograma.
 PASO_EXPORT = {'Hada': 1}
 
@@ -1020,6 +1155,73 @@ NPCS = {
 }
 
 
+VISTA_DETALLE = {'Driada': ('mixamorig:LeftHand', 0.22)}
+
+
+def vista_previa(arm, meshes, name, cuadros=5):
+    """--vista <carpeta>: una tira de fotogramas por clip (de tres cuartos), para revisar las poses sin abrir Blender."""
+    import numpy as np
+    sc = bpy.context.scene
+    sc.render.engine = 'BLENDER_WORKBENCH'
+    sc.display.shading.light = 'STUDIO'
+    sc.display.shading.color_type = 'TEXTURE'
+    sc.render.resolution_x, sc.render.resolution_y, sc.render.resolution_percentage = 300, 400, 100
+    cam = bpy.data.objects.new('VistaCam', bpy.data.cameras.new('VistaCam'))
+    sc.collection.objects.link(cam)
+    cam.data.type = 'ORTHO'
+    sc.camera = cam
+    pts = [m.matrix_world @ Vector(c) for m in meshes for c in m.bound_box]
+    lo = Vector(min(p[i] for p in pts) for i in range(3))
+    hi = Vector(max(p[i] for p in pts) for i in range(3))
+    cam.data.ortho_scale = max(hi - lo) * 1.25
+    ad = arm.animation_data
+    os.makedirs(VISTA, exist_ok=True)
+    for tr in ad.nla_tracks:
+        for o in ad.nla_tracks:
+            o.mute = o != tr
+        f0, f1 = int(tr.strips[0].frame_start), int(tr.strips[0].frame_end)
+        for vista, d in (('frente', Vector((0.45, -1, 0.12))), ('lado', Vector((-1, -0.25, 0.1)))):
+            d.normalize()
+            cam.location = (lo + hi) / 2 + d * 10
+            cam.rotation_euler = (-d).to_track_quat('-Z', 'Y').to_euler()
+            tira = []
+            for i in range(cuadros):
+                sc.frame_set(f0 + (f1 - f0) * i // cuadros)
+                sc.render.filepath = os.path.join(VISTA, '_cuadro.png')
+                bpy.ops.render.render(write_still=True)
+                img = bpy.data.images.load(sc.render.filepath)
+                w, h = img.size
+                tira.append(np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4))
+                bpy.data.images.remove(img)
+            px = np.concatenate(tira, axis=1)
+            out = bpy.data.images.new('tira', px.shape[1], px.shape[0], alpha=True)
+            out.pixels = px.ravel()
+            out.filepath_raw = os.path.join(VISTA, '%s_%s_%s.png' % (name, tr.name, vista))
+            out.file_format = 'PNG'
+            out.save()
+            bpy.data.images.remove(out)
+    if name in VISTA_DETALLE:
+        # de cerca, el hueso indicado (la mano que empuna el baculo) en el primer fotograma del primer clip
+        for i, o in enumerate(ad.nla_tracks):
+            o.mute = i > 0
+        sc.frame_set(0)
+        bpy.context.view_layer.update()
+        hueso, ancho = VISTA_DETALLE[name]
+        centro = arm.matrix_world @ arm.pose.bones[hueso].tail
+        cam.data.ortho_scale = ancho * arm.matrix_world.to_scale().z
+        sc.render.resolution_x = sc.render.resolution_y = 420
+        for vista, d in (('frente', (0, -1, 0.15)), ('izquierda', (1, -0.2, 0.15)), ('derecha', (-1, -0.3, 0.1)), ('arriba', (0.2, -0.3, 1))):
+            d = Vector(d).normalized()
+            cam.location = centro + d * 10
+            cam.rotation_euler = (-d).to_track_quat('-Z', 'Y').to_euler()
+            sc.render.filepath = os.path.join(VISTA, '%s_detalle_%s.png' % (name, vista))
+            bpy.ops.render.render(write_still=True)
+    for o in ad.nla_tracks:
+        o.mute = False
+    sc.frame_set(0)
+    bpy.data.objects.remove(cam, do_unlink=True)
+
+
 def export_npc(name):
     blend, folder, height, roles, build = NPCS[name][:5]
     standing = NPCS[name][5] if len(NPCS[name]) > 5 else None
@@ -1040,6 +1242,8 @@ def export_npc(name):
     if name in PREP and len(meshes) == 1:
         PREP[name](arm, meshes[0], r)
     rig = Rig(arm, roles)
+    if name in EJES:
+        rig.left, rig.fwd = (Vector(v) for v in EJES[name])
     r["fwd"] = [round(x, 2) for x in rig.fwd]
     clips = build(rig, r)
     # altura real en la escala uniforme del esqueleto (la malla no se toca). Se mide con la malla deformada en el primer
@@ -1077,6 +1281,8 @@ def export_npc(name):
         st = tr.strips.new(clip, int(round(act.frame_range[0])), act)
         if hasattr(st, 'action_suitable_slots') and getattr(st, 'action_slot', None) is None and len(st.action_suitable_slots):
             st.action_slot = st.action_suitable_slots[0]
+    if VISTA:
+        vista_previa(arm, meshes, name)
     if GUARDAR:
         # Solo quedan en el archivo el personaje y sus clips: fuera los esqueletos y acciones de donde se retargeteo.
         keep = {act for _, act in clips}

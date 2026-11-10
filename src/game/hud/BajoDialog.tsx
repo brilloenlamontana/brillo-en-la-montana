@@ -1,4 +1,4 @@
-import { bajoDialog, type Bajo } from '@/game/challenges/progression';
+import { bajoDialog, VIDA_EXTRA_DIALOG, type Bajo } from '@/game/challenges/progression';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
@@ -17,7 +17,7 @@ const BAJOS: Record<Bajo, { title: string; paragraphs: string[]; button: string 
     title: 'Caíste en segundo bajo',
     paragraphs: [
       'Perdiste otra estrella. Un segundo bajo rendimiento te obliga a repetir el camino.',
-      'Vuelves a Villa de Boj y la aventura empieza desde cero: tendrás que volver a pedir ayuda, recoger los objetos y superar cada desafío otra vez. Te queda una sola estrella.',
+      'Vuelves a la Villa de Boj y la aventura empieza desde cero: tendrás que volver a pedir ayuda, recoger los objetos y superar cada desafío otra vez. Te queda una sola estrella.',
     ],
     button: 'Empezar de nuevo',
   },
@@ -31,13 +31,24 @@ const BAJOS: Record<Bajo, { title: string; paragraphs: string[]; button: string 
   },
 };
 
+const VIDA_EXTRA = {
+  title: 'Perdiste una estrella extra',
+  paragraphs: [
+    'Te derrotaron, pero la estrella que ganaste con un bono te salvó: no caes en bajo rendimiento.',
+    'Vuelves al inicio de este desafío y conservas todo lo que has logrado, junto con tus estrellas de siempre.',
+  ],
+  button: 'Seguir adelante',
+};
+
 // Explains the "bajo" just suffered (see challenges/progression.ts). After the third one, closing it forgets the
 // character and records it as lost for good: the onboarding then takes the player to choose a different one.
 export function BajoDialog() {
   const dialog = useUIStore((state) => state.dialog);
   const bajo = ([1, 2, 3] as const).find((level) => dialog === bajoDialog(level));
-  if (!bajo) return null;
-  const { title, paragraphs, button } = BAJOS[bajo];
+  const extra = dialog === VIDA_EXTRA_DIALOG;
+  if (!bajo && !extra) return null;
+  const { title, paragraphs, button } = bajo ? BAJOS[bajo] : VIDA_EXTRA;
+  const voice = bajo ? `05_narrador_0${bajo}` : '05_narrador_04';
 
   const close = () => {
     useUIStore.getState().closeDialog();
@@ -50,7 +61,7 @@ export function BajoDialog() {
   };
 
   return (
-    <ParchmentDialog title={title} subtitle="Bajo rendimiento" paragraphs={paragraphs}>
+    <ParchmentDialog title={title} subtitle={bajo ? 'Bajo rendimiento' : 'Estrella extra de un bono'} paragraphs={paragraphs} voice={[voice]}>
       <div className="flex justify-end">
         <ParchmentButton tone={bajo === 3 ? 'decline' : 'accept'} onClick={close}>
           {button}

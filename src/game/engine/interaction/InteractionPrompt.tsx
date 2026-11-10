@@ -1,7 +1,20 @@
+import { useEffect } from 'react';
+import { playSfx } from '@/game/engine/audio/audio';
 import { useIsMobile } from '@/hooks/useIsMobile';
+
+// The tick that tells there is something to do here; prompts that flicker in and out do not repeat it.
+const TICK_AGAIN_MS = 700;
+let lastTick = -Infinity;
+function tick() {
+  const now = performance.now();
+  if (now - lastTick < TICK_AGAIN_MS) return;
+  lastTick = now;
+  playSfx('ui_prompt', { volume: 0.5 });
+}
 
 export function InteractionPrompt({ action, onActivate }: { action: string; onActivate: () => void }) {
   const isMobile = useIsMobile();
+  useEffect(tick, []);
 
   if (isMobile) {
     return (

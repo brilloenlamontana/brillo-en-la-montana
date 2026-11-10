@@ -43,7 +43,7 @@ export function AldeanaDialog() {
   if (!isOpen) return null;
 
   return (
-    <ParchmentDialog title="Aldeana de Villa Boj" subtitle="Lo que se cuenta junto al pozo" paragraphs={HABLADURIAS}>
+    <ParchmentDialog title="Aldeana de la Villa de Boj" subtitle="Lo que se cuenta junto al pozo" paragraphs={HABLADURIAS} voice={['01_narrador_03', '01_aldeana_01']}>
       <div className="flex justify-end">
         <ParchmentButton onClick={() => useUIStore.getState().closeDialog()}>Lo tendré presente</ParchmentButton>
       </div>

@@ -10,7 +10,9 @@ import { createRenderer } from './engine/rendering/renderer';
 import { START_DPR } from './engine/rendering/resolution';
 import { Player } from './player/Player';
 import { usePlayerStore } from './player/playerStore';
+import { GlowMaterials } from './engine/rendering/GlowPass';
 import { Ambience } from './world/Ambience';
+import { MundoRecuperado } from './world/MundoRecuperado';
 import { Mapa } from './world/mapa/Mapa';
 import { classifyRegion } from './world/regions';
 import { Warmup } from './world/Warmup';
@@ -30,6 +32,8 @@ export function GameCanvas() {
       <RenderGate />
       <AdaptiveResolution />
       <Ambience />
+      <MundoRecuperado />
+      <GlowMaterials />
       <ZoneTracker />
       <Suspense fallback={null}>
         <Physics>

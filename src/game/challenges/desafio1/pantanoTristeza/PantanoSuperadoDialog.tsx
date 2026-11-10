@@ -14,7 +14,7 @@ export function PantanoSuperadoDialog() {
   if (!isOpen) return null;
 
   return (
-    <ParchmentDialog title="¡Atravesaste el Pantano de la Tristeza!" subtitle="Desafío 1 completado" paragraphs={RELATO}>
+    <ParchmentDialog title="¡Atravesaste el Pantano de la Tristeza!" subtitle="Desafío 1 completado" paragraphs={RELATO} voice={['01_narrador_10']}>
       <div className="flex justify-end">
         <ParchmentButton onClick={() => useUIStore.getState().closeDialog()}>Seguir hacia el bosque</ParchmentButton>
       </div>

@@ -1,5 +1,5 @@
 import type { MissionStep } from '@/game/challenges/types';
-import type { GameProgress } from '@/store/progressStore';
+import { MAX_EXTRA_STARS, type GameProgress } from '@/store/progressStore';
 
 // The two optional riddles of the story ("Acertijo 1" and "Acertijo 2" of the scene schedule), as pure functions of
 // the saved progress (shared by the game, its HUD and the admin dashboard). Each lives in the challenge it belongs to:
@@ -15,6 +15,10 @@ export const AMULETO_HADA = 'amuletoHada';
 export const isBono1Completado = (progress: Progress) => progress?.bono1Completado === true;
 export const isBono2Completado = (progress: Progress) => progress?.bono2Completado === true;
 export const countBonos = (progress: Progress) => Number(isBono1Completado(progress)) + Number(isBono2Completado(progress));
+
+// Winning a bonus gives one extra star (an extra life): the count to save together with the bonus.
+export const withExtraStar = (progress: Progress) => Math.min(MAX_EXTRA_STARS, (progress?.vidasExtra ?? 0) + 1);
+export const EXTRA_STAR_TOAST = '¡Ganaste una estrella extra! Si te derrotan, la pierdes a ella antes que a tus tres estrellas y solo vuelves al inicio del desafío.';
 
 // Steps of both bonuses, as the admin dashboard shows them for each player.
 export function getBonosSummary(progress: Progress) {

@@ -4,6 +4,8 @@ export const MAP_DIR = '/models-3d/map';
 
 export const MAPA_MODELS = {
   terreno: `${MAP_DIR}/Mapa/Terreno/Terreno.glb`,
+  // Green terrain texture of the recovered world (same UVs as the one baked into Terreno.glb).
+  terrenoRecuperado: `${MAP_DIR}/Mapa/Terreno/TerrenoRecuperado.jpg`,
   limiteMapa: `${MAP_DIR}/Mapa/LimitesJuego/LimiteMapa.glb`,
   pinares: `${MAP_DIR}/Mapa/Pinares.glb`,
   rocas: `${MAP_DIR}/Mapa/Rocas.glb`,

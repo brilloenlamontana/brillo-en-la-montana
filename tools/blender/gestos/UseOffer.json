@@ -1,0 +1,184 @@
+{
+ "nombre": "UseOffer",
+ "descripcion": "Muneca de trapo (Simona): la saca de la mochila con la derecha junto al rinon, la arrima al pecho y la izquierda sube a acunarla un instante; luego las dos manos la tienden adelante y abajo, palmas arriba, con el torso inclinado y la cabeza baja hacia la nina, sostiene la ofrenda y se incorpora.",
+ "brazos": "ambos",
+ "efecto": 1.1,
+ "objeto": {
+  "modelo": "public/models-3d/map/Desafio3/CasaDeHedrig/HedrigRecogibles/Muneca.glb",
+  "mano": "derecha",
+  "largo": 0.34,
+  "agarre": "centro",
+  "hacia": "filo",
+  "invertir": true,
+  "giro": 0,
+  "desplazar": [-0.03, 0, 0.025],
+  "visible": [0.2, 1.8],
+  "detalle": 44
+ },
+ "claves": [
+  {
+   "t": 0.0
+  },
+  {
+   "t": 0.22,
+   "torso": {
+    "Spine": { "yaw": -6 },
+    "Spine1": { "pitch": -2, "yaw": -6 },
+    "Spine2": { "yaw": -6 },
+    "Neck": { "yaw": -5 },
+    "Head": { "pitch": 5, "yaw": -10 }
+   },
+   "derecho": {
+    "mano": [-0.25, -0.22, -0.55],
+    "codo": [-0.45, -0.88, -0.1],
+    "nudillos": [-0.35, 0.15, -0.92],
+    "cierre": 0.85,
+    "hombro": { "sube": 3, "adelanta": -4 }
+   },
+   "izquierdo": { "mano": [0.12, 0.06, -0.95], "codo": [-0.3, 0.5, -0.8], "cierre": 0.25 }
+  },
+  {
+   "t": 0.4,
+   "torso": {
+    "Spine": { "yaw": -2 },
+    "Spine1": { "yaw": -2 },
+    "Spine2": { "pitch": 1, "yaw": -3 },
+    "Neck": { "pitch": 3, "yaw": -2 },
+    "Head": { "pitch": 8, "yaw": -4 }
+   },
+   "derecho": { "mano": [0.24, -0.12, -0.62], "codo": [-0.7, -0.6, -0.4], "cierre": 0.85 },
+   "izquierdo": { "mano": [0.36, 0.0, -0.66], "codo": [-0.5, 0.45, -0.75], "cierre": 0.3 }
+  },
+  {
+   "t": 0.6,
+   "torso": {
+    "Spine": { "pitch": 2 },
+    "Spine1": { "pitch": 2 },
+    "Spine2": { "pitch": 3 },
+    "Neck": { "pitch": 8 },
+    "Head": { "pitch": 14, "yaw": -4, "roll": 6 }
+   },
+   "derecho": {
+    "mano": [0.02, -0.18, 0.06],
+    "ref": "pecho",
+    "codo": [-0.3, -0.75, -0.6],
+    "nudillos": [0.15, 0.9, 0.4],
+    "palma": [-0.9, 0.2, 0.2],
+    "cierre": 0.8,
+    "hombro": { "sube": 5 }
+   },
+   "izquierdo": {
+    "mano": [0.08, 0.2, -0.06],
+    "ref": "pecho",
+    "codo": [-0.3, 0.75, -0.6],
+    "nudillos": [0.2, -0.9, 0.35],
+    "palma": [-0.9, -0.2, 0.3],
+    "cierre": 0.4,
+    "hombro": { "sube": 5 }
+   }
+  },
+  {
+   "t": 0.74,
+   "torso": {
+    "Spine": { "pitch": 4 },
+    "Spine1": { "pitch": 4 },
+    "Spine2": { "pitch": 4 },
+    "Neck": { "pitch": 8 },
+    "Head": { "pitch": 15, "yaw": -2, "roll": 7 }
+   },
+   "derecho": {
+    "mano": [0.03, -0.17, 0.05],
+    "ref": "pecho",
+    "codo": [-0.3, -0.75, -0.6],
+    "nudillos": [0.15, 0.9, 0.4],
+    "palma": [-0.9, 0.2, 0.2],
+    "cierre": 0.8,
+    "hombro": { "sube": 6 }
+   },
+   "izquierdo": {
+    "mano": [0.08, 0.19, -0.06],
+    "ref": "pecho",
+    "codo": [-0.3, 0.75, -0.6],
+    "nudillos": [0.2, -0.9, 0.35],
+    "palma": [-0.9, -0.2, 0.3],
+    "cierre": 0.45,
+    "hombro": { "sube": 6 }
+   }
+  },
+  {
+   "t": 0.87,
+   "torso": {
+    "Spine": { "pitch": 7 },
+    "Spine1": { "pitch": 7, "yaw": 1 },
+    "Spine2": { "pitch": 6, "yaw": 1 },
+    "Neck": { "pitch": 6 },
+    "Head": { "pitch": 12, "roll": 4 }
+   },
+   "derecho": { "mano": [0.58, 0.12, -0.4], "codo": [-0.3, -0.85, -0.45], "nudillos": [0.85, 0.45, -0.05], "palma": [-0.35, 0.3, 0.9], "cierre": 0.6 },
+   "izquierdo": { "mano": [0.58, -0.18, -0.46], "codo": [-0.3, 0.85, -0.45], "nudillos": [0.85, -0.45, -0.05], "palma": [-0.35, -0.3, 0.9], "cierre": 0.35 }
+  },
+  {
+   "t": 1.14,
+   "torso": {
+    "Spine": { "pitch": 9 },
+    "Spine1": { "pitch": 10, "yaw": 2 },
+    "Spine2": { "pitch": 9, "yaw": 2 },
+    "Neck": { "pitch": 5 },
+    "Head": { "pitch": 10, "roll": 3 }
+   },
+   "derecho": { "mano": [0.5, 0.0, -0.76], "codo": [-0.25, -0.92, -0.32], "nudillos": [1, 0.1, -0.38], "palma": [0, 0.15, 1], "cierre": 0.35 },
+   "izquierdo": { "mano": [0.48, -0.18, -0.76], "codo": [-0.25, 0.92, -0.32], "nudillos": [1, -0.1, -0.38], "palma": [0, -0.15, 1], "cierre": 0.25 }
+  },
+  {
+   "t": 1.24,
+   "torso": {
+    "Spine": { "pitch": 9 },
+    "Spine1": { "pitch": 10, "yaw": 2 },
+    "Spine2": { "pitch": 9, "yaw": 2 },
+    "Neck": { "pitch": 5 },
+    "Head": { "pitch": 10, "roll": 3 }
+   },
+   "derecho": { "mano": [0.5, 0.0, -0.76], "codo": [-0.25, -0.92, -0.32], "nudillos": [1, 0.1, -0.38], "palma": [0, 0.15, 1], "cierre": 0.35 },
+   "izquierdo": { "mano": [0.48, -0.18, -0.76], "codo": [-0.25, 0.92, -0.32], "nudillos": [1, -0.1, -0.38], "palma": [0, -0.15, 1], "cierre": 0.25 }
+  },
+  {
+   "t": 1.52,
+   "torso": {
+    "Spine": { "pitch": 9 },
+    "Spine1": { "pitch": 10, "yaw": 2 },
+    "Spine2": { "pitch": 10, "yaw": 2 },
+    "Neck": { "pitch": 6 },
+    "Head": { "pitch": 12, "roll": 2 }
+   },
+   "derecho": { "mano": [0.52, 0.0, -0.77], "codo": [-0.25, -0.92, -0.32], "nudillos": [1, 0.1, -0.38], "palma": [0, 0.15, 1], "cierre": 0.31 },
+   "izquierdo": { "mano": [0.5, -0.18, -0.77], "codo": [-0.25, 0.92, -0.32], "nudillos": [1, -0.1, -0.38], "palma": [0, -0.15, 1], "cierre": 0.21 }
+  },
+  {
+   "t": 1.8,
+   "torso": {
+    "Spine": { "pitch": 9 },
+    "Spine1": { "pitch": 10, "yaw": 2 },
+    "Spine2": { "pitch": 9, "yaw": 2 },
+    "Neck": { "pitch": 5 },
+    "Head": { "pitch": 10, "roll": 3 }
+   },
+   "derecho": { "mano": [0.5, 0.0, -0.76], "codo": [-0.25, -0.92, -0.32], "nudillos": [1, 0.1, -0.38], "palma": [0, 0.15, 1], "cierre": 0.35 },
+   "izquierdo": { "mano": [0.48, -0.18, -0.76], "codo": [-0.25, 0.92, -0.32], "nudillos": [1, -0.1, -0.38], "palma": [0, -0.15, 1], "cierre": 0.25 }
+  },
+  {
+   "t": 1.98,
+   "torso": {
+    "Spine": { "pitch": 2 },
+    "Spine1": { "pitch": 2 },
+    "Spine2": { "pitch": 2 },
+    "Neck": { "pitch": 2 },
+    "Head": { "pitch": 5 }
+   },
+   "derecho": { "mano": [0.3, -0.02, -0.86], "codo": [-0.3, -0.7, -0.65], "nudillos": [0.45, 0.05, -0.9], "palma": [0, 1, 0.3], "cierre": 0.25 },
+   "izquierdo": { "mano": [0.34, -0.02, -0.83], "codo": [-0.3, 0.7, -0.65], "nudillos": [0.5, -0.05, -0.85], "palma": [0, -1, 0.3], "cierre": 0.25 }
+  },
+  {
+   "t": 2.18
+  }
+ ]
+}

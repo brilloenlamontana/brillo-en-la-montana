@@ -1,34 +1,27 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { playGlide } from '@/game/engine/audio/tones';
 import { InteractionSpot } from '@/game/engine/interaction/InteractionSpot';
-import { Npc } from '@/game/engine/interaction/Npc';
 import { CameraBlockers, StaticModel, TrimeshColliders } from '@/game/engine/models/StaticModel';
 import type { ColliderBox } from '@/game/engine/physics/colliderBoxes';
 import { CuboidColliders } from '@/game/engine/physics/CuboidColliders';
 import { PhysicsDoor } from '@/game/engine/physics/PhysicsDoor';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
+import { loadTerrenoRecuperado } from '@/game/world/recuperado';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
-import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { RELATO_CIERRE_MODELS } from '../assets';
 import { useCinematicaStore } from '../cinematica/cinematica';
-import { DIALOG } from '../dialogs';
 import { isCalizTomado, isSantuarioAbierto } from '../mission';
 import { CAMERA_BLOCKS_IN, VISIBLE_FROM } from '../visibility';
+import { Driada } from './Driada';
 
 const { exterior: EXTERIOR_URL, interior: INTERIOR_URL, caliz: CALIZ_URL, calizBrillo: CALIZ_BRILLO_URL } = RELATO_CIERRE_MODELS.santuario;
-const DRIADA_URL = RELATO_CIERRE_MODELS.driada;
 const COLLIDERS = ['SantuarioMuros', 'SantuarioPodio', 'SantuarioTorre', 'SantuarioPuertaMarco'] as const;
 const CAMERA_BLOCKERS = ['SantuarioMuros', 'SantuarioTorre'] as const;
 // Door leaves, with their origin on the hinge.
 const DOOR_LEAVES = ['SantuarioPuertaHojaIzq', 'SantuarioPuertaHojaDer'] as const;
-// The dryad waits on the plaza at the foot of the sanctuary steps, beside the double door (ground at 51.85), looking at
-// whoever comes up the avenue.
-const DRIADA_POSITION: [number, number, number] = [149.7, 51.86, -150.2];
-const DRIADA_ROTATION_Y = -1.25;
 // The wooden altar under the tower (SantuarioAltar) and the chalice standing on it.
 const ALTAR: readonly ColliderBox[] = [{ id: 'santuario-altar', position: [163.2, 53.15, -153], args: [0.8, 0.7, 1.6] }];
 const CALIZ: readonly [number, number, number] = [163.2, 53.85, -153];
@@ -39,14 +32,13 @@ function tomarCaliz() {
   if (isCalizTomado(useProgressStore.getState().progress)) return;
   const now = new Date().toISOString();
   usePlayerStore.getState().restoreHealth();
-  playGlide(440, 1320, 1.2, 0.08, 'sine');
   saveProgress({ calizTomado: true, juegoCompletado: true, juegoCompletadoEn: now });
   // The glow of the chalice travels the whole map (final cinematic); the final victory is told when it ends.
   useCinematicaStore.getState().start();
 }
 
 // "Santuario" collection of Map.blend: the sanctuary on the plaza with its tower, spire and green beam. The dryad
-// waits at its silver willow double door, locked until she has spoken; then both leaves open when pushed. Inside, under
+// (Driada) comes out of its silver willow double door, locked until she has spoken; then both leaves open when pushed. Inside, under
 // the tower, the altar holds the wooden chalice: taking it completes the game (the chalice and its glow go away).
 export function Santuario() {
   const { scene, nodes } = useGLTF(EXTERIOR_URL);
@@ -59,26 +51,22 @@ export function Santuario() {
   const warming = useWorldStore((state) => state.warming);
   const abierto = useProgressStore((state) => isSantuarioAbierto(state.progress));
   const tomado = useProgressStore((state) => isCalizTomado(state.progress));
-  const talking = useDialogOpen(DIALOG.driada);
+
+  // The doors are open: the end is near. The green terrain of the recovered world is fetched ahead of time.
+  useEffect(() => {
+    if (abierto) void loadTerrenoRecuperado().catch(() => undefined);
+  }, [abierto]);
 
   return (
     <group name="Santuario">
       <primitive object={scene} visible={exteriorVisible} />
       {leaves.map((leaf) => (
-        <PhysicsDoor key={leaf.name} node={leaf} locked={!abierto} />
+        <PhysicsDoor key={leaf.name} node={leaf} locked={!abierto} sound="gate" />
       ))}
       <TrimeshColliders scene={scene} names={COLLIDERS} />
       <CameraBlockers scene={scene} names={CAMERA_BLOCKERS} active={cameraActive} />
       <CuboidColliders boxes={ALTAR} />
-      <Npc
-        url={DRIADA_URL}
-        position={DRIADA_POSITION}
-        rotationY={DRIADA_ROTATION_Y}
-        visible={driadaVisible || driadaWarming}
-        // She talks, then invites the player in (pointing at the door) and bows once the chalice shines again.
-        animation={talking ? 'Talking' : tomado ? 'Reverencia' : abierto ? 'Senalar' : 'Idle'}
-        talk={{ prompt: 'hablar con la dríada', enabled: !talking, onTalk: () => useUIStore.getState().openDialog(DIALOG.driada) }}
-      />
+      <Driada visible={driadaVisible || driadaWarming} />
       <group visible={interiorVisible}>
         <StaticModel url={INTERIOR_URL} merge />
         <group visible={!tomado}>
@@ -99,4 +87,4 @@ export function Santuario() {
   );
 }
 
-useGLTF.preload([EXTERIOR_URL, INTERIOR_URL, CALIZ_URL, CALIZ_BRILLO_URL, DRIADA_URL]);
+useGLTF.preload([EXTERIOR_URL, INTERIOR_URL, CALIZ_URL, CALIZ_BRILLO_URL]);

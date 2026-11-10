@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Html, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Box3, Vector3 } from 'three';
 import { usePlayerStore } from '@/game/player/playerStore';
+import { useLoopNear } from '@/game/engine/audio/useLoopNear';
 import { useProgressStore } from '@/store/progressStore';
 import { InteractionPrompt } from './InteractionPrompt';
 import { useInteractKey } from './useInteractKey';
@@ -38,6 +39,23 @@ export function Collectibles({ items, active, enabled, onCollect }: Collectibles
       }),
     [gltfs, items],
   );
+
+  // The item still lying here closest to the player shimmers softly, so it can be found by ear.
+  const lying = useRef<{ x: number; y: number; z: number }[]>([]);
+  useEffect(() => {
+    lying.current = active && enabled ? placed.filter((item) => !collected.includes(item.id)).map((item) => item.center) : [];
+  }, [active, enabled, placed, collected]);
+  const shimmer = useCallback(() => {
+    const player = usePlayerStore.getState().position;
+    let nearest = null;
+    let best = Infinity;
+    for (const center of lying.current) {
+      const distance = Math.hypot(center.x - player.x, center.y - player.y, center.z - player.z);
+      if (distance < best) [best, nearest] = [distance, center];
+    }
+    return nearest;
+  }, []);
+  useLoopNear('obj_brillo_recogible', shimmer, 5, 0.3);
 
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const focusedRef = useRef<string | null>(null);

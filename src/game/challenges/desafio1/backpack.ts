@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import type { Backpack } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
@@ -32,6 +33,7 @@ function applySoga() {
   const pantano = usePantanoStore.getState();
   if (!pantano.trappedInWell) return toast('La soga solo sirve para salir de un pozo.');
   pantano.requestClimb();
+  playSfx('d1_soga');
   toast('Usaste la soga y saliste del pozo.');
 }
 
@@ -39,6 +41,7 @@ function applyGema() {
   const { golem } = usePantanoStore.getState();
   if (!golem.active) return toast('No hay ningún Golem cerca.');
   if (golem.position.distanceTo(usePlayerStore.getState().position) > GEMA_RANGE) return toast('Acércate más al Golem para usar la gema.');
+  playSfx('d1_golem_apagado');
   if (!saveVictory({ golemDefeated: true })) toast('La gema apagó la luz azul del pecho del Golem.');
 }
 
@@ -50,7 +53,9 @@ function applyInsecticida() {
     zumbador.active && !defeated.includes(index) && zumbador.position.distanceTo(player) <= SPRAY_RANGE ? [index] : [],
   );
   pantano.spray();
+  playSfx('d1_spray');
   if (inRange.length === 0) return toast('No hay zumbadores cerca para rociar.');
+  playSfx('d1_zumbon_huye');
   const zumbadoresDefeated = [...new Set([...defeated, ...inRange])];
   if (saveVictory({ zumbadoresDefeated })) return;
   if (allZumbadoresDefeated({ zumbadoresDefeated })) toast('¡Acabaste con todos los zumbadores! Ya no necesitas el insecticida.');
@@ -72,9 +77,9 @@ export function collectImeriItem(id: string) {
 // Backpack of Challenge 1: active since Imeri's help was accepted.
 export const DESAFIO1_BACKPACK: Backpack = {
   items: [
-    { id: 'gema', name: 'Gema', model: `${DIR}/Gema.glb`, Icon: GemaIcon, hotkey: '1' },
-    { id: 'soga', name: 'Soga', model: `${DIR}/Soga.glb`, Icon: SogaIcon, hotkey: '2' },
-    { id: 'insecticida', name: 'Insecticida', model: `${DIR}/Insecticida.glb`, Icon: InsecticidaIcon, hotkey: '3' },
+    { id: 'gema', name: 'Gema', model: `${DIR}/Gema.glb`, Icon: GemaIcon, hotkey: '1', gesture: 'UseThrow' },
+    { id: 'soga', name: 'Soga', model: `${DIR}/Soga.glb`, Icon: SogaIcon, hotkey: '2', gesture: 'UseRope' },
+    { id: 'insecticida', name: 'Insecticida', model: `${DIR}/Insecticida.glb`, Icon: InsecticidaIcon, hotkey: '3', gesture: 'UseSpray' },
   ],
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as BackpackItemId, progress),

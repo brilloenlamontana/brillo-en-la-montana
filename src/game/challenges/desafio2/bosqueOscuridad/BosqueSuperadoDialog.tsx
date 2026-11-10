@@ -14,7 +14,7 @@ export function BosqueSuperadoDialog() {
   if (!isOpen) return null;
 
   return (
-    <ParchmentDialog title="¡Atravesaste el Bosque de la Oscuridad!" subtitle="Desafío 2 completado" paragraphs={RELATO}>
+    <ParchmentDialog title="¡Atravesaste el Bosque de la Oscuridad!" subtitle="Desafío 2 completado" paragraphs={RELATO} voice={['02_narrador_15']}>
       <div className="flex justify-end">
         <ParchmentButton onClick={() => useUIStore.getState().closeDialog()}>Avanzar al Pueblo Minero</ParchmentButton>
       </div>

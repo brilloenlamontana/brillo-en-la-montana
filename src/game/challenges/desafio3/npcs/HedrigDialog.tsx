@@ -7,9 +7,9 @@ import { DIALOG } from '../dialogs';
 
 // "Audio explicación de Hedrig", from the scene schedule.
 const EXPLICACION = [
-  'Mientras un breve respiro ayuda a recuperar las fuerzas, un retumbar como de un trueno quiebra el silencio de la falda de la montaña. La minera no parece preocuparse y señala numerosos montículos de roca que se han desprendido a través de los años: los derrumbes son cosa de todos los días, pero ella conoce los túneles más seguros para evitar los deslaves.',
-  'En medio de la oscuridad se escuchan gemidos y gritos de dolor ahogados. Una vez al año se oyen esos mismos sonidos, siempre en el aniversario de la muerte de la familia de la cabaña derrumbada, y algunas noches se escucha la voz de una niña pequeña que grita pidiendo que le devuelvan a Simona. Hedrig encontró muchas cosas entre las ruinas, pero nunca se atrevió a enfrentar al espectro.',
-  'Protegiendo el sendero, casi llegando a la cima, encontrarás un Ogro enorme que vive allá desde hace muchísimo tiempo: parece que alguien lo contrató para proteger la subida. No es agresivo, pero no deja pasar a nadie; dice que quien aspire a llegar a la cima deberá demostrar que es más fuerte que él.',
+  'Descansa un momento y recupera las fuerzas. ¿Oyes ese retumbar, como de trueno? No te asustes. Mira todos esos montones de roca: aquí los derrumbes son cosa de todos los días. Pero yo conozco los túneles más seguros.',
+  'Allá adentro, en la oscuridad, se oyen gemidos y gritos ahogados. Pasa una vez al año, siempre en el aniversario de la muerte de la familia de la cabaña derrumbada. Y algunas noches se escucha la voz de una niña pequeña que pide a gritos que le devuelvan a Simona. Yo encontré muchas cosas entre las ruinas… pero nunca me atreví a enfrentar al espectro.',
+  'Y casi llegando a la cima, cuidando el sendero, vas a encontrar a un Ogro enorme. Vive allí desde hace muchísimo; parece que alguien lo contrató para vigilar la subida. No es agresivo, pero no deja pasar a nadie: dice que quien quiera llegar a la cima tiene que demostrarle que es más fuerte que él.',
 ];
 
 // Hedrig explains the dangers of the summit and offers help: only if the player accepts does her door unlock, with the
@@ -33,7 +33,9 @@ export function HedrigDialog() {
   };
 
   return (
-    <ParchmentDialog title="Hedrig" subtitle="La enana minera que conoce los túneles de la cumbre" paragraphs={EXPLICACION}>
+    <ParchmentDialog title="Hedrig" subtitle="La enana minera que conoce los túneles de la cumbre" paragraphs={EXPLICACION}
+      voice={accepted ? ['03_hedrig_02'] : ['03_hedrig_02', '03_hedrig_01']}
+    >
       {accepted ? (
         <div className="flex justify-end">
           <ParchmentButton onClick={close}>Entendido</ParchmentButton>

@@ -1,4 +1,4 @@
-import { playGlide } from '@/game/engine/audio/tones';
+import { playSfx } from '@/game/engine/audio/audio';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
@@ -22,7 +22,7 @@ export function entregarMuneca() {
     return toast('La muñeca se llama Simona: el espectro de la niña la busca en los túneles. Úsala cuando esté cerca de ti.');
   }
   setDespedida({ x: espectro.position.x, y: player.y, z: espectro.position.z });
-  playGlide(520, 880, 0.9, 0.07, 'sine');
+  playSfx('d3_muneca');
   saveProgress({ espectroCalmado: true });
   toast('Ante la muñeca el espectro se transforma en la silueta clara de una niña enana: «¡Simona! Gracias por traérmela». La recibe y se aleja con lágrimas en los ojos.');
 }

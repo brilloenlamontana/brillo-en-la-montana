@@ -7,10 +7,10 @@ import { DIALOG } from '../dialogs';
 
 // "Audio explicación de Imeri", from the scene schedule.
 const EXPLICACION = [
-  'El Pantano de la Tristeza hace honor a su nombre, es un lugar miserable. Al formar parte del Delta del Gran Río, las corrientes siempre fluyen con fuerza, cambiando los senderos con frecuencia, lo que imposibilita hacer un mapa.',
-  'Los senderos embarrados a veces desaparecen sin aviso y los suelos se licúan dejando pozos que parecen poco profundos, pero que se tragan a veces a los animales e incluso a los borrachos desprevenidos que se aventuran sin saberlo. Entrar solo, sin alguien que te pueda sacar de un apuro, es mortal; lo mejor es ir atado a alguien que te pueda sacar de un lodazal.',
-  'La mayoría de los que intentan atravesarlo cuentan que hubieran podido soportarlo todo con más valentía si no fuera por los insectos: el pantano está plagado de unos mosquitos gigantes que los pueblerinos llaman Zumbones, cuya picadura produce fiebres y terribles dolores por varios días. Una sola picadura no es mortal, pero los Zumbones nunca pican una sola vez.',
-  'Entre las amenazas más temidas por los cazadores hay algo particularmente amenazante: un Golem Gigante, una feroz criatura creada hace cientos de años por un mago que ya murió. El secreto de cómo desactivarlo o controlarlo murió con su creador. Se cuenta que el Golem emite una gran luz azul en el centro del pecho.',
+  'El Pantano de la Tristeza hace honor a su nombre: es un lugar miserable. Como es parte del delta del Gran Río, las corrientes cambian los senderos todo el tiempo, así que nadie ha podido hacer un mapa.',
+  'Los caminos de barro a veces desaparecen sin aviso, y el suelo se ablanda hasta formar pozos que parecen poco profundos… pero se tragan animales, y hasta a algún borracho despistado. Entrar solo es mortal: lo mejor es ir atado a una soga, para que te puedan sacar del lodazal.',
+  'Los que han intentado cruzarlo dicen que lo habrían soportado todo, si no fuera por los insectos. El pantano está plagado de unos mosquitos gigantes; aquí les decimos Zumbones. Su picadura da fiebre y unos dolores terribles durante días. Una sola no te mata… pero los Zumbones nunca pican una sola vez.',
+  'Y hay algo que hasta los cazadores tememos: un Golem gigante, una criatura feroz que creó hace cientos de años un mago que ya murió. El secreto para detenerlo murió con él. Solo se sabe que al Golem le brilla una gran luz azul en el centro del pecho.',
 ];
 
 // Imeri explains the dangers of the swamp and offers help: only if the player accepts does her door unlock (gem,
@@ -34,7 +34,7 @@ export function ImeriDialog() {
   };
 
   return (
-    <ParchmentDialog title="Imeri" subtitle="La cazadora que mejor conoce el pantano" paragraphs={EXPLICACION}>
+    <ParchmentDialog title="Imeri" subtitle="La cazadora que mejor conoce el pantano" paragraphs={EXPLICACION} voice={accepted ? ['01_imeri_02'] : ['01_imeri_02', '01_imeri_01']}>
       {accepted ? (
         <div className="flex justify-end">
           <ParchmentButton onClick={close}>Entendido</ParchmentButton>

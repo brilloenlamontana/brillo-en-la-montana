@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import type { Backpack } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
@@ -21,6 +22,8 @@ function activarMapa() {
     return;
   }
   useBosqueStore.getState().usarMapa();
+  playSfx('d2_mapa');
+  playSfx('d2_sendero_cambia', { volume: 0.8 });
   const victory = saveDesafio2Victory({ mapaActivado: true });
   if (!victory) {
     toast('¡Activaste el mapa del bosque! El muro de piedra desciende y un sendero dorado aparece en el suelo: síguelo hasta la salida.');
@@ -31,12 +34,14 @@ function activarMapa() {
 function toggleLente() {
   const { lente, toggleLente } = useBosqueStore.getState();
   toggleLente();
+  playSfx('d2_lente', { volume: 0.8 });
   toast(lente ? 'Guardas el lente revelador.' : 'Miras a través del lente: las frutas buenas se ven amarillas y las venenosas siguen rojas.');
 }
 
 // A sword swing (click or hotkey, like the insecticide): every live goblin within reach falls.
 function swingSword() {
   useBosqueStore.getState().slash();
+  playSfx('d2_espada_tajo');
   const player = usePlayerStore.getState().position;
   const { progress } = useProgressStore.getState();
   const hit = useBosqueStore
@@ -46,6 +51,8 @@ function swingSword() {
     toast('Ningún duende está a tu alcance. Espera a que se acerquen.');
     return;
   }
+  playSfx('d2_espada_impacto');
+  playSfx('d2_duende_muere', { volume: 0.8 });
   const defeated = [...new Set([...progress.duendesDefeated, ...hit])];
   const victory = saveDesafio2Victory({ duendesDefeated: defeated });
   const left = DUENDE_COUNT - defeated.length;
@@ -69,9 +76,9 @@ export function collectElfoItem(id: string) {
 // Backpack of Challenge 2: replaces Challenge 1's once the elf's help is accepted.
 export const DESAFIO2_BACKPACK: Backpack = {
   items: [
-    { id: 'espada', name: 'Espada élfica', model: MODEL.espada, Icon: EspadaIcon, hotkey: '1' },
-    { id: 'lente', name: 'Lente revelador', model: MODEL.lente, Icon: LenteIcon, hotkey: '2' },
-    { id: 'mapa', name: 'Mapa del bosque', model: MODEL.mapa, Icon: MapaIcon, hotkey: '3' },
+    { id: 'espada', name: 'Espada élfica', model: MODEL.espada, Icon: EspadaIcon, hotkey: '1', gesture: 'UseSlash', drawSound: 'd2_espada_desenvainar' },
+    { id: 'lente', name: 'Lente revelador', model: MODEL.lente, Icon: LenteIcon, hotkey: '2', gesture: 'UseLens' },
+    { id: 'mapa', name: 'Mapa del bosque', model: MODEL.mapa, Icon: MapaIcon, hotkey: '3', gesture: 'UseMap' },
   ],
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as ElfoItemId, progress),

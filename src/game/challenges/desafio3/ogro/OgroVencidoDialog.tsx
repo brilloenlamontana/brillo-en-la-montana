@@ -14,7 +14,7 @@ export function OgroVencidoDialog() {
   if (!isOpen) return null;
 
   return (
-    <ParchmentDialog title="¡Venciste al Ogro en el pulso!" subtitle="El guardián de la subida te deja pasar" paragraphs={RELATO}>
+    <ParchmentDialog title="¡Venciste al Ogro en el pulso!" subtitle="El guardián de la subida te deja pasar" paragraphs={RELATO} voice={['03_narrador_13']}>
       <div className="flex justify-end">
         <ParchmentButton onClick={() => useUIStore.getState().closeDialog()}>Subir a la cumbre</ParchmentButton>
       </div>

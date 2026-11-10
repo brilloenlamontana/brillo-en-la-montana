@@ -1,4 +1,5 @@
 import { CinematicaOverlay } from './cinematica/CinematicaOverlay';
+import { RelatoCierreSounds } from './RelatoCierreSounds';
 import { DriadaDialog } from './santuario/DriadaDialog';
 import { VictoriaDialog } from './VictoriaDialog';
 
@@ -9,6 +10,7 @@ export function RelatoCierreDialogs() {
       <DriadaDialog />
       <CinematicaOverlay />
       <VictoriaDialog />
+      <RelatoCierreSounds />
     </>
   );
 }

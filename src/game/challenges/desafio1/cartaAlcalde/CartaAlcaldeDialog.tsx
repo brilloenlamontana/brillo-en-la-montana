@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useVoice } from '@/game/engine/audio/useVoice';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
@@ -14,9 +15,12 @@ export function CartaAlcaldeDialog() {
   const ready = useWorldStore((state) => state.ready);
   const read = useProgressStore((state) => state.progress.openedMayorLetter);
 
+  // It waits for whatever dialog is open (the story starts over after a second or third bajo, whose dialog comes first).
+  const busy = useUIStore((state) => state.dialog !== null);
+
   useEffect(() => {
-    if (ready && !read) openCartaAlcalde();
-  }, [ready, read]);
+    if (ready && !read && !busy) openCartaAlcalde();
+  }, [ready, read, busy]);
 
   // The image is decoded ahead, so opening it later does not drop frames.
   useEffect(() => {
@@ -25,12 +29,14 @@ export function CartaAlcaldeDialog() {
     image.decode().catch(() => undefined);
   }, []);
 
+  useVoice(isOpen ? ['00_alcalde_01'] : null);
+
   if (!isOpen) return null;
 
   const close = () => {
     useUIStore.getState().closeDialog();
     if (useProgressStore.getState().progress.aldeanoHelp === 'pending') {
-      useToastStore.getState().showToast('Cruza el portón de Villa Boj y habla con el aldeano de la plaza.');
+      useToastStore.getState().showToast('Cruza el portón de la Villa de Boj y habla con el aldeano de la plaza.');
     }
   };
 

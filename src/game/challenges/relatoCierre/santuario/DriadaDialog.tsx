@@ -1,3 +1,4 @@
+import { playSfx } from '@/game/engine/audio/audio';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
@@ -25,11 +26,12 @@ export function DriadaDialog() {
     useUIStore.getState().closeDialog();
     if (abierto) return;
     saveProgress({ interactedWithDriada: true });
+    playSfx('rc_puertas');
     useToastStore.getState().showToast('La dríada abre las puertas de sauce del santuario: entra y acércate al altar, bajo la torre.');
   };
 
   return (
-    <ParchmentDialog title="La dríada del santuario" subtitle="Guardiana del resplandor verde" paragraphs={BIENVENIDA}>
+    <ParchmentDialog title="La dríada del santuario" subtitle="Guardiana del resplandor verde" paragraphs={BIENVENIDA} voice={['04_narrador_01', '04_driada_01']}>
       <div className="flex justify-end">
         <ParchmentButton onClick={close}>{tomado ? 'Gracias, dríada' : abierto ? 'Entendido' : 'Entrar al santuario'}</ParchmentButton>
       </div>

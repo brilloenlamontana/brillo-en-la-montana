@@ -10,6 +10,8 @@ import type { Challenge } from './types';
 
 // Progress through the story and what a defeat costs. The game simulates low academic performance: every defeat is
 // a "bajo" and costs one of the three stars.
+// The extra stars won with the bonuses go first: losing one is not a bajo, the player only goes back to the start of
+// the challenge where it happened. With none left:
 //   1st bajo: back to the start of the challenge where it happened; what was achieved is kept.
 //   2nd bajo: back to Villa Boj and the whole story starts over (every challenge from scratch).
 //   3rd bajo: the run is over; like losing the place in a degree, a new character has to be chosen and the story
@@ -17,6 +19,8 @@ import type { Challenge } from './types';
 
 export type Bajo = 1 | 2 | 3;
 export const bajoDialog = (bajo: Bajo) => `bajo.${bajo}`;
+// Dialog for a defeat paid with an extra star.
+export const VIDA_EXTRA_DIALOG = 'bajo.vidaExtra';
 
 // The first challenge not finished yet (the last one once everything is finished).
 export const currentChallenge = (progress: GameProgress): Challenge =>
@@ -36,6 +40,15 @@ const increment = (counts: Record<string, number>, key: string) => ({ ...counts,
 export function handleDefeat(): Point {
   const { progress } = useProgressStore.getState();
   const challenge = challengeHere(progress);
+  if (progress.vidasExtra > 0) {
+    saveProgress({
+      derrotas: increment(progress.derrotas, challenge.id),
+      vidasExtra: progress.vidasExtra - 1,
+      vidasExtraPerdidas: progress.vidasExtraPerdidas + 1,
+    });
+    useUIStore.getState().openDialog(VIDA_EXTRA_DIALOG);
+    return challenge.startPoint;
+  }
   const estrellas = progress.estrellas - 1;
   const bajo = (STARS - estrellas) as Bajo;
   const derrotas = increment(progress.derrotas, challenge.id);

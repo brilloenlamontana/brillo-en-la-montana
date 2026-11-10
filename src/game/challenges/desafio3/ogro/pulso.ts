@@ -1,4 +1,4 @@
-import { playGlide } from '@/game/engine/audio/tones';
+import { playSfx } from '@/game/engine/audio/audio';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
@@ -30,7 +30,8 @@ export function repelPlayer(message: string) {
   const player = usePlayerStore.getState();
   if (player.health <= 0) return;
   useTunelStore.getState().repelerOgro();
-  playGlide(140, 50, 0.45, 0.12, 'sawtooth');
+  playSfx('d3_ogro_grunido');
+  playSfx('d3_ogro_lanza');
   player.takeDamage(REPEL_DAMAGE);
   if (usePlayerStore.getState().health > 0) player.requestTeleport(OGRO_REPEL_POINT);
   toast(message);
@@ -48,13 +49,15 @@ export function retarAlOgro() {
     return repelPlayer('Sin el guante de minero el ogro te dobla el brazo de un tirón y te lanza por los aires. Necesitas el guante de Hedrig.');
   }
   tunel.setPulso(performance.now());
+  playSfx('d3_pulso');
   toast('¡Te pones el guante de minero y aceptas el pulso! El ogro deja la escalera, se planta frente a ti y empuja con todas sus fuerzas…');
 }
 
 // The arm wrestling is won: the Ogre steps aside for good.
 export function vencerOgro() {
   useTunelStore.getState().celebrarOgro();
-  playGlide(330, 660, 0.5, 0.08, 'triangle');
+  playSfx('d3_pulso_gana');
+  playSfx('d3_ogro_risa', { volume: 0.8 });
   saveProgress({ ogroVencido: true });
   useUIStore.getState().openDialog(DIALOG.ogroVencido);
 }
