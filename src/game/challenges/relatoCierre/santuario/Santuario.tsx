@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { playGlide } from '@/game/engine/audio/tones';
 import { InteractionSpot } from '@/game/engine/interaction/InteractionSpot';
@@ -8,6 +8,7 @@ import { CuboidColliders } from '@/game/engine/physics/CuboidColliders';
 import { PhysicsDoor } from '@/game/engine/physics/PhysicsDoor';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
+import { loadTerrenoRecuperado } from '@/game/world/recuperado';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
@@ -52,6 +53,11 @@ export function Santuario() {
   const warming = useWorldStore((state) => state.warming);
   const abierto = useProgressStore((state) => isSantuarioAbierto(state.progress));
   const tomado = useProgressStore((state) => isCalizTomado(state.progress));
+
+  // The doors are open: the end is near. The green terrain of the recovered world is fetched ahead of time.
+  useEffect(() => {
+    if (abierto) void loadTerrenoRecuperado().catch(() => undefined);
+  }, [abierto]);
 
   return (
     <group name="Santuario">

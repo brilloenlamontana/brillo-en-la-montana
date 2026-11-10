@@ -8,6 +8,8 @@ export const RELATO_CIERRE_MODELS = {
     camino: `${DIR}/CumbreDesolacion/CumbreCamino.glb`,
     columnas: `${DIR}/CumbreDesolacion/CumbreColumnas.glb`,
     edificios: `${DIR}/CumbreDesolacion/CumbreEdificios.glb`,
+    // Leaves and blossom of the summit trees, only drawn in the recovered world (tools/blender/follaje_cumbre.py).
+    follaje: `${DIR}/CumbreDesolacion/CumbreFollaje.glb`,
     jardines: `${DIR}/CumbreDesolacion/CumbreJardines.glb`,
     nieve: `${DIR}/CumbreDesolacion/CumbreNieve.glb`,
   },
