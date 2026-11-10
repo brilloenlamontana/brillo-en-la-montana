@@ -19,7 +19,8 @@ export function classifySpot(x: number, y: number, z: number): Spot | null {
   return null;
 }
 
-export type Place = { region: Region; interior: Interior | null; spot: Spot | null; cinematic: boolean; recovered: boolean };
+// combat: an enemy is after the player (see combatStore.ts).
+export type Place = { region: Region; interior: Interior | null; spot: Spot | null; cinematic: boolean; recovered: boolean; combat: boolean };
 
 const REGION_MUSIC: Record<Region, MusicId> = {
   villa: 'mus_villa',
@@ -48,10 +49,11 @@ const REGION_AMBIENCE: Record<Region, AmbienceId> = {
 // The ending theme plays over the final cinematic and, once the game is completed, over the recovered world.
 const ENDING_MUSIC: MusicId = 'mus_final';
 
-export function musicFor({ region, interior, spot, cinematic, recovered }: Place): MusicId {
+export function musicFor({ region, interior, spot, cinematic, recovered, combat }: Place): MusicId {
   if (cinematic) return ENDING_MUSIC;
   if (interior === 'santuario') return 'mus_cumbre';
   if (interior) return 'mus_hogar';
+  if (combat) return 'mus_combate';
   if (spot === 'claro') return 'mus_claro_hada';
   if (spot === 'ogro') return 'mus_ogro';
   if (recovered && region !== 'tuneles') return ENDING_MUSIC;

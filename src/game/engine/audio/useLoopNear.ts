@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { loopSfx, type Loop } from '@/game/engine/audio/audio';
-import type { SfxId } from '@/game/engine/audio/catalog';
+import { loopSfx, type Loop } from './audio';
+import type { SfxId } from './catalog';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
 

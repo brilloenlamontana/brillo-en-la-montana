@@ -8,7 +8,9 @@ import { useZoneStore } from '@/game/world/zoneStore';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { useUIStore } from '@/store/uiStore';
+import { useCombatStore } from './combatStore';
 import { ambienceFor, classifySpot, musicFor, type Spot } from './soundscape';
+import { useLoopNear } from '@/game/engine/audio/useLoopNear';
 import { voicesForToast } from './voices';
 
 // Effects that must answer at once: decoded while the world loads.
@@ -30,6 +32,15 @@ function stingFor(dialog: string): SfxId {
   return 'ui_dialogo_abrir';
 }
 
+// Inside a house its fireplace crackles all around the player (the sanctuary has none).
+const hearth = () => {
+  const { interior } = useZoneStore.getState();
+  return interior && interior !== 'santuario' ? usePlayerStore.getState().position : null;
+};
+
+// Notices that say something cannot be done (an item that is of no use here) knock instead of chiming.
+const CANNOT = /^(No hay|Ning[uú]n|Aqu[ií] no|Todav[ií]a no|A[uú]n no|No puedes)/;
+
 // Music and ambience of where the player is (see soundscape.ts). While the world loads, the main theme plays.
 function Soundscape() {
   const region = useZoneStore((state) => state.region);
@@ -37,7 +48,9 @@ function Soundscape() {
   const cinematic = useUIStore((state) => state.cinematic);
   const ready = useWorldStore((state) => state.ready);
   const recovered = useMundoRecuperado();
+  const combat = useCombatStore((state) => state.fights.length > 0);
   const [spot, setSpot] = useState<Spot | null>(null);
+  useLoopNear('obj_chimenea', hearth, 4, 0.35);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -53,10 +66,10 @@ function Soundscape() {
       setAmbience(null);
       return;
     }
-    const place = { region, interior, spot, cinematic, recovered };
+    const place = { region, interior, spot, cinematic, recovered, combat };
     setMusic(musicFor(place));
     setAmbience(ambienceFor(place));
-  }, [ready, region, interior, spot, cinematic, recovered]);
+  }, [ready, region, interior, spot, cinematic, recovered, combat]);
 
   // Leaving the world (profile, admin, sign out) silences it.
   useEffect(
@@ -111,7 +124,7 @@ function StoreSounds() {
 
     const offToast = useToastStore.subscribe((state, previous) => {
       if (state.id === previous.id || !state.message) return;
-      playSfx('ui_aviso', { volume: 0.5 });
+      playSfx(CANNOT.test(state.message) ? 'ui_no_se_puede' : 'ui_aviso', { volume: CANNOT.test(state.message) ? 0.8 : 0.5 });
       const clips = voicesForToast(state.message);
       // A dialog that opened at the same time has the word.
       if (clips && !useUIStore.getState().dialog) playVoice(clips);

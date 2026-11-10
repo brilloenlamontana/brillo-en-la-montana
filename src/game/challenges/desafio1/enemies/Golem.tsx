@@ -1,7 +1,8 @@
 import { playSfx } from '@/game/engine/audio/audio'
+import { createFootsteps, playSfxAt } from '@/game/engine/audio/spatial'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useProgressStore } from '@/store/progressStore'
@@ -30,6 +31,9 @@ const FADE_SECONDS = 0.3
 const EMERGE_MIN_DISTANCE = 12
 const MIN_WELL_RADIUS = 1.6 // the golem is ~2.9 m wide at scale 2
 const UP = new THREE.Vector3(0, 1, 0)
+// One heavy step every STRIDE meters, and a roar when it sets off after the player; both heard from afar.
+const STRIDE = 2.1
+const EARSHOT = 34
 
 // Hidden in a swamp well until the player enters: it climbs out of the well closest to the player and chases them.
 // When the player leaves the swamp it stays still where it is (Idle) and resumes the chase if they come back.
@@ -49,6 +53,7 @@ export function Golem() {
   const position = useRef(new THREE.Vector3(0, HIDDEN_Y, 0))
   const facing = useRef(new THREE.Quaternion())
   const actionRef = useRef<GolemAction | null>(null)
+  const footsteps = useMemo(() => createFootsteps('d1_golem_pasos', STRIDE, EARSHOT), [])
 
   useEffect(() => {
     actions.Attack?.setEffectiveTimeScale(ATTACK_ANIMATION_SPEED)
@@ -82,6 +87,7 @@ export function Golem() {
     if (distance > 1e-3) {
       p.x += (dx / distance) * step
       p.z += (dz / distance) * step
+      footsteps(step, p)
     }
     const ground = terrainHeight(p.x, p.z, p.y + 3, 8)
     if (ground !== null) p.y = THREE.MathUtils.damp(p.y, ground, 10, delta)
@@ -124,13 +130,19 @@ export function Golem() {
         const well = brainState.well!
         p.y = Math.min(p.y + CLIMB_SPEED * delta, well.rimY)
         faceTowards(player.x - p.x, player.z - p.z, delta)
-        if (p.y >= well.rimY) brainState.state = playerInPantano ? 'chasing' : 'idle'
+        if (p.y >= well.rimY) {
+          brainState.state = playerInPantano ? 'chasing' : 'idle'
+          playSfxAt('d1_golem_rugido', p, EARSHOT)
+        }
         break
       }
 
       case 'idle':
         action = 'Idle'
-        if (playerInPantano) brainState.state = 'chasing'
+        if (playerInPantano) {
+          brainState.state = 'chasing'
+          playSfxAt('d1_golem_rugido', p, EARSHOT)
+        }
         break
 
       case 'chasing': {

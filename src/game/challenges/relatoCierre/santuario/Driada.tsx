@@ -3,6 +3,7 @@ import { Html, useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import { Quaternion, Vector3, type Group, type SkinnedMesh } from 'three';
+import { createFootsteps } from '@/game/engine/audio/spatial';
 import { InteractionPrompt } from '@/game/engine/interaction/InteractionPrompt';
 import { useInteractKey } from '@/game/engine/interaction/useInteractKey';
 import { usePlayerStore } from '@/game/player/playerStore';
@@ -55,6 +56,7 @@ export function Driada({ visible }: { visible: boolean }) {
   const [near, setNear] = useState(false);
   const live = useRef({ phase: initial, near: false, welcomeAt: 0, position: new Vector3(...(initial === 'lista' ? SPOT : DOOR)) });
   const work = useMemo(() => ({ step: new Vector3(), facing: new Quaternion() }), []);
+  const footsteps = useMemo(() => createFootsteps('rc_driada_pasos', 0.6, 14, 0.6), []);
 
   const clip: Clip =
     phase === 'camina' ? 'Caminar' : phase === 'bienvenida' ? 'Bienvenida' : phase === 'espera' ? 'Idle' : talking ? 'Talking' : tomado ? 'Reverencia' : abierto ? 'Senalar' : 'Idle';
@@ -91,7 +93,9 @@ export function Driada({ visible }: { visible: boolean }) {
       const step = work.step.set(SPOT[0] - l.position.x, SPOT[1] - l.position.y, SPOT[2] - l.position.z);
       const distance = step.length();
       if (distance > 0.05) {
-        l.position.addScaledVector(step, Math.min(distance, WALK_SPEED * delta) / distance);
+        const moved = Math.min(distance, WALK_SPEED * delta);
+        l.position.addScaledVector(step, moved / distance);
+        footsteps(moved, l.position);
         yaw = Math.atan2(step.x, step.z);
       } else {
         next = 'bienvenida';

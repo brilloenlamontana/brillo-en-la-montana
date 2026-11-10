@@ -3,6 +3,7 @@ import { Html, useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import { Quaternion, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
+import { createFootsteps } from '@/game/engine/audio/spatial';
 import { InteractionPrompt } from '@/game/engine/interaction/InteractionPrompt';
 import { useInteractKey } from '@/game/engine/interaction/useInteractKey';
 import { orientedBox, type ColliderBox } from '@/game/engine/physics/colliderBoxes';
@@ -80,6 +81,7 @@ function OgroEnSuSala() {
   const [start] = useState(() => (isOgroVencido(useProgressStore.getState().progress) ? OGRO_POSITION : OGRO_GUARDIA));
   const live = useRef({ clip: 'Idle' as OgroClip, atTable: false, position: new Vector3(...start) });
   const work = useMemo(() => ({ step: new Vector3(), facing: new Quaternion() }), []);
+  const footsteps = useMemo(() => createFootsteps('d3_ogro_pasos', 0.95, 24), []);
 
   useLayoutEffect(() => prepareModel(scene), [scene]);
 
@@ -107,7 +109,11 @@ function OgroEnSuSala() {
     const step = work.step.set(target[0] - l.position.x, target[1] - l.position.y, target[2] - l.position.z);
     const distance = step.length();
     const walking = distance > 0.08;
-    if (walking) l.position.addScaledVector(step, Math.min(distance, WALK_SPEED * delta) / distance);
+    if (walking) {
+      const moved = Math.min(distance, WALK_SPEED * delta);
+      l.position.addScaledVector(step, moved / distance);
+      footsteps(moved, l.position);
+    }
     body.current.setNextKinematicTranslation(l.position);
     const yaw = walking ? Math.atan2(step.x, step.z) : atHisTable ? TABLE_YAW : GUARD_YAW;
     work.facing.setFromAxisAngle(UP, yaw);

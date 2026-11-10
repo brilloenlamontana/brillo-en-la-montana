@@ -24,6 +24,19 @@ const PHYSICS_WALL_THICKNESS = 0.6;
 const CAMERA_WALL_THICKNESS = 0.3;
 
 const wellsCache = new WeakMap<Object3D, Well[]>();
+// The wells once measured, for what lives outside the canvas (the bubbling heard near them).
+let measured: readonly Well[] = [];
+
+// Rim of the well nearest to (x, z), or null before the swamp was ever drawn.
+export function nearestWellRim(x: number, z: number) {
+  let nearest: Well | null = null;
+  let best = Infinity;
+  for (const well of measured) {
+    const distance = Math.hypot(well.x - x, well.z - z);
+    if (distance < best) [best, nearest] = [distance, well];
+  }
+  return nearest && { x: nearest.x, y: nearest.rimY, z: nearest.z };
+}
 
 // The swamp wells are irregular and the terrain has an opening over each one. Each well is measured per angular
 // segment: the outer radius of its mesh holds the physics wall (outside the hole, so there is no invisible ledge) and
@@ -34,6 +47,7 @@ function getPantanoWells(scene: Object3D): Well[] {
   scene.updateMatrixWorld(true);
   const wells = scene.children.map(buildWell);
   wellsCache.set(scene, wells);
+  measured = wells;
   return wells;
 }
 

@@ -1,4 +1,4 @@
-import { useLoopNear } from '@/game/sound/useLoopNear';
+import { useLoopNear } from '@/game/engine/audio/useLoopNear';
 
 // The altar of the sanctuary, where the chalice glows (see santuario/Santuario: ALTAR).
 const ALTAR = { x: 163.2, y: 54, z: -153 };

@@ -61,7 +61,7 @@ export function Santuario() {
     <group name="Santuario">
       <primitive object={scene} visible={exteriorVisible} />
       {leaves.map((leaf) => (
-        <PhysicsDoor key={leaf.name} node={leaf} locked={!abierto} />
+        <PhysicsDoor key={leaf.name} node={leaf} locked={!abierto} sound="gate" />
       ))}
       <TrimeshColliders scene={scene} names={COLLIDERS} />
       <CameraBlockers scene={scene} names={CAMERA_BLOCKERS} active={cameraActive} />
