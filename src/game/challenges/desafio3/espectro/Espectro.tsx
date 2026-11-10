@@ -1,8 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+import { useRapier, type RapierCollider } from '@react-three/rapier';
 import { Color, MathUtils, Quaternion, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type SkinnedMesh } from 'three';
 import { playGlide } from '@/game/engine/audio/tones';
+import { isBodyNamed, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
@@ -40,6 +42,9 @@ const WARNING_SECONDS = 9;
 const JOY_SECONDS = 2.8;
 const FADE_OUT_SECONDS = 4.5;
 const WALK_SPEED = 0.9;
+const DOWN = { x: 0, y: -1, z: 0 };
+// The floor she walks on: anything solid except the player.
+const isFloor = (collider: RapierCollider) => !collider.isSensor() && !isBodyNamed(collider.parent()?.userData, PLAYER_BODY_NAME);
 
 // Every material of the model replaced by its own copy, so it can be made translucent without touching the cache.
 function ownMaterials(root: Object3D, tweak: (material: MeshStandardMaterial) => void): MeshStandardMaterial[] {
@@ -171,6 +176,14 @@ function Despedida({ from }: { from: { x: number; y: number; z: number } }) {
   const live = useRef({ start: null as number | null, walking: false, away: new Vector3(), position: new Vector3(from.x, from.y, from.z) });
   const materials = useRef<MeshStandardMaterial[]>([]);
   const facing = useMemo(() => new Quaternion(), []);
+  const { world, rapier } = useRapier();
+
+  // Height of the tunnel floor under her (she starts where the spectre floated and walks along sloping galleries).
+  const floorUnder = (x: number, y: number, z: number): number | null => {
+    const fromY = y + 1.2;
+    const hit = world.castRay(new rapier.Ray({ x, y: fromY, z }, DOWN), 4, true, undefined, undefined, undefined, undefined, isFloor);
+    return hit ? fromY - hit.timeOfImpact : null;
+  };
 
   useLayoutEffect(() => {
     materials.current = ownMaterials(scene, (material) => {
@@ -216,6 +229,9 @@ function Despedida({ from }: { from: { x: number; y: number; z: number } }) {
       setOpacity(materials.current, Math.max(0, opacity));
       if (opacity <= 0) useTunelStore.getState().setDespedida(null);
     }
+    // Her feet stay on the floor, standing or walking.
+    const floor = floorUnder(l.position.x, l.position.y, l.position.z);
+    if (floor !== null) l.position.y = elapsed === 0 ? floor : MathUtils.damp(l.position.y, floor, 12, delta);
     facing.setFromAxisAngle(UP, Math.atan2(look.x, look.z));
     group.current.quaternion.slerp(facing, Math.min(1, 8 * delta));
     group.current.position.copy(l.position);

@@ -14,7 +14,7 @@ import { collectHedrigItem } from '../backpack';
 import { HEDRIG_COLLECTIBLES } from '../items';
 import { isHedrigHouseUnlocked } from '../mission';
 import { CAMERA_BLOCKS_IN, VISIBLE_FROM } from '../visibility';
-import { HEDRIG_CAMERA_BLOCKERS, HEDRIG_COLLIDERS } from './hedrigColliders';
+import { HEDRIG_CAMERA_BLOCKERS, HEDRIG_HOUSE_COLLIDERS, HEDRIG_PROP_COLLIDERS, HOUSE_POSITION, HOUSE_ROTATION } from './hedrigColliders';
 
 const { exterior: EXTERIOR_URL, interior: INTERIOR_URL } = DESAFIO3_MODELS.casaDeHedrig;
 // Door leaf, with its origin on the hinge.
@@ -22,8 +22,8 @@ const DOOR = 'HedrigPuerta';
 
 // "CasaDeHedrig" collection of Map.blend: the stone house of the dwarf miner (campfire, fence, barrels outside), its
 // interior and her items. The door stays locked until Hedrig's help is accepted; then the player pushes it open and
-// the glove, the compass and the doll can be picked up. Collision is a handful of boxes (hedrigColliders.ts) plus
-// the door leaf.
+// the glove, the compass and the doll can be picked up. The house is turned on the map: its shell collides (and blocks
+// the camera) in the house's own frame, its furniture and surroundings in world coordinates (hedrigColliders.ts).
 export function CasaDeHedrig() {
   const { scene, nodes } = useGLTF(EXTERIOR_URL);
   useLayoutEffect(() => freeze(scene), [scene]);
@@ -38,8 +38,10 @@ export function CasaDeHedrig() {
     <group name="CasaDeHedrig">
       <primitive object={scene} visible={exteriorVisible} />
       {door && <PhysicsDoor node={door} locked={!unlocked} />}
-      <CuboidColliders boxes={HEDRIG_COLLIDERS} />
-      <CameraColliderBoxes boxes={HEDRIG_CAMERA_BLOCKERS} active={cameraActive} />
+      <CuboidColliders boxes={HEDRIG_HOUSE_COLLIDERS} position={HOUSE_POSITION} rotation={HOUSE_ROTATION}>
+        <CameraColliderBoxes boxes={HEDRIG_CAMERA_BLOCKERS} active={cameraActive} />
+      </CuboidColliders>
+      <CuboidColliders boxes={HEDRIG_PROP_COLLIDERS} />
       <group visible={interiorVisible}>
         <StaticModel url={INTERIOR_URL} merge />
         <Collectibles items={HEDRIG_COLLECTIBLES} active={interiorVisible && !warming} enabled={unlocked} onCollect={collectHedrigItem} />

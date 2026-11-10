@@ -63,9 +63,13 @@ export const CUMBRE_REGION = { center: [129, -155], radiusX: 46, radiusZ: 32, mi
 
 // --- House interiors ---
 // World-space box of each interior, measured from the floors and walls of each GLB: crossing the door is being inside.
-export const INTERIOR_BOXES: Record<Interior, { min: Point3; max: Point3 }> = {
+// A house turned on the map gives its box in its own frame: `pivot` is the house center (world x, z) and `yawDeg` its
+// turn (the same as its colliders' rotation.y).
+export type InteriorBox = { min: Point3; max: Point3; pivot?: readonly [number, number]; yawDeg?: number };
+
+export const INTERIOR_BOXES: Record<Interior, InteriorBox> = {
   imeri: { min: [16.4, 10.3, 41.3], max: [23.7, 14, 49.1] },
   elfo: { min: [-40.1, 21.4, -140.2], max: [-34.4, 25, -134.5] },
-  hedrig: { min: [85.5, 24, -216.9], max: [94.5, 28, -207.1] },
+  hedrig: { min: [-3.33, 24, -4.03], max: [3.33, 28, 4.03], pivot: [90, -212], yawDeg: 21.25 },
   santuario: { min: [153.1, 52, -156.98], max: [164.9, 65, -149.02] },
 };

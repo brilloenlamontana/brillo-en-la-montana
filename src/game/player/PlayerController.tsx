@@ -21,6 +21,13 @@ const CAPSULE_RADIUS = 0.3;
 // The avatar's feet sit at the bottom of the capsule.
 const FEET_OFFSET: [number, number, number] = [0, -(CAPSULE_HALF_HEIGHT + CAPSULE_RADIUS + 0.1), 0];
 
+// Jump: ecctrl only pushes up for `jumpDuration`, and while its ground ray still reaches the floor its floating spring
+// pulls the capsule back down. With the default ray (1.3 m for this taller capsule) a jump was cut at 0.2 m, standing or
+// running; a shorter ray and a longer push give a real jump of about 1 m at any speed.
+const JUMP_VELOCITY = 3.3;
+const JUMP_SECONDS = 0.28;
+const GROUND_RAY_LENGTH = 0.8;
+
 const CAMERA_DISTANCE = 2;
 // Initial camera: behind the avatar, slightly above (polar angle measured from the zenith).
 const CAMERA_START_POLAR = Math.PI * 0.42;
@@ -190,6 +197,9 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
         rotation={initial.rotation}
         friction={1}
         enableToggleRun={false}
+        jumpVel={JUMP_VELOCITY}
+        jumpDuration={JUMP_SECONDS}
+        rayLength={GROUND_RAY_LENGTH}
         userData={PLAYER_USER_DATA}
       >
         <group position={FEET_OFFSET}>{children}</group>

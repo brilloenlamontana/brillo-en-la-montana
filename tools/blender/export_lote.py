@@ -187,11 +187,88 @@ def export_map_glb(objs, dst, terrain=False):
     return summary(dst)
 
 
+def build_tapas():
+    """Tapas de los pozos del pantano hechas a medida de cada hueco del terreno: un abanico sobre el borde real del
+    agujero, con las mismas UV del terreno en ese borde, asi cierran sin rendijas y la textura continua. Se crean en
+    memoria (las tapas guardadas en Map.blend quedaron de antes de retocar el terreno)."""
+    import bmesh
+    terr = bpy.data.objects['Terreno']
+    bm = bmesh.new()
+    bm.from_mesh(terr.data)
+    uv = bm.loops.layers.uv.active
+    nxt, uvs, co = {}, {}, {}
+    for e in bm.edges:
+        if not e.is_boundary:
+            continue
+        l = e.link_loops[0]
+        a, b = l.vert, l.link_loop_next.vert
+        nxt[a.index] = b.index
+        uvs[a.index] = l[uv].uv.copy()
+        co[a.index] = terr.matrix_world @ a.co
+    pozos = []
+    for o in bpy.data.collections['PantanoPozos'].all_objects:
+        if o.type == 'MESH':
+            ps = [o.matrix_world @ v.co for v in o.data.vertices]
+            pozos.append((o.name, sum(ps, Vector()) / len(ps)))
+    mat = bpy.data.materials['TerrenoTapa']
+    coll = bpy.data.collections.new('PantanoTapasNuevas')
+    bpy.context.scene.collection.children.link(coll)
+    seen, made = set(), {}
+    for start in list(nxt):
+        if start in seen:
+            continue
+        loop, cur = [], start
+        while cur in nxt and cur not in seen:
+            seen.add(cur)
+            loop.append(cur)
+            cur = nxt[cur]
+        if cur != start or len(loop) < 3 or len(loop) > 400:
+            continue
+        pts = [co[i] for i in loop]
+        c = sum(pts, Vector()) / len(pts)
+        if max((p - c).length for p in pts) > 7:
+            continue
+        name, pc = min(pozos, key=lambda q: (q[1].x - c.x) ** 2 + (q[1].y - c.y) ** 2)
+        if math.hypot(pc.x - c.x, pc.y - c.y) > 4 or name in made:
+            continue
+        n = len(loop)
+        me = bpy.data.meshes.new(name + 'Tapa')
+        # el terreno queda a la izquierda del borde a->b: la tapa (b, a, centro) mira hacia arriba
+        me.from_pydata([tuple(p) for p in pts] + [tuple(c)], [], [((i + 1) % n, i, n) for i in range(n)])
+        layer = me.uv_layers.new(name='UVMap')
+        cuv = sum((uvs[i] for i in loop), Vector((0, 0))) / n
+        vuv = [uvs[i] for i in loop] + [cuv]
+        for poly in me.polygons:
+            poly.use_smooth = True
+            for li in poly.loop_indices:
+                layer.data[li].uv = vuv[me.loops[li].vertex_index]
+        for cname in ('Blanco', 'Mascaras'):
+            col = me.color_attributes.new(cname, 'BYTE_COLOR', 'CORNER')
+            col.data.foreach_set('color', [1.0] * (len(col.data) * 4))
+        me.color_attributes.active_color = me.color_attributes['Blanco']
+        me.color_attributes.render_color_index = 0
+        me.materials.append(mat)
+        me.update()
+        ob = bpy.data.objects.new(name + 'Tapa', me)
+        coll.objects.link(ob)
+        made[name] = ob
+    bm.free()
+    return list(made.values()), len(pozos)
+
+
 def export_map():
     bpy.ops.wm.open_mainfile(filepath=MAP_BLEND)
     unlock_layers(bpy.context.view_layer.layer_collection)
     out = rep["map"]
     out["bboxes"] = {}
+    try:
+        tapas, n_pozos = build_tapas()
+        rel = 'Desafio1/PantanoTristeza/PantanoTapas.glb'
+        out[rel] = export_map_glb(tapas, os.path.join(MODELS, 'map', rel.replace('/', os.sep)), terrain=True)
+        out[rel]["objects"] = len(tapas)
+        out[rel]["pozos"] = n_pozos
+    except Exception:
+        rep["errors"].append(['PantanoTapas', traceback.format_exc()])
     for coll_name, rel, per_object in MAP_EXPORTS:
         try:
             coll = bpy.data.collections[coll_name]
@@ -455,134 +532,51 @@ def tunnel_analysis():
             walls.append([a[0], a[1], b[0], b[1], min(zs), max(zs)])
     out["wall_boxes"] = len(walls)
 
-    # ---- suelos: una caja inclinada por tramo de la red, ajustada a las celdas que le tocan
-    assign = {}
-    for c in tun:
-        _, k = net_dist(Vector((c['x'], c['y'], c['z'])))
-        assign.setdefault(k, []).append(c)
-    floors, rest = [], []
-    for k, cs in assign.items():
-        _, _, a, b, clear = segs[k]
-        d2 = Vector((b.x - a.x, b.y - a.y))
-        L = d2.length
-        if L < 1e-3:
-            rest += cs
-            continue
-        u = d2 / L
-        v = Vector((-u.y, u.x))
-        m = (b.z - a.z) / L
-        fit = []
-        for c in cs:
-            r = Vector((c['x'] - a.x, c['y'] - a.y))
-            s, l = r.dot(u), r.dot(v)
-            if abs(a.z + m * s - c['z']) <= 0.16:
-                fit.append((s, l, c))
-            else:
-                rest.append(c)
-        if not fit:
-            continue
-        s0, s1 = min(s for s, _, _ in fit) - 0.3, max(s for s, _, _ in fit) + 0.3
-        l0, l1 = min(l for _, l, _ in fit) - 0.3, max(l for _, l, _ in fit) + 0.3
-        # la caja no puede sobresalir del suelo real de ninguna celda (ni de otro tramo): se recorta hasta que no lo haga
-        for _ in range(60):
-            bad = None
-            for c in tun:
-                r = Vector((c['x'] - a.x, c['y'] - a.y))
-                s, l = r.dot(u), r.dot(v)
-                if s0 <= s <= s1 and l0 <= l <= l1 and 0.18 < (a.z + m * s) - c['z'] < 1.3:
-                    bad = (s, l)
+    # ---- suelo: una sola malla continua sobre las celdas medidas (como el terreno). Cada esquina de la rejilla toma la
+    # altura media de las celdas que la comparten, asi las pendientes y los peldanos quedan como rampas lisas y el avatar
+    # no tropieza; dos niveles que se cruzan en planta (una galeria bajo otra) no comparten esquina.
+    CORNERS = ((-1, -1), (1, -1), (1, 1), (-1, 1))
+    clusters = {}
+    cell_corners = []
+    for c in sorted(tun, key=lambda c: c['z']):
+        ids = []
+        for dx, dy in CORNERS:
+            key = (2 * c['ix'] + dx, 2 * c['iy'] + dy)
+            lst = clusters.setdefault(key, [])
+            for k, cl in enumerate(lst):
+                if abs(cl[0] / cl[1] - c['z']) < 0.6:
+                    cl[0] += c['z']
+                    cl[1] += 1
+                    ids.append((key, k))
                     break
-            if bad is None:
-                break
-            s, l = bad
-            cuts = [('l1', l - 0.25, sum(1 for f in fit if f[1] >= l - 0.25)), ('l0', l + 0.25, sum(1 for f in fit if f[1] <= l + 0.25)),
-                    ('s1', s - 0.25, sum(1 for f in fit if f[0] >= s - 0.25)), ('s0', s + 0.25, sum(1 for f in fit if f[0] <= s + 0.25))]
-            side, value, _ = min(cuts, key=lambda c_: c_[2])
-            if side == 'l1':
-                l1 = value
-            elif side == 'l0':
-                l0 = value
-            elif side == 's1':
-                s1 = value
             else:
-                s0 = value
-            keep = [f for f in fit if s0 <= f[0] <= s1 and l0 <= f[1] <= l1]
-            rest += [f[2] for f in fit if f not in keep]
-            fit = keep
-            if not fit:
-                break
-        if not fit or s1 - s0 < 0.3 or l1 - l0 < 0.3:
-            rest += [f[2] for f in fit]
-            continue
-        lm = (l0 + l1) / 2
-        pa = (a.x + u.x * s0 + v.x * lm, a.y + u.y * s0 + v.y * lm, a.z + m * s0)
-        pb = (a.x + u.x * s1 + v.x * lm, a.y + u.y * s1 + v.y * lm, a.z + m * s1)
-        floors.append({'a': pa, 'b': pb, 'half': (l1 - l0) / 2, 'frame': (a, u, v, m, s0, s1, l0, l1), 'clear': clear})
-    # parches planos para lo que no encaja (salas, peldanos, tarima...)
-    patches = []
-    grid = {}
-    for c in rest:
-        grid[(c['ix'], c['iy'], round(c['z'] / 0.12))] = c
-    used = set()
-    for key in sorted(grid):
-        if key in used:
-            continue
-        ix, iy, zb = key
-        w = 1
-        while (ix + w, iy, zb) in grid and (ix + w, iy, zb) not in used:
-            w += 1
-        h = 1
-        while all((ix + i, iy + h, zb) in grid and (ix + i, iy + h, zb) not in used for i in range(w)):
-            h += 1
-        zs = []
-        for i in range(w):
-            for j in range(h):
-                used.add((ix + i, iy + j, zb))
-                zs.append(grid[(ix + i, iy + j, zb)]['z'])
-        patches.append([(ix - 0.5) * CELL - 0.08, (iy - 0.5) * CELL - 0.08, (ix + w - 0.5) * CELL + 0.08, (iy + h - 0.5) * CELL + 0.08, max(zs)])
-    out["floor_boxes"] = len(floors)
-    out["patch_boxes"] = len(patches)
-
-    # ---- validacion: cada celda medida debe tener suelo de colision a su altura
-    holes = bumps = 0
-    worst_hole = worst_bump = 0.0
-    for c in tun:
-        top = None
-        for fl in floors:
-            a, u, v, m, s0, s1, l0, l1 = fl['frame']
-            r = Vector((c['x'] - a.x, c['y'] - a.y))
-            s, l = r.dot(u), r.dot(v)
-            if s0 <= s <= s1 and l0 <= l <= l1:
-                z = a.z + m * s
-                if abs(z - c['z']) < 1.2 and (top is None or z > top):
-                    top = z
-        for x0, y0, x1, y1, z in patches:
-            if x0 <= c['x'] <= x1 and y0 <= c['y'] <= y1 and abs(z - c['z']) < 1.2 and (top is None or z > top):
-                top = z
-        if top is None or top < c['z'] - 0.25:
-            holes += 1
-            worst_hole = max(worst_hole, 9.0 if top is None else c['z'] - top)
-        elif top > c['z'] + 0.22:
-            bumps += 1
-            worst_bump = max(worst_bump, top - c['z'])
-    out["validation"] = {"holes": holes, "worst_hole_m": round(worst_hole, 3), "bumps": bumps, "worst_bump_m": round(worst_bump, 3)}
+                lst.append([c['z'], 1])
+                ids.append((key, len(lst) - 1))
+        cell_corners.append((c, ids))
+    index, fverts = {}, []
+    for key, lst in clusters.items():
+        for k, (zsum, n) in enumerate(lst):
+            index[(key, k)] = len(fverts)
+            fverts.append((key[0] * CELL / 2, key[1] * CELL / 2, zsum / n))
+    faces = [tuple(index[i] for i in ids) for _, ids in cell_corners]
+    worst = max(abs(sum(fverts[index[i]][2] for i in ids) / 4 - c['z']) for c, ids in cell_corners)
+    fme = bpy.data.meshes.new('TunelSueloColision')
+    fme.from_pydata(fverts, [], faces)
+    fme.update()
+    fob = bpy.data.objects.new('TunelSueloColision', fme)
+    bpy.context.scene.collection.objects.link(fob)
+    out["floor_mesh"] = export_map_glb([fob], os.path.join(MODELS, 'map', 'Desafio3', 'TunelesCumbre', 'TunelesColision.glb'))
+    out["floor_mesh"]["cells"] = len(faces)
+    out["floor_fit_worst_m"] = round(worst, 3)
 
     # ---- salida para el motor (glTF: x, z, -y)
     r3 = lambda x: round(x, 3)
-    data = {
-        "floors": [[r3(f['a'][0]), r3(f['a'][2]), r3(-f['a'][1]), r3(f['b'][0]), r3(f['b'][2]), r3(-f['b'][1]), r3(f['half']), f['clear']] for f in floors],
-        "patches": [[r3(x0), r3(-y1), r3(x1), r3(-y0), r3(z)] for x0, y0, x1, y1, z in patches],
-        "walls": [[r3(ax), r3(-ay), r3(bx), r3(-by), r3(z0), r3(z1)] for ax, ay, bx, by, z0, z1 in walls],
-    }
-    rows = lambda rows_: ',\n'.join('  ' + json.dumps(r) for r in rows_)
+    wall_rows = [[r3(ax), r3(-ay), r3(bx), r3(-by), r3(z0), r3(z1)] for ax, ay, bx, by, z0, z1 in walls]
     ts = ("// GENERADO por tools/blender/export_lote.py (--solo tuneles) midiendo con rayos TunelesEstructura / TunelesObjetos\n"
-          "// de Map.blend. No editar a mano: volver a generar tras cambiar los tuneles. Coordenadas glTF (x, y, z).\n\n"
-          "// Suelos inclinados: [ax, ay, az, bx, by, bz, semiancho, alturaLibre] (cara superior sobre la linea a-b).\n"
-          "export const TUNEL_FLOOR_ROWS: readonly (readonly number[])[] = [\n%s,\n];\n\n"
-          "// Parches planos (salas, tarima, peldanos): [x0, z0, x1, z1, yTop].\n"
-          "export const TUNEL_PATCH_ROWS: readonly (readonly number[])[] = [\n%s,\n];\n\n"
+          "// de Map.blend. No editar a mano: volver a generar tras cambiar los tuneles. Coordenadas glTF (x, y, z).\n"
+          "// El suelo es la malla TunelSueloColision de TunelesColision.glb, generada en la misma pasada.\n\n"
           "// Muros (borde real de lo caminable, lo transitable queda a la izquierda de a->b): [ax, az, bx, bz, yMin, yMax].\n"
-          "export const TUNEL_WALL_ROWS: readonly (readonly number[])[] = [\n%s,\n];\n") % (rows(data["floors"]), rows(data["patches"]), rows(data["walls"]))
+          "export const TUNEL_WALL_ROWS: readonly (readonly number[])[] = [\n%s,\n];\n") % ',\n'.join('  ' + json.dumps(r) for r in wall_rows)
     dst = os.path.join(REPO, 'src', 'game', 'challenges', 'desafio3', 'tunelesCumbre', 'tunelColliderData.ts')
     open(dst, 'w', encoding='utf-8', newline='\n').write(ts)
     out["collider_file"] = dst

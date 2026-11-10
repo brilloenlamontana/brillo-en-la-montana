@@ -39,12 +39,63 @@ def downscale(px, max_side):
     return px[ys][:, xs]
 
 
+def straighten_legs(arm, body):
+    """Los clips compartidos suponen piernas verticales en reposo. Varios modelos traen las piernas abiertas (los pies
+    mas separados que las caderas) y con esos clips caminan patiabiertos. Aqui (en memoria, sin guardar el .blend) cada
+    pierna se gira hasta dejar el tobillo bajo la cadera, el pie se endereza, la malla se queda con esa pose como nuevo
+    reposo y los huesos de la pierna se trasladan a su nuevo sitio sin cambiar su orientacion canonica."""
+    from mathutils import Matrix
+    B = 'mixamorig:'
+    angles, deltas = {}, {}
+    for side in ('Left', 'Right'):
+        up, foot = arm.pose.bones[B + side + 'UpLeg'], arm.pose.bones[B + side + 'Foot']
+        hip, ankle = up.bone.head_local.copy(), foot.bone.head_local.copy()
+        th = math.atan2(ankle.x - hip.x, hip.z - ankle.z)
+        angles[side] = round(math.degrees(th), 2)
+        if abs(th) < math.radians(1.0):
+            continue
+        up.matrix = Matrix.Translation(hip) @ Matrix.Rotation(th, 4, 'Y') @ Matrix.Translation(-hip) @ up.matrix
+        bpy.context.view_layer.update()
+        fh = foot.head.copy()
+        foot.matrix = Matrix.Translation(fh) @ Matrix.Rotation(-th, 4, 'Y') @ Matrix.Translation(-fh) @ foot.matrix
+        bpy.context.view_layer.update()
+        for name in ('Leg', 'Foot', 'ToeBase', 'Toe_End'):
+            pb = arm.pose.bones.get(B + side + name)
+            if pb:
+                deltas[pb.name] = pb.head - pb.bone.head_local
+    if not deltas:
+        return angles
+    mod = next(m for m in body.modifiers if m.type == 'ARMATURE')
+    mod_name = mod.name
+    if body.data.users > 1:
+        body.data = body.data.copy()
+    with bpy.context.temp_override(object=body, active_object=body, selected_objects=[body], selected_editable_objects=[body]):
+        bpy.ops.object.modifier_apply(modifier=mod_name)
+    body.modifiers.new(mod_name, 'ARMATURE').object = arm
+    for o in bpy.context.view_layer.objects:
+        o.select_set(False)
+    arm.hide_set(False)
+    arm.select_set(True)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode='EDIT')
+    for name, d in deltas.items():
+        eb = arm.data.edit_bones[name]
+        eb.head += d
+        eb.tail += d
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for pb in arm.pose.bones:
+        pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
+    bpy.context.view_layer.update()
+    return angles
+
+
 try:
     arm = bpy.data.objects['Avatar']; body = bpy.data.objects['Body']
     arm.animation_data_clear()
     for pb in arm.pose.bones:
         pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
     bpy.context.view_layer.update()
+    rep["legs_deg"] = straighten_legs(arm, body)
     rep["arm_scale"] = [round(x, 6) for x in arm.scale]
     rep["arm_loc"] = [round(x, 6) for x in arm.location]
     rep["arm_rot"] = [round(x, 6) for x in arm.rotation_euler]

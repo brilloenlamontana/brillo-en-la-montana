@@ -8,7 +8,7 @@ a = sys.argv[sys.argv.index('--') + 1:]
 OUT, REP, REST = a[0], a[1], a[2]
 MAP = {"IdleFemale": "woman/Idle", "WalkingFemale": "woman/Walking", "RunningFemale": "woman/Running",
        "IdleMale": "man/Idle", "WalkingMale": "man/Walking", "RunningMale": "man/Running",
-       "Death": "shared/Death", "Hit": "shared/Hit", "Throw": "shared/Throw"}
+       "Death": "shared/Death", "Throw": "shared/Throw"}
 rep = {"file": bpy.data.filepath, "clips": {}}
 
 

@@ -82,11 +82,17 @@ export function classifyRegion(x: number, y: number, z: number, previous: Region
   return 'camino';
 }
 
-const INTERIORS = Object.entries(INTERIOR_BOXES) as [Interior, (typeof INTERIOR_BOXES)[Interior]][];
+const INTERIORS = (Object.entries(INTERIOR_BOXES) as [Interior, (typeof INTERIOR_BOXES)[Interior]][]).map(([interior, box]) => {
+  const yaw = ((box.yawDeg ?? 0) * Math.PI) / 180;
+  return { interior, min: box.min, max: box.max, pivot: box.pivot ?? [0, 0], cos: Math.cos(yaw), sin: Math.sin(yaw) };
+});
 
 export function classifyInterior(x: number, y: number, z: number): Interior | null {
-  for (const [interior, { min, max }] of INTERIORS) {
-    if (x > min[0] && x < max[0] && y > min[1] && y < max[1] && z > min[2] && z < max[2]) return interior;
+  for (const { interior, min, max, pivot, cos, sin } of INTERIORS) {
+    // Into the house frame (a rotation.y of `yaw` turns local +x toward (cos, -sin) in XZ).
+    const dx = x - pivot[0], dz = z - pivot[1];
+    const lx = dx * cos - dz * sin, lz = dx * sin + dz * cos;
+    if (lx > min[0] && lx < max[0] && y > min[1] && y < max[1] && lz > min[2] && lz < max[2]) return interior;
   }
   return null;
 }

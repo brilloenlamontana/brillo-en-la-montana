@@ -7,6 +7,8 @@ export const DESAFIO3_MODELS = {
   tunelesCumbre: {
     estructura: `${DIR}/TunelesCumbre/TunelesEstructura.glb`,
     objetos: `${DIR}/TunelesCumbre/TunelesObjetos.glb`,
+    // Collision only (never drawn): the smooth floor mesh of the galleries.
+    colision: `${DIR}/TunelesCumbre/TunelesColision.glb`,
   },
   casaDeHedrig: {
     exterior: `${DIR}/CasaDeHedrig/HedrigExterior.glb`,
