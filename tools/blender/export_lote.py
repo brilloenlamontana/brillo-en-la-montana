@@ -14,6 +14,7 @@ from mathutils.bvhtree import BVHTree
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import glbtool
+import alas
 
 REPO = os.path.dirname(os.path.dirname(HERE))
 MODELS = os.path.join(REPO, 'public', 'models-3d')
@@ -880,6 +881,31 @@ def clip_volar(t, w, r):  # hada: vuela inclinada hacia delante, brazos abiertos
     return ops, U * (0.03 * r.hip_h * S(2 * w))
 
 
+def clip_reverencia(t, w, r):  # driada: se inclina con la mano libre al pecho
+    F, L, U = r.fwd, r.left, r.up
+    bow = 0.5 - 0.5 * math.cos(w)
+    ops = {
+        'Spine': [('rot', L, math.radians(20 * bow))],
+        'Spine2': [('rot', L, math.radians(12 * bow))],
+        'Head': [('rot', L, math.radians(12 * bow))],
+        'RightArm': [('aim', L * -0.25 - U * 0.9 + F * 0.3, 0.5 + 0.5 * bow)],
+        'RightForeArm': [('aim', L * 0.75 + U * 0.45 + F * 0.5, 0.5 + 0.5 * bow)],
+    }
+    return ops, U * (-0.02 * r.hip_h * bow)
+
+
+def clip_senalar(t, w, r):  # driada: invita a pasar senalando con el brazo libre hacia su derecha y atras
+    F, L, U = r.fwd, r.left, r.up
+    ops = {
+        'Spine2': [('rot', U, math.radians(-20 + 3 * S(w)))],
+        'Head': [('rot', U, math.radians(-28 + 4 * S(w + 0.8)))],
+        'RightArm': [('aim', L * -0.85 - F * 0.35 + U * (0.04 + 0.04 * S(w)), 1.0)],
+        'RightForeArm': [('aim', L * -0.8 - F * 0.5 + U * (0.1 + 0.05 * S(w + 0.5)), 1.0)],
+        'RightHand': [('aim', L * -0.8 - F * 0.5 + U * 0.05, 1.0)],
+    }
+    return ops, U * 0
+
+
 def clip_hablar(t, w, r):  # Hedrig: gesticula con la mano libre y asiente
     F, L, U = r.fwd, r.left, r.up
     ops = {
@@ -895,11 +921,13 @@ def append_source(blend, obj_name, action_names):
     with bpy.data.libraries.load(blend, link=False) as (src, dst):
         dst.objects = [n for n in src.objects if n == obj_name]
         dst.actions = [n for n in src.actions if n in action_names]
+        pedidas = list(dst.actions)
     arm = dst.objects[0]
     bpy.context.scene.collection.objects.link(arm)
     clear_nla(arm)
     assign_action(arm, None)
-    return arm, {a.name: a for a in dst.actions}
+    # por el nombre que tenian en su archivo: si aqui ya hay una accion igual, Blender la trae como 'Nombre.001'
+    return arm, dict(zip(pedidas, dst.actions))
 
 
 def female_source():
@@ -923,7 +951,9 @@ def build_ogro(rig, c):
     idle, attack = bpy.data.actions['Idle'], bpy.data.actions['Attack']
     base = sample_basis(rig, idle, idle.frame_range[0])
     fps = bpy.context.scene.render.fps
-    return [('Idle', idle), ('Attack', attack), ('Pulso', procedural(rig, 'Pulso', 1.6, clip_pulso, base, fps=fps)),
+    # 'Caminar' es su carrera corta (accion Run del .blend): la usa para ir de la escalera a la mesa de pulso
+    return [('Idle', idle), ('Attack', attack), ('Caminar', bpy.data.actions['Run']),
+            ('Pulso', procedural(rig, 'Pulso', 1.6, clip_pulso, base, fps=fps)),
             ('Celebrar', procedural(rig, 'Celebrar', 1.2, clip_celebrar, base, fps=fps))]
 
 
@@ -934,12 +964,41 @@ def build_idle_talking(rig, c):
     return [('Idle', idle), ('Talking', retarget(rig, src2, acts2['Talking'], 'Talking'))]
 
 
+def build_driada(rig, c):
+    clips = build_idle_talking(rig, c)
+    base = sample_basis(rig, clips[0][1], 0)
+    # relato de cierre: invita a pasar al santuario y hace una reverencia cuando el caliz vuelve a brillar
+    return clips + [('Senalar', procedural(rig, 'Senalar', 2.6, clip_senalar, base)),
+                    ('Reverencia', procedural(rig, 'Reverencia', 2.4, clip_reverencia, base))]
+
+
 def build_hada(rig, c):
     src, acts = female_source()
     idle = retarget(rig, src, acts['IdleFemale'], 'Idle')
     base = sample_basis(rig, idle, 0)
-    return [('Idle', idle), ('Atrapada', procedural(rig, 'Atrapada', 2.0, clip_atrapada, base)),
-            ('Volar', procedural(rig, 'Volar', 1.6, clip_volar, base))]
+    atrapada = procedural(rig, 'Atrapada', 2.0, clip_atrapada, base)
+    volar = procedural(rig, 'Volar', 1.6, clip_volar, base)
+    # las alas: un vaiven lento en reposo, un temblor atrapada y el aleteo rapido al volar
+    c["alas_animadas"] = alas.animar_alas(rig.arm, idle, 4, 9, paso=4)
+    alas.animar_alas(rig.arm, atrapada, 10, 5)
+    alas.animar_alas(rig.arm, volar, 6, 32)
+    return [('Idle', idle), ('Atrapada', atrapada), ('Volar', volar)]
+
+
+def prep_hada(arm, body, r):
+    found, _ = alas.localizar(arm, body)
+    r["alas"] = alas.crear_huesos(arm, body, found)
+    r["baculo"] = alas.fijar_baculo(arm, body)
+
+
+def prep_baculo(arm, body, r):
+    r["baculo"] = alas.fijar_baculo(arm, body)
+
+
+# Preparacion del modelo antes de animarlo (huesos y pesos que el .blend no traia); con --guardar queda en el archivo.
+PREP = {'Hada': prep_hada, 'Driada': prep_baculo}
+# El aleteo es rapido: el hada se exporta muestreando cada fotograma.
+PASO_EXPORT = {'Hada': 1}
 
 
 def build_hedrig(rig, c):
@@ -955,7 +1014,7 @@ NPCS = {
     'NinaClara': (r'Enemigos\NinaNormal.blend', 'npcs', 1.05, MIX_ROLES, build_nina_clara),
     # El Ogro mide 0.68 de pie en su .blend (su reposo esta tumbado y en segundo plano no se puede medir deformado).
     'Ogro': (r'Enemigos\Ogro.blend', 'enemies', 3.0, MIX_ROLES, build_ogro, 0.68),
-    'Driada': (r'Enemigos\Driada.blend', 'npcs', 1.9, MIX_ROLES, build_idle_talking),
+    'Driada': (r'Enemigos\Driada.blend', 'npcs', 1.9, MIX_ROLES, build_driada),
     'Hada': (r'PersonajesPrincipalesDesafios\Hada.blend', 'npcs', 0.75, MIX_ROLES, build_hada),
     'Aldeana': (r'PersonajesPrincipalesDesafios\Aldeana.blend', 'npcs', 1.62, MIX_ROLES, build_idle_talking),
 }
@@ -978,6 +1037,8 @@ def export_npc(name):
     r["arm_rot"] = [round(x, 4) for x in arm.rotation_euler]
     r["arm_scale_src"] = [round(x, 5) for x in arm.scale]
     r["fps"] = sc.render.fps
+    if name in PREP and len(meshes) == 1:
+        PREP[name](arm, meshes[0], r)
     rig = Rig(arm, roles)
     r["fwd"] = [round(x, 2) for x in rig.fwd]
     clips = build(rig, r)
@@ -1003,7 +1064,12 @@ def export_npc(name):
     bpy.context.view_layer.update()
     # una pista NLA por clip: el exportador saca una animacion por pista
     ad = arm.animation_data
+    usadas = {act for _, act in clips}
     for clip, act in clips:
+        # una version anterior del mismo clip (guardada en el .blend por una pasada previa) se reemplaza
+        vieja = bpy.data.actions.get(clip)
+        if vieja is not None and vieja not in usadas:
+            bpy.data.actions.remove(vieja)
         act.name = clip
         act.use_fake_user = True
         tr = ad.nla_tracks.new()
@@ -1016,7 +1082,8 @@ def export_npc(name):
         keep = {act for _, act in clips}
         for o in [o for o in sc.objects if o not in originales]:
             bpy.data.objects.remove(o, do_unlink=True)
-        for a in [a for a in bpy.data.actions if a not in keep and a not in acciones_previas]:
+        import re
+        for a in [a for a in bpy.data.actions if a not in keep and (a not in acciones_previas or re.search(r'\.\d{3}$', a.name))]:
             bpy.data.actions.remove(a)
         for i, tr in enumerate(ad.nla_tracks):
             tr.mute = i > 0
@@ -1036,7 +1103,7 @@ def export_npc(name):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     select_only([arm] + meshes)
     kw = gltf_kwargs(filepath=dst, export_format='GLB', use_selection=True, export_apply=False, export_yup=True,
-                     export_animations=True, export_animation_mode='NLA_TRACKS', export_force_sampling=True, export_frame_step=2,
+                     export_animations=True, export_animation_mode='NLA_TRACKS', export_force_sampling=True, export_frame_step=PASO_EXPORT.get(name, 2),
                      export_anim_slide_to_zero=True, export_optimize_animation_size=True,
                      export_optimize_animation_keep_anim_armature=True, export_optimize_animation_keep_anim_object=False,
                      export_reset_pose_bones=True, export_skins=True, export_all_influences=False, export_def_bones=False,

@@ -10,6 +10,8 @@ export const CAMARA_SIMONA: Point3 = [129.9, 29.75, -178];
 // player challenges him from the west side.
 export const OGRO_POSITION: Point3 = [117.7, 43.75, -169.49];
 export const MESA_PULSO: Point3 = [115.33, 42.5, -169.49];
+// Where the Ogre stands guard while nobody has beaten him: right in front of the stairs, blocking them (hall floor).
+export const OGRO_GUARDIA: Point3 = [113.9, 42.5, -173.1];
 // Foot of the stairs that climb to the summit, at the south-west corner of the hall.
 export const ESCALERA_PIE: Point3 = [113.6, 42.5, -174.4];
 // Where the Ogre throws back whoever tries to get past him (capsule center, over the hall floor).

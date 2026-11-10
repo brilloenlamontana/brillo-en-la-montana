@@ -14,6 +14,7 @@ import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { RELATO_CIERRE_MODELS } from '../assets';
+import { useCinematicaStore } from '../cinematica/cinematica';
 import { DIALOG } from '../dialogs';
 import { isCalizTomado, isSantuarioAbierto } from '../mission';
 import { CAMERA_BLOCKS_IN, VISIBLE_FROM } from '../visibility';
@@ -33,14 +34,15 @@ const ALTAR: readonly ColliderBox[] = [{ id: 'santuario-altar', position: [163.2
 const CALIZ: readonly [number, number, number] = [163.2, 53.85, -153];
 const CALIZ_REACH = 2.4;
 
-// Taking the chalice from the altar ends the game: the final victory is told.
+// Taking the chalice from the altar ends the game.
 function tomarCaliz() {
   if (isCalizTomado(useProgressStore.getState().progress)) return;
   const now = new Date().toISOString();
   usePlayerStore.getState().restoreHealth();
   playGlide(440, 1320, 1.2, 0.08, 'sine');
   saveProgress({ calizTomado: true, juegoCompletado: true, juegoCompletadoEn: now });
-  useUIStore.getState().openDialog(DIALOG.victoria);
+  // The glow of the chalice travels the whole map (final cinematic); the final victory is told when it ends.
+  useCinematicaStore.getState().start();
 }
 
 // "Santuario" collection of Map.blend: the sanctuary on the plaza with its tower, spire and green beam. The dryad
@@ -73,7 +75,8 @@ export function Santuario() {
         position={DRIADA_POSITION}
         rotationY={DRIADA_ROTATION_Y}
         visible={driadaVisible || driadaWarming}
-        animation={talking ? 'Talking' : 'Idle'}
+        // She talks, then invites the player in (pointing at the door) and bows once the chalice shines again.
+        animation={talking ? 'Talking' : tomado ? 'Reverencia' : abierto ? 'Senalar' : 'Idle'}
         talk={{ prompt: 'hablar con la dríada', enabled: !talking, onTalk: () => useUIStore.getState().openDialog(DIALOG.driada) }}
       />
       <group visible={interiorVisible}>

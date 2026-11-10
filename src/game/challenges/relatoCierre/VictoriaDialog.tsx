@@ -56,7 +56,7 @@ export function VictoriaDialog() {
       >
         <p className="text-center text-xs sm:text-sm italic text-[#5c3a21]">Brillo en la montaña</p>
         <h2 id={titleId} className="text-center text-2xl sm:text-3xl font-bold mb-2">
-          ¡Recuperaste el cáliz!
+          ¡Fin del juego: recuperaste el cáliz!
         </h2>
         <div className="flex justify-center gap-1 mb-3" role="img" aria-label={`${progress.estrellas} de ${STARS} estrellas`}>
           {Array.from({ length: STARS }, (_, i) => (
@@ -68,7 +68,10 @@ export function VictoriaDialog() {
             Sobre el altar, bajo la torre, tomas el cáliz de madera con grabados de hojas de sauce y runas en el borde: brilla más de lo que jamás imaginaste. Su
             resplandor verde sube por la aguja del santuario y señala el camino de regreso a quienes tuvieron que abandonar su hogar.
           </p>
-          <p>Atravesaste el Pantano de la Tristeza, el Bosque de la Oscuridad y los túneles de la Cumbre de la Desolación. Este es el resumen de tu aventura:</p>
+          <p>
+            El frío cede y la tierra vuelve a ser fértil: todo vuelve a estar bien. Atravesaste el Pantano de la Tristeza, el Bosque de la Oscuridad y los túneles de
+            la Cumbre de la Desolación; el juego ha terminado y este es el resumen de tu aventura:
+          </p>
         </div>
         <ul className="mt-3 text-xs sm:text-sm font-sans">
           <Row label="Desafío 1 · Pantano de la Tristeza" value={formatDate(progress.mision1CompletadaEn)} done={progress.mision1Completada} />

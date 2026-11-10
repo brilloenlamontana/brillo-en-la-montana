@@ -15,7 +15,8 @@ const toast = (message: string) => useToastStore.getState().showToast(message);
 export const RETO_RANGE = 3.2;
 // What it costs to be thrown back by him.
 const REPEL_DAMAGE = 20;
-// How long the arm wrestling lasts (ms).
+// The Ogre first walks from the stairs to his table (OGRO_WALK_MS), then the arm wrestling lasts PULSO_MS.
+export const OGRO_WALK_MS = 1700;
 export const PULSO_MS = 3200;
 
 // Whether the player stands by the arm-wrestling table, in the Ogre's hall.
@@ -47,7 +48,7 @@ export function retarAlOgro() {
     return repelPlayer('Sin el guante de minero el ogro te dobla el brazo de un tirón y te lanza por los aires. Necesitas el guante de Hedrig.');
   }
   tunel.setPulso(performance.now());
-  toast('¡Te pones el guante de minero y aceptas el pulso! El ogro empuja con todas sus fuerzas…');
+  toast('¡Te pones el guante de minero y aceptas el pulso! El ogro deja la escalera, se planta frente a ti y empuja con todas sus fuerzas…');
 }
 
 // The arm wrestling is won: the Ogre steps aside for good.

@@ -1,3 +1,4 @@
+import { CinematicaOverlay } from './cinematica/CinematicaOverlay';
 import { DriadaDialog } from './santuario/DriadaDialog';
 import { VictoriaDialog } from './VictoriaDialog';
 
@@ -6,6 +7,7 @@ export function RelatoCierreDialogs() {
   return (
     <>
       <DriadaDialog />
+      <CinematicaOverlay />
       <VictoriaDialog />
     </>
   );
