@@ -31,7 +31,8 @@ export type MusicId =
   | 'mus_claro_hada'
   | 'mus_tuneles'
   | 'mus_ogro'
-  | 'mus_cumbre';
+  | 'mus_cumbre'
+  | 'mus_final';
 
 // Ambience beds (public/audio/ambiente/<id>.mp3), one loop at a time under the music.
 export type AmbienceId =

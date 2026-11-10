@@ -45,9 +45,8 @@ const REGION_AMBIENCE: Record<Region, AmbienceId> = {
   cumbre: 'amb_cumbre',
 };
 
-// The main theme stands in for the ending theme (mus_final has not been generated yet): it plays over the final
-// cinematic and, once the game is completed, over the recovered world.
-const ENDING_MUSIC: MusicId = 'mus_menu';
+// The ending theme plays over the final cinematic and, once the game is completed, over the recovered world.
+const ENDING_MUSIC: MusicId = 'mus_final';
 
 export function musicFor({ region, interior, spot, cinematic, recovered }: Place): MusicId {
   if (cinematic) return ENDING_MUSIC;
