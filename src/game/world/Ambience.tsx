@@ -11,8 +11,8 @@ export function Ambience() {
   const look = useMundoRecuperado() ? RECUPERADO : INVIERNO;
   return (
     <>
-      <color key={look.sky} attach="background" args={[look.sky]} />
-      <fog key={look.fog} attach="fog" args={[look.fog, look.fogNear, FOG_FAR]} />
+      <color key={`sky-${look.sky}`} attach="background" args={[look.sky]} />
+      <fog key={`fog-${look.fog}`} attach="fog" args={[look.fog, look.fogNear, FOG_FAR]} />
       <ambientLight intensity={look.ambient} color={look.ambientColor} />
       <directionalLight position={[100, 100, 50]} intensity={look.sun} color={look.sunColor} />
     </>
