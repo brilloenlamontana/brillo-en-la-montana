@@ -77,9 +77,9 @@ export function collectImeriItem(id: string) {
 // Backpack of Challenge 1: active since Imeri's help was accepted.
 export const DESAFIO1_BACKPACK: Backpack = {
   items: [
-    { id: 'gema', name: 'Gema', model: `${DIR}/Gema.glb`, Icon: GemaIcon, hotkey: '1' },
-    { id: 'soga', name: 'Soga', model: `${DIR}/Soga.glb`, Icon: SogaIcon, hotkey: '2' },
-    { id: 'insecticida', name: 'Insecticida', model: `${DIR}/Insecticida.glb`, Icon: InsecticidaIcon, hotkey: '3' },
+    { id: 'gema', name: 'Gema', model: `${DIR}/Gema.glb`, Icon: GemaIcon, hotkey: '1', gesture: 'UseThrow' },
+    { id: 'soga', name: 'Soga', model: `${DIR}/Soga.glb`, Icon: SogaIcon, hotkey: '2', gesture: 'UseRope' },
+    { id: 'insecticida', name: 'Insecticida', model: `${DIR}/Insecticida.glb`, Icon: InsecticidaIcon, hotkey: '3', gesture: 'UseSpray' },
   ],
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as BackpackItemId, progress),

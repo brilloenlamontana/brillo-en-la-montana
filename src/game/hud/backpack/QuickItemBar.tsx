@@ -1,5 +1,25 @@
 import { useEffect } from 'react';
+import { useGLTF } from '@react-three/drei';
+import type { Backpack } from '@/game/challenges/types';
+import { playSfx } from '@/game/engine/audio/audio';
+import { useGestureStore } from '@/game/player/gestureStore';
+import { usePlayerStore } from '@/game/player/playerStore';
+import { useProgressStore } from '@/store/progressStore';
+import { isGameplayPaused } from '@/store/uiStore';
 import { useActiveBackpack } from './useActiveBackpack';
+
+// Using an item: the avatar takes it out of the backpack and handles it, and its effect happens at the instant of the
+// gesture that uses it (the gem leaves the hand, the bottle is squeezed). Without a gesture it happens at once.
+function activateItem(backpack: Backpack, id: string) {
+  const item = backpack.items.find((candidate) => candidate.id === id);
+  const owned = backpack.stateOf(id, useProgressStore.getState().progress) === 'owned';
+  if (item && owned && usePlayerStore.getState().health > 0 && !isGameplayPaused()) {
+    playSfx(item.drawSound ?? 'ui_item_seleccion', { volume: 0.8 });
+    useGestureStore.getState().play(item.gesture, item.model, () => backpack.use(id));
+  } else {
+    backpack.use(id);
+  }
+}
 
 // Bottom-right bar with the carried items: a click, a tap or the item's hotkey uses it. A used-up item disappears from
 // it. On phones it rises so it does not cover the jump and run buttons.
@@ -13,11 +33,17 @@ export function QuickItemBar({ raised }: { raised: boolean }) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.repeat || !ownedKey.includes(event.key)) return;
       const item = backpack.items.find((candidate) => candidate.hotkey === event.key);
-      if (item) backpack.use(item.id);
+      if (item) activateItem(backpack, item.id);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [backpack, ownedKey]);
+
+  // The models of the carried items are downloaded ahead: the first time one is used it is already in the hand.
+  const ownedModels = owned.map((item) => item.model).join('|');
+  useEffect(() => {
+    if (ownedModels) for (const url of ownedModels.split('|')) useGLTF.preload(url);
+  }, [ownedModels]);
 
   if (!backpack || owned.length === 0) return null;
 
@@ -31,7 +57,7 @@ export function QuickItemBar({ raised }: { raised: boolean }) {
         <button
           key={id}
           type="button"
-          onClick={() => backpack.use(id)}
+          onClick={() => activateItem(backpack, id)}
           title={`Usar ${name} (${hotkey})`}
           aria-label={`Usar ${name}`}
           className="relative flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#f4e4bc]/95 border-2 sm:border-[3px] border-[#5c3a21] shadow-xl hover:scale-110 active:scale-95 transition-transform cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f4d03f]"

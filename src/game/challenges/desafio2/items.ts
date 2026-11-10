@@ -13,6 +13,9 @@ export const ELFO_COLLECTIBLES = [
 
 export type ElfoItemId = (typeof ELFO_COLLECTIBLES)[number]['id'];
 
+// The elven sword's model, for the avatar's hand while it swings (see player/gestureStore).
+export const ESPADA_URL = `${DIR}/Espada.glb`;
+
 // A sword swing reaches the goblins within this distance (m) of the player.
 export const SWORD_RANGE = 2.8;
 

@@ -12,10 +12,12 @@ import { usePlayerStore } from '@/game/player/playerStore';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
+import { useGestureStore } from '@/game/player/gestureStore';
 import { useToastStore } from '@/store/toastStore';
 import { useUIStore } from '@/store/uiStore';
 import { DESAFIO2_MODELS } from '../assets';
 import { useBosqueStore } from '../bosqueStore';
+import { ESPADA_URL } from '../items';
 import { DIALOG } from '../dialogs';
 import { VISIBLE_FROM } from '../visibility';
 import { Hada } from './Hada';
@@ -41,6 +43,7 @@ function cortarZarzas() {
     return toast('Las zarzas son duras como el hierro: solo la espada élfica podría cortarlas. Pídesela al elfo del árbol gigante.');
   }
   useBosqueStore.getState().slash();
+  useGestureStore.getState().play('UseSlash', ESPADA_URL);
   playSfx('d2_zarzas');
   playSfx('d2_hada_libre', { volume: 0.8 });
   saveProgress({ hadaLiberada: true });

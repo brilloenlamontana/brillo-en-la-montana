@@ -5,6 +5,8 @@ import { AnimationUtils, LoopOnce, MathUtils, Vector3, type AnimationClip, type 
 import { avatarModelUrl, findCharacter, genderFolder } from '@/data/characters';
 import { playOnceAndHold, setPace } from '@/game/engine/models/animation';
 import { useAuthStore, type AvatarGender } from '@/store/authStore';
+import { AvatarGestures } from './AvatarGestures';
+import { GESTURE_NAMES, keepGestureTracks, type GestureName } from './gestureStore';
 import { usePlayerStore } from './playerStore';
 
 const FADE_SECONDS = 0.25;
@@ -12,7 +14,7 @@ const ANIMATIONS_DIR = '/models-3d/animations';
 // Every character shares the Mixamo skeleton, so the clips are skeleton-only files reused by all of them: the
 // locomotion set of the character's gender plus the clips common to everyone.
 const GENDER_CLIPS = ['Idle', 'Walking', 'Running'] as const;
-const SHARED_CLIPS = ['Death', 'Hit'] as const;
+const SHARED_CLIPS = ['Death', 'Hit', ...GESTURE_NAMES] as const;
 const CLIP_NAMES = [...GENDER_CLIPS, ...SHARED_CLIPS];
 type ClipName = (typeof CLIP_NAMES)[number];
 
@@ -62,6 +64,7 @@ export function Avatar() {
         clip.name = CLIP_NAMES[i];
         // Only what the flinch changes from its first frame is kept: it adds to the clip being played.
         if (clip.name === 'Hit') AnimationUtils.makeClipAdditive(clip);
+        if (GESTURE_NAMES.includes(clip.name as GestureName)) keepGestureTracks(clip, clip.name as GestureName);
         return [clip];
       }),
     [clipFiles],
@@ -135,6 +138,7 @@ export function Avatar() {
   return (
     <group ref={avatarRef} dispose={null}>
       <primitive object={scene} />
+      <AvatarGestures actions={actions} scene={scene} height={character.height} />
     </group>
   );
 }

@@ -42,9 +42,9 @@ export function collectHedrigItem(id: string) {
 // Backpack of Challenge 3: replaces the elf's once the player arrives at Hedrig's mining town.
 export const DESAFIO3_BACKPACK: Backpack = {
   items: [
-    { id: 'guante', name: 'Guante de minero', model: MODEL.guante, Icon: GuanteIcon, hotkey: '1' },
-    { id: 'brujula', name: 'Brújula', model: MODEL.brujula, Icon: BrujulaIcon, hotkey: '2' },
-    { id: 'muneca', name: 'Muñeca de trapo', model: MODEL.muneca, Icon: MunecaIcon, hotkey: '3' },
+    { id: 'guante', name: 'Guante de minero', model: MODEL.guante, Icon: GuanteIcon, hotkey: '1', gesture: 'UseGlove' },
+    { id: 'brujula', name: 'Brújula', model: MODEL.brujula, Icon: BrujulaIcon, hotkey: '2', gesture: 'UseCompass' },
+    { id: 'muneca', name: 'Muñeca de trapo', model: MODEL.muneca, Icon: MunecaIcon, hotkey: '3', gesture: 'UseOffer' },
   ],
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as HedrigItemId, progress),

@@ -1,0 +1,647 @@
+{
+ "nombre": "UseSlash",
+ "descripcion": "Espada elfica: la alza junto al hombro derecho enroscando el torso y descarga un tajo descendente en diagonal, de arriba a la derecha hacia abajo a la izquierda.",
+ "brazos": "ambos",
+ "efecto": 0.36,
+ "objeto": {
+  "modelo": "public/models-3d/map/Desafio2/CasaDelElfo/ElfoRecogibles/Espada.glb",
+  "mano": "derecha",
+  "largo": 0.95,
+  "agarre": "extremo",
+  "hacia": "filo",
+  "invertir": true,
+  "giro": 0,
+  "empunadura": 0.21,
+  "desplazar": [
+   0,
+   0,
+   0
+  ],
+  "visible": [
+   0.03,
+   0.8
+  ],
+  "detalle": 10
+ },
+ "claves": [
+  {
+   "t": 0.0
+  },
+  {
+   "t": 0.095,
+   "torso": {
+    "Spine": {
+     "yaw": -4.2,
+     "pitch": -0.68,
+     "roll": 0.6
+    },
+    "Spine1": {
+     "yaw": -5.4,
+     "pitch": -0.66,
+     "roll": 0.7
+    },
+    "Spine2": {
+     "yaw": -5.4,
+     "pitch": -0.66,
+     "roll": 0.7
+    },
+    "Neck": {
+     "yaw": 3.6,
+     "pitch": 0.0
+    },
+    "Head": {
+     "yaw": 5.4,
+     "pitch": 0.0
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.36,
+     -0.32,
+     -0.08
+    ],
+    "ref": "hombro",
+    "codo": [
+     -0.5,
+     -0.6,
+     -0.6
+    ],
+    "filo": [
+     0.035,
+     -0.642,
+     0.766
+    ],
+    "nudillos": [
+     0.999,
+     0.022,
+     -0.027
+    ],
+    "cierre": 1
+   },
+   "izquierdo": {
+    "mano": [
+     0.16,
+     0.1,
+     -0.92
+    ],
+    "codo": [
+     -0.5,
+     0.6,
+     -0.6
+    ],
+    "cierre": 0.45
+   }
+  },
+  {
+   "t": 0.17,
+   "torso": {
+    "Spine": {
+     "yaw": -7.0,
+     "pitch": -1.7,
+     "roll": 1.2
+    },
+    "Spine1": {
+     "yaw": -9.0,
+     "pitch": -1.65,
+     "roll": 1.4
+    },
+    "Spine2": {
+     "yaw": -9.0,
+     "pitch": -1.65,
+     "roll": 1.4
+    },
+    "Neck": {
+     "yaw": 6.0,
+     "pitch": 0.0
+    },
+    "Head": {
+     "yaw": 9.0,
+     "pitch": 0.0
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.05,
+     -0.41,
+     0.4
+    ],
+    "ref": "hombro",
+    "codo": [
+     -0.7,
+     -0.55,
+     -0.45
+    ],
+    "filo": [
+     -0.616,
+     -0.507,
+     0.604
+    ],
+    "nudillos": [
+     0.788,
+     -0.396,
+     0.472
+    ],
+    "cierre": 1,
+    "hombro": {
+     "sube": 6,
+     "adelanta": -4
+    }
+   },
+   "izquierdo": {
+    "mano": [
+     0.34,
+     0.12,
+     -0.76
+    ],
+    "codo": [
+     -0.5,
+     0.6,
+     -0.6
+    ],
+    "cierre": 0.45
+   }
+  },
+  {
+   "t": 0.205,
+   "torso": {
+    "Spine": {
+     "yaw": -6.16,
+     "pitch": -1.36,
+     "roll": 1.2
+    },
+    "Spine1": {
+     "yaw": -7.92,
+     "pitch": -1.32,
+     "roll": 1.4
+    },
+    "Spine2": {
+     "yaw": -7.92,
+     "pitch": -1.32,
+     "roll": 1.4
+    },
+    "Neck": {
+     "yaw": 5.2,
+     "pitch": 0.0
+    },
+    "Head": {
+     "yaw": 7.8,
+     "pitch": 0.0
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.03,
+     -0.42,
+     0.42
+    ],
+    "ref": "hombro",
+    "codo": [
+     -0.7,
+     -0.55,
+     -0.45
+    ],
+    "filo": [
+     -0.707,
+     -0.455,
+     0.542
+    ],
+    "nudillos": [
+     0.707,
+     -0.455,
+     0.542
+    ],
+    "cierre": 1,
+    "hombro": {
+     "sube": 6,
+     "adelanta": -4
+    }
+   },
+   "izquierdo": {
+    "mano": [
+     0.36,
+     0.12,
+     -0.74
+    ],
+    "codo": [
+     -0.5,
+     0.6,
+     -0.6
+    ],
+    "cierre": 0.45
+   }
+  },
+  {
+   "t": 0.28,
+   "torso": {
+    "Spine": {
+     "yaw": -1.68,
+     "pitch": 0.68,
+     "roll": 0.3
+    },
+    "Spine1": {
+     "yaw": -2.16,
+     "pitch": 0.66,
+     "roll": 0.35
+    },
+    "Spine2": {
+     "yaw": -2.16,
+     "pitch": 0.66,
+     "roll": 0.35
+    },
+    "Neck": {
+     "yaw": 1.6,
+     "pitch": 0.0
+    },
+    "Head": {
+     "yaw": 2.4,
+     "pitch": 0.0
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.46,
+     -0.4,
+     0.46
+    ],
+    "ref": "hombro",
+    "codo": [
+     -0.35,
+     -0.85,
+     -0.4
+    ],
+    "filo": [
+     -0.438,
+     -0.578,
+     0.689
+    ],
+    "nudillos": [
+     0.899,
+     -0.282,
+     0.336
+    ],
+    "cierre": 1,
+    "hombro": {
+     "sube": 6,
+     "adelanta": 2
+    }
+   },
+   "izquierdo": {
+    "mano": [
+     0.16,
+     0.18,
+     -0.9
+    ],
+    "codo": [
+     -0.6,
+     0.6,
+     -0.5
+    ],
+    "cierre": 0.45
+   }
+  },
+  {
+   "t": 0.335,
+   "torso": {
+    "Spine": {
+     "yaw": 2.8,
+     "pitch": 2.72,
+     "roll": -0.6
+    },
+    "Spine1": {
+     "yaw": 3.6,
+     "pitch": 2.64,
+     "roll": -0.7
+    },
+    "Spine2": {
+     "yaw": 3.6,
+     "pitch": 2.64,
+     "roll": -0.7
+    },
+    "Neck": {
+     "yaw": -2.4,
+     "pitch": -0.8
+    },
+    "Head": {
+     "yaw": -3.6,
+     "pitch": -1.2
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.86,
+     0.06,
+     -0.32
+    ],
+    "ref": "hombro",
+    "codo": [
+     0.0,
+     -0.95,
+     -0.25
+    ],
+    "filo": [
+     0.866,
+     -0.321,
+     0.383
+    ],
+    "nudillos": [
+     0.5,
+     0.557,
+     -0.663
+    ],
+    "cierre": 1,
+    "hombro": {
+     "sube": 0,
+     "adelanta": 8
+    }
+   },
+   "izquierdo": {
+    "mano": [
+     -0.08,
+     0.26,
+     -0.9
+    ],
+    "codo": [
+     -0.6,
+     0.6,
+     -0.4
+    ],
+    "cierre": 0.45
+   }
+  },
+  {
+   "t": 0.385,
+   "torso": {
+    "Spine": {
+     "yaw": 5.32,
+     "pitch": 3.74,
+     "roll": -1.2
+    },
+    "Spine1": {
+     "yaw": 6.84,
+     "pitch": 3.63,
+     "roll": -1.4
+    },
+    "Spine2": {
+     "yaw": 6.84,
+     "pitch": 3.63,
+     "roll": -1.4
+    },
+    "Neck": {
+     "yaw": -4.4,
+     "pitch": -1.2
+    },
+    "Head": {
+     "yaw": -6.6,
+     "pitch": -1.8
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.63,
+     0.36,
+     -0.57
+    ],
+    "ref": "hombro",
+    "codo": [
+     0.3,
+     -0.9,
+     -0.2
+    ],
+    "filo": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "nudillos": [
+     0.0,
+     0.643,
+     -0.766
+    ],
+    "cierre": 1,
+    "hombro": {
+     "sube": -2,
+     "adelanta": 8
+    }
+   },
+   "izquierdo": {
+    "mano": [
+     -0.24,
+     0.34,
+     -0.82
+    ],
+    "codo": [
+     -0.7,
+     0.6,
+     -0.3
+    ],
+    "cierre": 0.45
+   }
+  },
+  {
+   "t": 0.455,
+   "torso": {
+    "Spine": {
+     "yaw": 7.0,
+     "pitch": 4.76,
+     "roll": -1.8
+    },
+    "Spine1": {
+     "yaw": 9.0,
+     "pitch": 4.62,
+     "roll": -2.1
+    },
+    "Spine2": {
+     "yaw": 9.0,
+     "pitch": 4.62,
+     "roll": -2.1
+    },
+    "Neck": {
+     "yaw": -6.0,
+     "pitch": -2.0
+    },
+    "Head": {
+     "yaw": -9.0,
+     "pitch": -3.0
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.3,
+     0.56,
+     -0.7
+    ],
+    "ref": "hombro",
+    "codo": [
+     0.75,
+     -0.62,
+     -0.17
+    ],
+    "filo": [
+     0.883,
+     0.302,
+     -0.36
+    ],
+    "nudillos": [
+     -0.469,
+     0.568,
+     -0.676
+    ],
+    "cierre": 1,
+    "hombro": {
+     "sube": -2,
+     "adelanta": 6
+    }
+   },
+   "izquierdo": {
+    "mano": [
+     -0.34,
+     0.4,
+     -0.74
+    ],
+    "codo": [
+     -0.7,
+     0.6,
+     -0.2
+    ],
+    "cierre": 0.45
+   }
+  },
+  {
+   "t": 0.555,
+   "torso": {
+    "Spine": {
+     "yaw": 6.44,
+     "pitch": 4.08,
+     "roll": -1.5
+    },
+    "Spine1": {
+     "yaw": 8.28,
+     "pitch": 3.96,
+     "roll": -1.75
+    },
+    "Spine2": {
+     "yaw": 8.28,
+     "pitch": 3.96,
+     "roll": -1.75
+    },
+    "Neck": {
+     "yaw": -5.6,
+     "pitch": -1.6
+    },
+    "Head": {
+     "yaw": -8.4,
+     "pitch": -2.4
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.28,
+     0.55,
+     -0.71
+    ],
+    "ref": "hombro",
+    "codo": [
+     0.75,
+     -0.62,
+     -0.17
+    ],
+    "filo": [
+     0.866,
+     0.321,
+     -0.383
+    ],
+    "nudillos": [
+     -0.5,
+     0.557,
+     -0.663
+    ],
+    "cierre": 1,
+    "hombro": {
+     "sube": -2,
+     "adelanta": 5
+    }
+   },
+   "izquierdo": {
+    "mano": [
+     -0.3,
+     0.38,
+     -0.77
+    ],
+    "codo": [
+     -0.7,
+     0.6,
+     -0.2
+    ],
+    "cierre": 0.45
+   }
+  },
+  {
+   "t": 0.75,
+   "torso": {
+    "Spine": {
+     "yaw": 1.96,
+     "pitch": 1.02,
+     "roll": -0.3
+    },
+    "Spine1": {
+     "yaw": 2.52,
+     "pitch": 0.99,
+     "roll": -0.35
+    },
+    "Spine2": {
+     "yaw": 2.52,
+     "pitch": 0.99,
+     "roll": -0.35
+    },
+    "Neck": {
+     "yaw": -1.6,
+     "pitch": -0.4
+    },
+    "Head": {
+     "yaw": -2.4,
+     "pitch": -0.6
+    }
+   },
+   "derecho": {
+    "mano": [
+     0.3,
+     -0.24,
+     -0.79
+    ],
+    "ref": "hombro",
+    "codo": [
+     -0.4,
+     -0.7,
+     -0.6
+    ],
+    "filo": [
+     0.96,
+     0.15,
+     0.1
+    ],
+    "nudillos": [
+     0.08,
+     0.22,
+     -0.97
+    ],
+    "cierre": 1
+   },
+   "izquierdo": {
+    "mano": [
+     -0.06,
+     0.12,
+     -0.96
+    ],
+    "codo": [
+     -0.5,
+     0.6,
+     -0.6
+    ],
+    "cierre": 0.3
+   }
+  },
+  {
+   "t": 0.94
+  }
+ ]
+}

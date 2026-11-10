@@ -76,9 +76,9 @@ export function collectElfoItem(id: string) {
 // Backpack of Challenge 2: replaces Challenge 1's once the elf's help is accepted.
 export const DESAFIO2_BACKPACK: Backpack = {
   items: [
-    { id: 'espada', name: 'Espada élfica', model: MODEL.espada, Icon: EspadaIcon, hotkey: '1' },
-    { id: 'lente', name: 'Lente revelador', model: MODEL.lente, Icon: LenteIcon, hotkey: '2' },
-    { id: 'mapa', name: 'Mapa del bosque', model: MODEL.mapa, Icon: MapaIcon, hotkey: '3' },
+    { id: 'espada', name: 'Espada élfica', model: MODEL.espada, Icon: EspadaIcon, hotkey: '1', gesture: 'UseSlash', drawSound: 'd2_espada_desenvainar' },
+    { id: 'lente', name: 'Lente revelador', model: MODEL.lente, Icon: LenteIcon, hotkey: '2', gesture: 'UseLens' },
+    { id: 'mapa', name: 'Mapa del bosque', model: MODEL.mapa, Icon: MapaIcon, hotkey: '3', gesture: 'UseMap' },
   ],
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as ElfoItemId, progress),

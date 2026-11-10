@@ -1,4 +1,6 @@
 import type { ComponentType } from 'react';
+import type { SfxId } from '@/game/engine/audio/catalog';
+import type { GestureName } from '@/game/player/gestureStore';
 import type { Point, Spawn } from '@/game/player/playerStore';
 import type { Region } from '@/game/world/regions';
 import type { GameProgress } from '@/store/progressStore';
@@ -18,6 +20,10 @@ export interface BackpackItem {
   Icon: ComponentType<{ className?: string }>;
   // Key that uses the item ('1'...'9'), fixed per item so it never shifts.
   hotkey: string;
+  // How the avatar takes it out of the backpack and uses it (see player/gestureStore).
+  gesture: GestureName;
+  // What taking it out sounds like, when it has a sound of its own (a sword leaving its sheath).
+  drawSound?: SfxId;
 }
 
 // The backpack of a challenge: which items it holds and what using each one does.
