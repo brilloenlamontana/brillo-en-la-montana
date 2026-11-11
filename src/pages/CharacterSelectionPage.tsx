@@ -58,7 +58,7 @@ export default function CharacterSelectionPage() {
   const lostNotice = lost.length > 0 && (
     <div className="mb-5 sm:mb-6 w-full max-w-xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs sm:text-sm text-red-900 shadow-xs" role="status">
       <p className="font-bold">Acabaste de perder: ya no puedes volver a jugar con {lost.map((character) => character.name).join(', ')}.</p>
-      <p className="mt-0.5">Puedes volver a entrar, pero tienes que escoger otro personaje. Tu programa académico sigue siendo el mismo.</p>
+      <p className="mt-0.5">Puedes volver a entrar, pero tienes que escoger otro personaje y comenzar desde cero, con tres estrellas.</p>
     </div>
   );
 
