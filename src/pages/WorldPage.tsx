@@ -18,6 +18,7 @@ import { RendererErrorScreen } from '@/game/hud/RendererErrorScreen';
 import { SoundToggle } from '@/game/hud/SoundToggle';
 import { WorldLoadingScreen } from '@/game/hud/WorldLoadingScreen';
 import { GameSound } from '@/game/sound/GameSound';
+import { StoryFlags } from '@/game/challenges/StoryFlags';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 // The game: the 3D world with its HUD and the dialogs of every challenge drawn over it.
@@ -39,6 +40,7 @@ export default function WorldPage() {
     <main className="w-screen h-screen relative overflow-hidden select-none">
       {webgpu === 'ok' && <GameCanvas />}
       <GameSound />
+      <StoryFlags />
       {CHALLENGES.map(({ id, Hud }) => Hud && <Hud key={id} />)}
       {isMobile && (
         <MobileControlsToggle showMobileControls={showTouchControls} detectedMobile={isMobile} setManualControlsToggle={setTouchControls} />

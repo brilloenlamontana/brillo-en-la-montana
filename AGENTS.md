@@ -37,24 +37,81 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
 1. **Cómo abrir Chrome desde el agente:**
    - Usa las herramientas de **Chrome DevTools MCP** (plugin `chrome-devtools`) o `/browser` sobre Google Chrome local (no navegadores sin WebGPU).
    - Navega siempre con `?dev=<preset>` para omitir Google OAuth (`@correounivalle.edu.co`) y proteger Firestore real (`isDevUser` en `authStore.ts` desactiva lecturas/escrituras en `progressService.ts`, `userService.ts` y `adminService.ts`).
-2. **URLs y presets disponibles (`http://localhost:5174`):**
-   - `/mundo?dev=1` (alias: `villa`, `desafio1`) — Puerta de Villa de Boj desde cero (`x: -39, y: 12.4, z: 18`).
-   - `/mundo?dev=imeri` — Frente a la casa de Imeri (`x: 14.5, y: 11.8, z: 41`), puerta abierta y mochila activa.
-   - `/mundo?dev=pantano` — Orilla seca antes del Pantano (`x: 50, y: 12.2, z: 24`) con gema, soga e insecticida listos.
-   - `/mundo?dev=desafio2` (alias: `elfo`) — Pie del árbol del Elfo (`x: -36.4, y: 11.9, z: -122.5`) tras superar el Desafío 1.
-   - `/mundo?dev=bosque` — Entrada del Bosque de la Oscuridad (`x: -25, y: 13.3, z: -182`) con espada, lente y mapa en mochila.
-   - `/mundo?dev=desafio3` (alias: `pueblo`) — Frente a la casa de Hedrig (`x: 82, y: 25.3, z: -211.6`) tras superar el Desafío 2.
-   - `/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con guante, brújula y muñeca en mochila (ayuda de Hedrig aceptada).
-   - `/mundo?dev=ogro` — Sala del Ogro al final del laberinto (`x: 111.5, y: 44, z: -166`), espectro ya calmado.
-   - `/mundo?dev=cumbre` (alias: `relatoCierre`) — Salida de los túneles en la Cumbre (`x: 107.7, y: 53.6, z: -161.85`), Desafío 3 completado.
-   - `/mundo?dev=santuario` — Plaza frente a las puertas del Santuario, junto a la Dríada (`x: 147, y: 53.4, z: -153`).
-   - `/mundo?dev=choza` (Bono 1) — Junto a la choza de la estatua, a la salida del pantano (`x: -62, y: 9.9, z: -87.5`).
-   - `/mundo?dev=claro` (Bono 2) — Borde del Claro del Hada en el bosque (`x: 40, y: 16, z: -221.5`), con la espada élfica.
-   - `/seleccion-personaje?dev=personaje` · `/login?dev=registro` · `/admin?dev=admin` — Pantallas de onboarding y panel administrativo 100 % en memoria.
+2. **URLs completas y casos de prueba disponibles (`http://localhost:5174`):**
+   - **Desafío 1 — Villa de Boj, Casa de Imeri y Pantano de la Tristeza:**
+     - `http://localhost:5174/mundo?dev=1` (alias: `http://localhost:5174/mundo?dev=villa`, `http://localhost:5174/mundo?dev=desafio1`) — Puerta de Villa de Boj desde cero (`x: -39, y: 12.4, z: 18`).
+     - `http://localhost:5174/mundo?dev=carta` — Puerta de Villa de Boj con el pergamino y narración del anuncio del alcalde abierto (`desafio1.cartaAlcalde`).
+     - `http://localhost:5174/mundo?dev=aldeano` — Plaza de Villa de Boj frente al aldeano (`x: -68.5, y: 12.2, z: 15.5`, carta leída).
+     - `http://localhost:5174/mundo?dev=aldeana` — En la villa frente a la aldeana (`x: -83, y: 12.2, z: 33`, carta leída).
+     - `http://localhost:5174/mundo?dev=imeriHablar` — Frente a la casa de Imeri con ayuda del aldeano aceptada, listo para hablar con Imeri.
+     - `http://localhost:5174/mundo?dev=imeri` — Frente a la casa de Imeri (`x: 14.5, y: 11.8, z: 41`), puerta desbloqueada y mochila activa para entrar a recoger los 7 objetos.
+     - `http://localhost:5174/mundo?dev=pantano` — Orilla seca antes del Pantano (`x: 50, y: 12.2, z: 24`) con **gema, soga e insecticida (5 pociones)** listos en la mochila.
+     - `http://localhost:5174/mundo?dev=pantanoCasi` — Pantano con Golem apagado y `9/10` zumbadores derrotados: derrota al último zumbador para disparar la victoria del Desafío 1 en vivo.
+     - `http://localhost:5174/mundo?dev=pantanoSuperado` — Pergamino y narración de **Pantano de la Tristeza superado** abiertos (`desafio1.pantanoSuperado`).
+   - **Bono 1 — La Estatua de la Choza (salida del pantano):**
+     - `http://localhost:5174/mundo?dev=choza` — Etapa 1: junto a la choza de la estatua cubierta de moho (`x: -62, y: 9.9, z: -87.5`).
+     - `http://localhost:5174/mundo?dev=chozaLimpia` — Etapa 2: rostro de la estatua ya limpio (`estatuaLimpia: true`), diálogo abierto listo para encender el fuego.
+     - `http://localhost:5174/mundo?dev=chozaEncendida` — Etapa 3: fuego encendido en el plato (`estatuaEncendida: true`), listo para recibir el **Anillo de oro** y la **1.ª estrella extra**.
+     - `http://localhost:5174/mundo?dev=bono1` — Bono 1 completado (`anilloOro` en mochila + `1 estrella extra`).
+   - **Desafío 2 — Casa del Elfo y Bosque de la Oscuridad:**
+     - `http://localhost:5174/mundo?dev=desafio2` (alias: `http://localhost:5174/mundo?dev=elfo`) — Pie del árbol gigante frente al Elfo (`x: -36.4, y: 11.9, z: -122.5`) tras superar el Desafío 1.
+     - `http://localhost:5174/mundo?dev=elfoCasa` — Ayuda del Elfo aceptada y puerta de su casa abierta en la copa del árbol para subir a recoger espada, lente y mapa.
+     - `http://localhost:5174/mundo?dev=bosque` — Entrada del Bosque de la Oscuridad (`x: -25, y: 13.3, z: -182`) con **espada élfica, lente revelador y mapa del bosque** en la mochila.
+     - `http://localhost:5174/mundo?dev=bosqueFrutas` — Bosque con los 6 duendes derrotados y `2/3` frutas buenas comidas: usa el lente (`2`) y come 1 fruta amarilla más.
+     - `http://localhost:5174/mundo?dev=bosqueMuro` — Frente al muro oculto de roca (`x: 11, y: 15.2, z: -193`) con duendes derrotados y hambre saciada: presiona `3` (mapa) para bajar el muro, activar el sendero dorado y completar el Desafío 2.
+     - `http://localhost:5174/mundo?dev=bosqueSuperado` — Pergamino y narración de **Bosque de la Oscuridad superado** abiertos (`desafio2.bosqueSuperado`).
+   - **Bono 2 — El Claro del Hada (salida del bosque):**
+     - `http://localhost:5174/mundo?dev=claro` — Etapa 1: borde del Claro del Hada (`x: 40, y: 16, z: -221.5`) con la espada élfica lista para cortar la trampa de zarzas.
+     - `http://localhost:5174/mundo?dev=claroSinEspada` — Claro del Hada **sin la espada élfica**, para probar el aviso cuando intentas cortar las zarzas sin espada.
+     - `http://localhost:5174/mundo?dev=hadaLibre` — Etapa 2: zarzas cortadas (`hadaLiberada: true`), diálogo del hada abierto y **Amuleto del hada** listo para recoger en el atril de raíces.
+     - `http://localhost:5174/mundo?dev=bono2` — Bono 2 completado (`amuletoHada` en mochila, diálogo `desafio2.hadaAmuleto` abierto + `1 estrella extra`).
+   - **Desafío 3 — Pueblo de Hedrig, Túneles de la Cumbre, Espectro Simona y Ogro:**
+     - `http://localhost:5174/mundo?dev=llegadaPueblo` — Saliendo del sendero del bosque al pueblo minero (`x: 78, y: 24.5, z: -205`, `llegoAlPueblo: false`) para disparar en vivo el aviso de llegada.
+     - `http://localhost:5174/mundo?dev=desafio3` (alias: `http://localhost:5174/mundo?dev=pueblo`) — Frente a la casa de Hedrig (`x: 82, y: 25.3, z: -211.6`) tras superar el Desafío 2.
+     - `http://localhost:5174/mundo?dev=hedrigCasa` — Ayuda de Hedrig aceptada y puerta abierta para entrar a recoger **guante de minero, brújula y muñeca Simona**.
+     - `http://localhost:5174/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con **guante, brújula y muñeca** en la mochila.
+     - `http://localhost:5174/mundo?dev=espectro` — Cámara del Espectro Simona en los túneles (`x: 126, y: 30.5, z: -178.5`) con la muñeca (`3`) lista para calmarla y ver su transformación en `NinaClara`.
+     - `http://localhost:5174/mundo?dev=espectroSinMuneca` — Cámara del Espectro **sin la muñeca**, para probar la persecución, daño por frío/escarcha y el mensaje al intentar calmarla sin muñeca.
+     - `http://localhost:5174/mundo?dev=puente` — Antes del puente de madera sobre la grieta (`x: 138, y: 35.8, z: -165`), espectro ya calmado.
+     - `http://localhost:5174/mundo?dev=ogro` — Sala del Ogro y mesa de pulso (`x: 111.5, y: 44, z: -166`), espectro calmado y **guante de minero (`1`)** listo para ganarle el pulso.
+     - `http://localhost:5174/mundo?dev=ogroSinGuante` — Sala del Ogro **sin el guante de minero**, para probar cómo el Ogro te repele y quita 20 PV al intentar pasar o retarlo sin guante.
+     - `http://localhost:5174/mundo?dev=ogroVencido` — Ogro vencido en el pulso (`ogroVencido: true`), diálogo `desafio3.ogroVencido` abierto y escalera en espiral despejada.
+     - `http://localhost:5174/mundo?dev=escaleraCumbre` — Últimos peldaños antes de salir a la Cumbre (`x: 106.75, y: 53.0, z: -164.7`, `mision3Completada: false`), para subir y disparar en vivo la llegada a la Cumbre.
+   - **Relato de Cierre — Cumbre de la Desolación, Santuario, Dríada, Cáliz y Cinemática Final:**
+     - `http://localhost:5174/mundo?dev=cumbre` (alias: `http://localhost:5174/mundo?dev=relatoCierre`) — Salida de los túneles en la Cumbre (`x: 107.7, y: 53.6, z: -161.85`), Desafío 3 completado.
+     - `http://localhost:5174/mundo?dev=cumbreDialogo` — Salida de los túneles con el pergamino y narración de llegada a la Cumbre abierto (`desafio3.cumbre`).
+     - `http://localhost:5174/mundo?dev=santuario` — Plaza frente a las puertas del Santuario (`x: 147, y: 53.4, z: -153`), donde la **Dríada** sale a recibirte.
+     - `http://localhost:5174/mundo?dev=driadaDialogo` — Frente a la Dríada con su diálogo y narración abiertos (`relatoCierre.driada`).
+     - `http://localhost:5174/mundo?dev=santuarioAbierto` — Frente al portón doble del Santuario ya desbloqueado por la Dríada (`x: 150.5, y: 53.5, z: -153`), listo para empujar las hojas y entrar.
+     - `http://localhost:5174/mundo?dev=altar` (alias: `http://localhost:5174/mundo?dev=caliz`) — Dentro del Santuario frente al altar (`x: 161, y: 53.6, z: -153`): presiona `E` («tomar el cáliz») para disparar la **Cinemática Final** y terminar el juego.
+     - `http://localhost:5174/mundo?dev=cinematica` — Reproduce directamente la **Cinemática Final narrada (6 tomas)** sobre el mapa verde recuperado y abre el resumen de victoria al terminar.
+     - `http://localhost:5174/mundo?dev=victoria` — Abre el pergamino final **¡Fin del juego: recuperaste el cáliz!** con 3 estrellas y los 2 bonos completados (narración `04_narrador_09` + `10`).
+     - `http://localhost:5174/mundo?dev=victoriaSinBonos` — Abre el pergamino final de victoria sin los bonos opcionales (narración alternativa `04_narrador_09` + `11`).
+   - **Casos de Vidas (1, 2 y 3 estrellas), Bonos (+1 y +2 vidas extra) y Bajos Rendimientos Académicos:**
+     - `http://localhost:5174/mundo?dev=vidas3` — **3 vidas (3 estrellas, 0 bonos)**.
+     - `http://localhost:5174/mundo?dev=vidas2` — **2 vidas (2 estrellas tras 1.er bajo)**.
+     - `http://localhost:5174/mundo?dev=vidas1` — **1 vida (1 estrella tras 2.º bajo)**.
+     - `http://localhost:5174/mundo?dev=vidas3bono1` — **3 vidas + 1 bono** (3 estrellas + 1 estrella extra del Anillo de oro).
+     - `http://localhost:5174/mundo?dev=vidas3bonos2` — **3 vidas + 2 bonos** (3 estrellas + 2 estrellas extra: Anillo de oro y Amuleto del hada).
+     - `http://localhost:5174/mundo?dev=bajo1` — Diálogo y narración del **1.er Bajo Rendimiento Académico** (`bajo.1`, quedan 2 estrellas).
+     - `http://localhost:5174/mundo?dev=bajo2` — Diálogo y narración del **2.º Bajo Rendimiento Académico** (`bajo.2`, queda 1 estrella y reinicia la historia en Villa de Boj).
+     - `http://localhost:5174/mundo?dev=bajo3` — Diálogo y narración del **3.er Bajo Rendimiento Académico** (`bajo.3`, pierdes el personaje actual y al cerrar te lleva a elegir uno nuevo).
+     - `http://localhost:5174/mundo?dev=bajoVidaExtra` — Diálogo y narración de **Perdiste una estrella extra** (`bajo.vidaExtra`, el bono te salva del bajo rendimiento).
+   - **Pantallas de Onboarding, Selección de Personaje y Panel Administrativo:**
+     - `http://localhost:5174/login?dev=registro` — Registro estudiantil y modal de Ley 1581 desde cero.
+     - `http://localhost:5174/seleccion-personaje?dev=personaje` — Selección de género (`Hombre` / `Mujer`) y de los 12 avatares disponibles.
+     - `http://localhost:5174/seleccion-personaje?dev=personajePerdido` — Selección de personaje con `Elfa` y `Guerrero` bloqueados tras haber caído en 3.er bajo.
+     - `http://localhost:5174/admin?dev=admin` — Panel administrativo completo en memoria.
+   - **Modificadores combinables en cualquier URL (`&vidas=`, `&bonos=`, `&vida=`, `&dialogo=`, `&mochila=`, `&avatar=`, `&perdidos=`, `&spawn=`):**
+     - Puedes combinar cualquier preset base con:
+       - `&vidas=1` · `&vidas=2` · `&vidas=3` (fija 1, 2 o 3 estrellas base; ej.: `http://localhost:5174/mundo?dev=bosque&vidas=1`).
+       - `&bonos=0` · `&bonos=1` · `&bonos=hada` · `&bonos=2` (activa 0, 1 o los 2 bonos con sus estrellas extra e ítems en mochila; ej.: `http://localhost:5174/mundo?dev=tuneles&vidas=3&bonos=2`).
+       - `&vida=15` (inicia con 15 PV de salud para probar morir rápido frente a un enemigo y ver el bajo o el consumo de estrella extra; ej.: `http://localhost:5174/mundo?dev=ogroSinGuante&vidas=1&vida=15`).
+       - `&mochila=1` (abre la mochila al iniciar; ej.: `http://localhost:5174/mundo?dev=tuneles&bonos=2&mochila=1`).
+       - `&dialogo=<id>` (abre cualquier diálogo al cargar) · `&cinematica=1` · `&avatar=Guerrero` · `&perdidos=Elfa,Gnomo` · `&spawn=x,y,z[,yaw]`.
    - **Identidades sandbox preconfiguradas (no cambiar por otros nombres ficticios en capturas):**
      - Estudiante por defecto (`?dev=1`, `?dev=registro`, `?dev=personaje`, etc.): **`Danna Guerrero Vargas`** (`danna.guerrero@correounivalle.edu.co`, código `202427615`, alias `Danna`, rol `student`).
      - Administrador (`/admin?dev=admin`): sesión iniciada como **`Fabian Stiven Valencia Cordoba`** (`fabian.cordoba@correounivalle.edu.co`, rol `admin`), mostrando en el listado de usuarios a la estudiante **`Danna Guerrero Vargas`** (`ESTUDIANTE`, Misiones 1 y 2 al 100 %) y al administrador **`Fabian Stiven Valencia Cordoba`** (`ADMIN`).
-   - Parámetros extra opcionales: `&spawn=x,y,z[,yaw]` (coordenadas exactas) y `&avatar=Elfa`.
 3. **Inspector en vivo (`window.__DEV_GAME__`) y controles:**
    - Espera a que `window.__DEV_GAME__.status().ready === true` antes de interactuar con el mundo 3D.
    - `window.__DEV_GAME__.status()` devuelve `{ ready, warming, loadStage, loadPercent, rendererError, region, interior, position, action, health, dialog, backpackOpen, progress }`.

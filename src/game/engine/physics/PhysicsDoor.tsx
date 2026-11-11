@@ -9,9 +9,11 @@ import { usePlayerStore } from '@/game/player/playerStore';
 import { measureLeaf } from './doorLeaf';
 
 const UP = new Vector3(0, 1, 0);
-// The leaf starts turning when the avatar gets this close to it (capsule radius 0.3 + a margin), so the avatar pushes
-// it before touching it and never gets stuck on its edge.
-const PUSH_RADIUS = 0.5;
+// The leaf starts turning when the avatar gets this close to its face (capsule radius 0.3 + a margin), so the avatar
+// pushes it before touching it and never gets stuck on its edge.
+const PUSH_RADIUS = 0.52;
+const PUSH_SWING_SPEED = 3.2;
+const GATE_SWING_SPEED = 2.4;
 
 // What a leaf sounds like: a house door creaks open, thuds shut and rattles while locked; a gate groans open.
 type DoorSound = { open: SfxId; close?: SfxId; locked: SfxId };
@@ -121,7 +123,7 @@ export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn 
     placeLeaf(target, door, state.rotation);
   }, [target, door]);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const rigidBody = body.current;
     if (!rigidBody) return;
     const state = swing.current;
@@ -132,22 +134,31 @@ export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn 
     const px = x - door.hinge.x;
     const pz = z - door.hinge.z;
     const distance = Math.hypot(px, pz);
+    const pushRadius = PUSH_RADIUS + door.halfExtents[2];
+    const dt = Math.min(delta, 0.05);
     // The avatar's feet between just under the leaf's bottom and its top, and within the swing of the leaf.
-    if (y > door.bottom - 0.6 && y < door.top && distance > PUSH_RADIUS && distance < door.length + PUSH_RADIUS) {
+    if (y > door.bottom - 0.6 && y < door.top && distance > 0.15 && distance < door.length + pushRadius) {
       // Angle of the avatar around the hinge, measured like the leaf (0 = closed, same sense as a Y rotation).
       const { x: dx, z: dz } = door.direction;
       const playerAngle = Math.atan2(dz * px - dx * pz, dx * px + dz * pz);
-      const reach = Math.asin(PUSH_RADIUS / distance);
+      const reach = Math.asin(Math.min(1, pushRadius / distance));
       const offset = wrap(state.angle - playerAngle);
       if (Math.abs(offset) < reach) {
         if (locked) {
           // Pushing a locked leaf only rattles it.
           if (sounds) soundOnce(sounds.locked, door.hinge);
         } else {
-          const pushed = offset <= 0 ? playerAngle - reach : playerAngle + reach;
-          state.angle = MathUtils.clamp(wrap(pushed), -openAngle, openAngle);
+          const dir = offset < 0 || (offset === 0 && playerAngle < 0) ? -1 : 1;
+          const pushed = wrap(playerAngle + dir * reach);
+          const stepped = state.angle + dir * PUSH_SWING_SPEED * dt;
+          const next = dir > 0 ? Math.max(pushed, stepped) : Math.min(pushed, stepped);
+          state.angle = MathUtils.clamp(next, -openAngle, openAngle);
         }
       }
+    }
+    // Once a double gate is nudged open, its heavy leaves finish swinging open on their own so the center never pinches.
+    if (!locked && sound === 'gate' && Math.abs(state.angle) > 0.03 && Math.abs(state.angle) < openAngle) {
+      state.angle = MathUtils.clamp(state.angle + Math.sign(state.angle) * GATE_SWING_SPEED * dt, -openAngle, openAngle);
     }
 
     const open = state.open ? Math.abs(state.angle) > SHUT_UNDER : Math.abs(state.angle) > OPEN_FROM;
