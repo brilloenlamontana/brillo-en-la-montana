@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react';
+import { CharacterThumb } from '@/components/CharacterThumb';
 import { ProfileModal } from '@/components/modals/ProfileModal';
+import { CHARACTERS } from '@/data/characters';
 import { signOutUser } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 
@@ -26,12 +28,11 @@ export function UserMenu({ leading }: { leading?: ReactNode }) {
             aria-label="Editar perfil"
             className="relative flex items-center justify-center rounded-full hover:scale-105 active:scale-95 transition-all outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#C8102E]"
           >
-            <img
-              key={user.photoURL}
-              src={user.photoURL}
-              alt={user.name || 'Perfil'}
-              referrerPolicy="no-referrer"
-              className="w-8 h-8 rounded-full object-cover border border-red-200 shadow-xs"
+            <CharacterThumb
+              character={CHARACTERS.find((character) => character.glbName === user.avatarName) ?? null}
+              photoURL={user.photoURL}
+              name={user.name}
+              className="w-8 h-8 border border-red-200 shadow-xs"
             />
             <span
               className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#C8102E] border-2 border-white flex items-center justify-center text-white shadow-xs"

@@ -56,21 +56,20 @@ export default function CharacterSelectionPage() {
   };
 
   const lostNotice = lost.length > 0 && (
-    <div className="mb-5 sm:mb-6 w-full max-w-xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs sm:text-sm text-red-900 shadow-xs" role="status">
+    <div className="mb-3 sm:mb-4 w-full max-w-xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs sm:text-sm text-red-900 shadow-xs" role="status">
       <p className="font-bold">Acabaste de perder: ya no puedes volver a jugar con {lost.map((character) => character.name).join(', ')}.</p>
-      <p className="mt-0.5">Puedes volver a entrar, pero tienes que escoger otro personaje. Tu programa académico sigue siendo el mismo.</p>
+      <p className="mt-0.5">Puedes volver a entrar, pero tienes que escoger otro personaje y comenzar desde cero, con tres estrellas.</p>
     </div>
   );
 
   if (!gender || !currentChar) {
     return (
-      <div className="flex flex-col items-center justify-between min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-red-50/25 to-slate-100 text-slate-800 font-sans relative overflow-y-auto px-4 py-8 sm:py-10 select-none">
-        <div className="h-10 sm:h-6" />
-        <div className="z-10 w-full max-w-4xl px-2 sm:px-4 flex flex-col items-center my-auto">
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold mb-1.5 sm:mb-2 text-center text-slate-900 tracking-tight">
+      <div className="flex flex-col items-center h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-red-50/25 to-slate-100 text-slate-800 font-sans relative overflow-hidden px-4 py-3 sm:py-5 select-none">
+        <div className="z-10 w-full max-w-4xl px-2 sm:px-4 flex-1 min-h-0 flex flex-col items-center justify-center">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl [@media(max-height:700px)]:!text-3xl font-extrabold mb-1.5 sm:mb-2 text-center text-slate-900 tracking-tight">
             Crea tu Aventurero
           </h1>
-          <p className="text-xs sm:text-base text-slate-500 mb-6 sm:mb-8 text-center max-w-md px-2 leading-relaxed">
+          <p className="text-xs sm:text-base text-slate-500 mb-4 sm:mb-6 [@media(max-height:700px)]:mb-3 text-center max-w-md px-2 leading-relaxed">
             Primero elige si tu aventurero será mujer u hombre
           </p>
           {lostNotice}
@@ -83,9 +82,9 @@ export default function CharacterSelectionPage() {
                   type="button"
                   disabled={count === 0}
                   onClick={() => chooseGender(option.gender)}
-                  className="group flex flex-col items-center rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm transition-all hover:border-[#C8102E] hover:shadow-lg active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C8102E] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                  className="group flex flex-col items-center rounded-3xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm transition-all hover:border-[#C8102E] hover:shadow-lg active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C8102E] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <img src={option.imagePath} alt="" className="h-40 sm:h-60 object-contain drop-shadow-xl transition-transform duration-300 group-hover:scale-105" />
+                  <img src={option.imagePath} alt="" className="h-[min(15rem,34dvh)] object-contain drop-shadow-xl transition-transform duration-300 group-hover:scale-105" />
                   <span className="mt-3 text-lg sm:text-2xl font-bold text-slate-900">{option.label}</span>
                   <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500">
                     {count === 0 ? 'Sin personajes disponibles' : `${count} ${count === 1 ? 'personaje' : 'personajes'}`}
@@ -101,29 +100,26 @@ export default function CharacterSelectionPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-red-50/25 to-slate-100 text-slate-800 font-sans relative overflow-y-auto px-4 py-8 sm:py-10 select-none">
+    <div className="flex flex-col items-center h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-red-50/25 to-slate-100 text-slate-800 font-sans relative overflow-hidden px-4 py-3 sm:py-5 select-none">
       {/* Background ambient decorations in Univalle tones */}
       <div className="absolute top-[-10%] left-[-10%] w-[60vw] max-w-[420px] h-[60vw] max-h-[420px] bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] max-w-[420px] h-[60vw] max-h-[420px] bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
       
-      {/* Top spacer for HUD navigation bar */}
-      <div className="h-10 sm:h-6" />
-
-      <div className="z-10 w-full max-w-4xl px-2 sm:px-4 flex flex-col items-center my-auto">
+      <div className="z-10 w-full max-w-4xl px-2 sm:px-4 flex-1 min-h-0 flex flex-col items-center justify-center pt-8 sm:pt-0">
         {/* Institutional Pill */}
  
 
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold mb-1.5 sm:mb-2 text-center text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl [@media(max-height:700px)]:!text-3xl font-extrabold mb-1 sm:mb-2 text-center text-slate-900 tracking-tight">
           Crea tu Aventurero
         </h1>
-        <p className="text-xs sm:text-base text-slate-500 mb-6 sm:mb-8 text-center max-w-md px-2 leading-relaxed">
+        <p className="text-xs sm:text-base text-slate-500 mb-3 sm:mb-5 [@media(max-height:600px)]:hidden text-center max-w-md px-2 leading-relaxed">
           Elige el personaje con el que explorarás el mundo y dale un nickname legendario. No podrás cambiar de personaje después.
         </p>
 
         <button
           type="button"
           onClick={() => chooseGender(null)}
-          className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 shadow-xs hover:text-[#C8102E] hover:border-[#C8102E] transition-colors cursor-pointer"
+          className="mb-2 sm:mb-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 shadow-xs hover:text-[#C8102E] hover:border-[#C8102E] transition-colors cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
@@ -132,7 +128,7 @@ export default function CharacterSelectionPage() {
         </button>
 
         {/* Carousel */}
-        <div className="relative flex items-center justify-center w-full max-w-2xl mb-4 sm:mb-8 h-56 sm:h-72 md:h-80">
+        <div className="relative flex items-center justify-center w-full max-w-2xl mb-3 sm:mb-5 flex-1 min-h-[7rem] max-h-[22rem]">
           <button 
             type="button"
             onClick={handlePrev} 
@@ -145,7 +141,7 @@ export default function CharacterSelectionPage() {
             </svg>
           </button>
           
-          <div className="flex justify-center items-center overflow-hidden w-full h-full relative perspective-1000">
+          <div className="flex justify-center items-center overflow-hidden absolute inset-0 perspective-1000">
             {characters.map((char, index) => {
               let relativeIndex = index - characters.indexOf(currentChar);
               if (relativeIndex < -Math.floor(characters.length / 2)) relativeIndex += characters.length;
@@ -192,7 +188,7 @@ export default function CharacterSelectionPage() {
         </div>
 
         {/* Selected Character Info Card */}
-        <div className="mb-5 sm:mb-7 text-center bg-white/95 backdrop-blur-md py-2.5 px-7 sm:py-3 sm:px-9 rounded-2xl shadow-sm border border-slate-200/80">
+        <div className="mb-3 sm:mb-5 text-center bg-white/95 backdrop-blur-md py-1.5 px-7 sm:py-2.5 sm:px-9 rounded-2xl shadow-sm border border-slate-200/80">
           <h2 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">{currentChar.name}</h2>
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             {currentChar.gender === 'male' ? 'Hombre' : 'Mujer'}

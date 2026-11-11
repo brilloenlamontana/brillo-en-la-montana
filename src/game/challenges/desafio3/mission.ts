@@ -1,6 +1,7 @@
 import { listText } from '@/game/challenges/listText';
 import type { ItemState, MissionStep } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
+import { isDesafio2Completado } from '../desafio2/mission';
 import { HEDRIG_COLLECTIBLES, type HedrigItemId } from './items';
 
 // Rules of Challenge 3, as pure functions of the saved progress (shared with the admin dashboard). From the scene
@@ -14,7 +15,8 @@ const collected = (progress: Progress) => progress?.collectedItems ?? [];
 export const hasCollected = (id: HedrigItemId, progress: Progress) => collected(progress).includes(id);
 
 // Challenge 2 passed: the way to Hedrig's town is open.
-export const isUnlocked = (progress: Progress) => progress?.mision2Completada === true;
+// Hedrig waits in her town once the forest is crossed: Challenge 2 done by its own rule (bonuses never count).
+export const isUnlocked = (progress: Progress) => isDesafio2Completado(progress);
 
 // The player arrived at the mining town after the forest: from then on the backpack is Hedrig's.
 export const hasArrived = (progress: Progress) => progress?.llegoAlPueblo === true;

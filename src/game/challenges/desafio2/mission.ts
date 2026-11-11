@@ -1,6 +1,7 @@
 import { listText } from '@/game/challenges/listText';
 import type { ItemState, MissionStep } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
+import { isDesafio1Completado } from '../desafio1/mission';
 import { ELFO_COLLECTIBLES, type ElfoItemId } from './items';
 
 // Rules of Challenge 2 so far, as pure functions of the saved progress (shared with the admin dashboard). From the
@@ -33,7 +34,7 @@ export const isDesafio2Completado = (progress: Progress) =>
   progress?.mision2Completada === true || (allDuendesDefeated(progress) && isFed(progress) && isMapaActivado(progress));
 
 // The elf only waits at the foot of his tree once the swamp was crossed (Challenge 1 completed).
-export const isElfoPresent = (progress: Progress) => progress?.mision1Completada === true;
+export const isElfoPresent = (progress: Progress) => isDesafio1Completado(progress);
 
 // Accepting his help opens his door and fills the backpack with his tools.
 export const isElfoHouseUnlocked = (progress: Progress) => progress?.elfoHelp === 'accepted';

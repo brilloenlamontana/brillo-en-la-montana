@@ -25,7 +25,7 @@ const BAJOS: Record<Bajo, { title: string; paragraphs: string[]; button: string 
     title: 'Caíste en tercer bajo',
     paragraphs: [
       'Perdiste tu última estrella. Acabas de perder: ya no puedes volver a jugar con este personaje.',
-      'Puedes volver a entrar, pero tienes que escoger otro personaje y comenzar desde cero, con tres estrellas. Tu programa académico sigue siendo el mismo: solo cambia el personaje.',
+      'Puedes volver a entrar, pero tienes que escoger otro personaje y comenzar desde cero, con tres estrellas.',
     ],
     button: 'Elegir otro personaje',
   },

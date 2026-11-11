@@ -93,7 +93,8 @@ export const saveCharacter = (uid: string, character: Character) =>
   isDevUser(uid) ? Promise.resolve() : setDoc(userRef(uid), character, { merge: true });
 
 // The profile editor only changes the names: the character is chosen once and can only change by losing it.
-export const saveProfile = (uid: string, profile: { name: string; nickname: string }) =>
+// Only the nickname can be changed from the profile: the name comes from the institutional account.
+export const saveProfile = (uid: string, profile: { nickname: string }) =>
   isDevUser(uid) ? Promise.resolve() : setDoc(userRef(uid), profile, { merge: true });
 
 // The run was lost (third "bajo"): the character is forgotten and recorded as lost for good, so the onboarding asks to

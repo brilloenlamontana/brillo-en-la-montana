@@ -1,14 +1,19 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { findCharacter } from '@/data/characters';
+import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react';
+import { CharacterThumb } from '@/components/CharacterThumb';
+import { CHARACTERS } from '@/data/characters';
 import { saveProfile } from '@/services/userService';
 import { useAuthStore, type UserData } from '@/store/authStore';
 
+// three.js only loads when the profile opens (the login and selection pages do not need it otherwise).
+const CharacterPreview3D = lazy(() => import('@/components/CharacterPreview3D').then((m) => ({ default: m.CharacterPreview3D })));
+
 type ProfileModalProps = { user: UserData; onClose: () => void };
 
-// Edit the display name and nickname. The character is shown but cannot be changed: it is only replaced by losing it.
+// The player's profile, all on one screen: the account (name and email come from the institutional account and
+// cannot be edited), the nickname (the only thing that can be changed), the academic registration and the character
+// in 3D. The character cannot be changed: it is only replaced by losing it.
 export function ProfileModal({ user, onClose }: ProfileModalProps) {
   const [nickname, setNickname] = useState(user.nickname ?? '');
-  const [displayName, setDisplayName] = useState(user.name);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -20,72 +25,67 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const currentSelectedChar = findCharacter(user.avatarName);
+  const character = CHARACTERS.find((candidate) => candidate.glbName === user.avatarName) ?? null;
+  const unchanged = nickname.trim() === (user.nickname ?? '');
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     if (!nickname.trim()) {
-      setFeedback({ type: 'error', message: 'Por favor ingresa un nickname válido' });
+      setFeedback({ type: 'error', message: 'Por favor ingresa un nickname válido.' });
       return;
     }
-
     try {
       setIsSaving(true);
       setFeedback(null);
-      const profile = { name: displayName.trim() || user.name, nickname: nickname.trim() };
+      const profile = { nickname: nickname.trim() };
       await saveProfile(user.uid, profile);
       useAuthStore.getState().updateUser(profile);
-      setFeedback({ type: 'success', message: '¡Perfil actualizado con éxito!' });
-
-      setTimeout(() => {
-        onClose();
-      }, 1000);
+      setFeedback({ type: 'success', message: '¡Nickname actualizado!' });
+      setTimeout(onClose, 900);
     } catch (err) {
-      console.error('Error al actualizar el perfil:', err);
+      console.error('Could not update the profile:', err);
       setFeedback({ type: 'error', message: 'Ocurrió un error al guardar los cambios.' });
     } finally {
       setIsSaving(false);
     }
   };
 
+  const academic = [
+    ['Código', user.codigoEstudiantil],
+    ['Sede', user.sedeNombre],
+    ['Facultad', user.facultadNombre],
+    ['Programa', user.programaNombre],
+  ].filter((row): row is [string, string] => Boolean(row[1]));
+
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/60 transition-all duration-300 select-none"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/60 select-none"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="profile-modal-title"
     >
-      <div 
-        className="relative w-full max-w-4xl max-h-[94dvh] sm:max-h-[90vh] flex flex-col bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden text-slate-800"
+      <form
+        onSubmit={handleSave}
         onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-4xl max-h-[96dvh] flex flex-col bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden text-slate-800"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 sm:px-8 sm:py-5 border-b border-slate-100 bg-gradient-to-r from-red-50/70 via-white to-slate-50 flex-shrink-0">
-          <div className="flex items-center gap-3 sm:gap-3.5">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white border border-red-100 shadow-xs flex items-center justify-center p-1.5 flex-shrink-0">
-              <img 
-                src="/univalle.svg" 
-                alt="Logo Universidad del Valle" 
-                className="w-full h-full object-contain" 
-              />
-            </div>
-            <div className="overflow-hidden">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold bg-red-100 text-[#C8102E] tracking-wide mb-0.5">
-                Perfil de Usuario • Identidad Virtual
-              </span>
-              <h2 id="profile-modal-title" className="text-base sm:text-xl font-bold tracking-tight text-slate-900 truncate">
-                Editar Perfil
+        <div className="flex items-center justify-between gap-3 px-5 py-3 sm:px-7 border-b border-slate-100 bg-gradient-to-r from-red-50/70 via-white to-slate-50 flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <img src="/univalle.svg" alt="Universidad del Valle" className="w-9 h-9 object-contain flex-shrink-0" />
+            <div className="min-w-0">
+              <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-[#C8102E]">Perfil de usuario</span>
+              <h2 id="profile-modal-title" className="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-tight">
+                Tu aventurero
               </h2>
             </div>
           </div>
-          
-          <button 
+          <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all focus:outline-none flex-shrink-0 cursor-pointer"
-            title="Cerrar modal"
-            aria-label="Cerrar modal"
+            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer"
+            aria-label="Cerrar perfil"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -93,202 +93,108 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
           </button>
         </div>
 
-        {/* Modal Form */}
-        <form onSubmit={handleSave} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-7 space-y-4 sm:space-y-6">
-            {feedback && (
-              <div className={`p-3.5 rounded-2xl text-xs sm:text-sm flex items-center gap-2.5 transition-all shadow-xs ${
-                feedback.type === 'success' 
-                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' 
-                  : 'bg-red-50 border border-red-200 text-red-800'
-              }`}>
-                {feedback.type === 'success' ? (
-                  <svg className="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                    <line x1="12" y1="8" x2="12" y2="12" strokeWidth="2" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" strokeWidth="2" />
-                  </svg>
-                )}
-                <span className="font-medium">{feedback.message}</span>
+        {/* Body: on phones it may scroll; from tablet width up everything fits */}
+        <div className="flex-1 min-h-0 overflow-y-auto sm:overflow-hidden grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] gap-4 sm:gap-6 p-4 sm:p-5">
+          {/* Left: account, nickname, registration */}
+          <div className="flex flex-col gap-3 min-w-0">
+            <div className="flex items-center gap-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/80">
+              <CharacterThumb character={character} photoURL={user.photoURL} name={user.name} className="w-14 h-14 border-2 border-red-200 shadow-xs" />
+              <div className="min-w-0">
+                <p className="font-bold text-slate-900 truncate text-sm sm:text-base" title={user.name}>{user.name}</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 truncate" title={user.email}>{user.email}</p>
+                <span className="uv-badge-emerald mt-1">Cuenta institucional</span>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor="profile-nickname" className="text-xs font-semibold text-slate-700 flex justify-between">
+                <span>Nickname en el videojuego</span>
+                <span className="text-slate-400 font-mono text-[11px]">{nickname.length}/16</span>
+              </label>
+              <input
+                id="profile-nickname"
+                type="text"
+                maxLength={16}
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value);
+                  setFeedback(null);
+                }}
+                onKeyDown={(e) => e.stopPropagation()}
+                placeholder="Ej: Valerius"
+                className="uv-input font-medium"
+              />
+              <p className="text-[10px] sm:text-[11px] text-slate-500">Es lo único que puedes cambiar. Tu nombre viene de tu cuenta institucional.</p>
+            </div>
+
+            {academic.length > 0 && (
+              <div className="rounded-2xl border border-slate-200 p-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#C8102E] mb-2">Registro académico</p>
+                <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[11px] sm:text-xs">
+                  {academic.map(([label, value]) => (
+                    <div key={label} className="contents">
+                      <dt className="text-slate-500">{label}</dt>
+                      <dd className="font-semibold text-slate-800 truncate text-right" title={value}>{value}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-7">
-              {/* Left Column: Account & Profile Details */}
-              <div className="lg:col-span-5 space-y-4 sm:space-y-5 bg-slate-50/80 p-4 sm:p-5 rounded-2xl border border-slate-200/90">
-                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#C8102E] flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <span>Información de Usuario</span>
-                </h3>
+            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-slate-200 text-[11px]">
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                <span className="truncate"><strong className="text-slate-800">Ley 1581 de 2012</strong> · uso institucional, sin divulgación</span>
+              </span>
+              <span className="uv-badge-emerald flex-shrink-0">Autorizado</span>
+            </div>
 
-                {/* Account Photo Card */}
-                <div className="flex items-center gap-3.5 p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
-                  {user.photoURL ? (
-                    <img 
-                      src={user.photoURL} 
-                      alt={user.name || "Foto de perfil"} 
-                      referrerPolicy="no-referrer"
-                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-red-200 shadow-xs flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#C8102E] to-[#E53E3E] flex items-center justify-center font-bold text-lg sm:text-xl text-white shadow-xs flex-shrink-0">
-                      {(user.name && user.name[0]) || 'U'}
-                    </div>
-                  )}
-                  <div className="overflow-hidden min-w-0">
-                    <p className="font-bold text-slate-900 truncate text-sm sm:text-base">{displayName || user.name}</p>
-                    <p className="text-[11px] sm:text-xs text-slate-500 truncate">{user.email}</p>
-                    <span className="uv-badge-emerald mt-1">
-                      Google Vinculado
-                    </span>
-                  </div>
-                </div>
+            {feedback && (
+              <p
+                role="status"
+                className={`px-3 py-2 rounded-xl text-xs font-medium border ${
+                  feedback.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+                }`}
+              >
+                {feedback.message}
+              </p>
+            )}
+          </div>
 
-                {/* Input Nickname */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 flex justify-between">
-                    <span>Nickname en el videojuego *</span>
-                    <span className="text-slate-400 font-mono text-[11px]">{nickname.length}/16</span>
-                  </label>
-                  <input 
-                    type="text"
-                    maxLength={16}
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    placeholder="Ej: Valerius"
-                    className="uv-input font-medium"
-                  />
-                  <p className="text-[10px] sm:text-[11px] text-slate-500">Nombre público visible sobre tu avatar en el mundo 3D.</p>
-                </div>
-
-                {/* Input Display Name */}
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Nombre institucional visible
-                  </label>
-                  <input 
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    placeholder="Tu nombre completo"
-                    className="uv-input font-medium"
-                  />
-                </div>
-
-                {/* Academic Information Card */}
-                {user.codigoEstudiantil && (
-                  <div className="pt-2 border-t border-slate-200/80 space-y-2">
-                    <p className="text-[11px] sm:text-xs text-[#C8102E] font-bold uppercase tracking-wider flex items-center justify-between">
-                      <span>Registro Académico</span>
-                      <span className="text-[9px] text-slate-400 font-normal">Univalle</span>
-                    </p>
-                    <div className="p-3 rounded-2xl bg-white border border-slate-200 text-xs space-y-2 shadow-xs">
-                      <div className="flex justify-between items-center text-[11px]">
-                        <span className="text-slate-500">Código Estudiantil:</span>
-                        <span className="font-mono font-bold text-[#C8102E] bg-red-50 px-2 py-0.5 rounded-lg border border-red-100">
-                          {user.codigoEstudiantil}
-                        </span>
-                      </div>
-                      {user.sedeNombre && (
-                        <div className="flex justify-between items-center text-[11px]">
-                          <span className="text-slate-500">Sede:</span>
-                          <span className="text-slate-800 font-semibold truncate max-w-[180px] text-right" title={user.sedeNombre}>{user.sedeNombre}</span>
-                        </div>
-                      )}
-                      {user.facultadNombre && (
-                        <div className="flex justify-between items-center text-[11px]">
-                          <span className="text-slate-500">Facultad:</span>
-                          <span className="text-slate-800 font-semibold truncate max-w-[180px] text-right" title={user.facultadNombre}>{user.facultadNombre}</span>
-                        </div>
-                      )}
-                      {user.programaNombre && (
-                        <div className="flex justify-between items-center text-[11px]">
-                          <span className="text-slate-500">Programa:</span>
-                          <span className="text-slate-800 font-semibold truncate max-w-[180px] text-right" title={user.programaNombre}>{user.programaNombre}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Ley 1581 de 2012 Status */}
-                <div className="pt-2 border-t border-slate-200/80">
-                  <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-semibold text-slate-800">Ley 1581 de 2012</p>
-                        <p className="text-[10px] text-slate-500 truncate">Uso institucional • Sin divulgación</p>
-                      </div>
-                    </div>
-                    <span className="uv-badge-emerald flex-shrink-0">
-                      Autorizado
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: the character (read-only) */}
-              <div className="lg:col-span-7 flex flex-col gap-3 sm:gap-4">
-                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#C8102E]">Tu personaje</h3>
-                <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-b from-red-50/50 to-white p-4 sm:p-6 shadow-xs">
-                  <img src={currentSelectedChar.imagePath} alt={currentSelectedChar.name} className="h-48 sm:h-72 object-contain drop-shadow-xl" />
-                  <p className="mt-3 text-lg sm:text-xl font-bold text-slate-900">{currentSelectedChar.name}</p>
-                  <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-[#C8102E]">
-                    {currentSelectedChar.gender === 'male' ? 'Hombre' : 'Mujer'}
-                  </span>
-                </div>
-                <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] sm:text-xs text-amber-900">
-                  El personaje no se puede cambiar. Solo eliges uno nuevo si caes en tercer bajo rendimiento, y el que pierdes no vuelve a estar disponible.
+          {/* Right: the character in 3D */}
+          <div className="flex flex-col min-h-0 rounded-2xl border border-slate-200 bg-gradient-to-b from-red-50/60 to-white overflow-hidden">
+            <div className="relative h-[clamp(14rem,48dvh,24rem)] sm:h-auto sm:flex-1 sm:min-h-[14rem]">
+              {character ? (
+                <Suspense fallback={<img src={character.imagePath} alt={character.name} className="h-full w-full object-contain" />}>
+                  <CharacterPreview3D character={character} />
+                </Suspense>
+              ) : (
+                <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-slate-500">
+                  Todavía no has elegido tu personaje.
+                </p>
+              )}
+            </div>
+            {character && (
+              <div className="px-4 py-2.5 border-t border-slate-100 bg-white/80 text-center">
+                <p className="text-base sm:text-lg font-bold text-slate-900 leading-tight">{character.name}</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-500 leading-snug mt-0.5">
+                  No se puede cambiar: solo eliges otro si caes en tercer bajo rendimiento.
                 </p>
               </div>
-            </div>
+            )}
           </div>
+        </div>
 
-          {/* Fixed Footer Actions */}
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 p-4 sm:p-5 border-t border-slate-100 bg-slate-50/80 flex-shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSaving}
-              className="uv-btn-secondary w-full sm:w-auto text-xs sm:text-sm py-2.5 px-5"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="uv-btn-primary w-full sm:w-auto text-xs sm:text-sm py-2.5 px-7"
-            >
-              {isSaving ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <span>Guardando...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Guardar Cambios</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* Footer */}
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 px-4 py-3 sm:px-6 border-t border-slate-100 bg-slate-50/80 flex-shrink-0">
+          <button type="button" onClick={onClose} disabled={isSaving} className="uv-btn-secondary w-full sm:w-auto text-xs sm:text-sm py-2.5 px-5">
+            Cerrar
+          </button>
+          <button type="submit" disabled={isSaving || unchanged} className="uv-btn-primary w-full sm:w-auto text-xs sm:text-sm py-2.5 px-7">
+            {isSaving ? 'Guardando…' : 'Guardar nickname'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

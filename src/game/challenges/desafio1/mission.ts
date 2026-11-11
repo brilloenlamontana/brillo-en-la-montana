@@ -24,6 +24,11 @@ export const isBackpackActive = (progress: Progress) => progress?.imeriHelp === 
 // With the golem and every zumbador defeated the wells swallow no one anymore (and the rope is no longer needed).
 export const areWellsSafe = (progress: Progress) => progress?.golemDefeated === true && allZumbadoresDefeated(progress);
 
+// Challenge 1 is done once the swamp is safe. The saved flag (mision1Completada, with its date) records that moment;
+// the rule also counts on its own, so a save that has the swamp cleared but lacks the flag never blocks the story
+// (StoryFlags writes the missing flag back).
+export const isDesafio1Completado = (progress: Progress) => progress?.mision1Completada === true || areWellsSafe(progress);
+
 // Each item leaves the backpack once it fulfilled its purpose: the gem when the golem goes off, the insecticide (the
 // five potions) with the last zumbador, and the rope when no enemy is left.
 export function getItemState(id: BackpackItemId, progress: Progress): ItemState {
@@ -39,7 +44,7 @@ export const hasItem = (id: BackpackItemId, progress: Progress) => getItemState(
 // What the player has to do now (shown in the backpack): first what is left to pick up in Imeri's house, then what
 // is left to defeat in the swamp.
 export function getGoal(progress: Progress): string {
-  if (progress?.mision1Completada) return '¡Atravesaste el pantano! Busca la casa del elfo, suspendida de un árbol al otro lado.';
+  if (isDesafio1Completado(progress)) return '¡Atravesaste el pantano! Busca la casa del elfo, suspendida de un árbol al otro lado.';
   const items = collected(progress);
   const pociones = POTION_IDS.length - countPociones(progress);
   const missing = [...(items.includes('gema') ? [] : ['la gema']), ...(items.includes('soga') ? [] : ['la soga'])];
@@ -80,5 +85,5 @@ function getMissionSteps(progress: Progress): MissionStep[] {
 export function getMissionSummary(progress: Progress) {
   const steps = getMissionSteps(progress);
   const done = steps.filter((step) => step.done).length;
-  return { steps, done, total: steps.length, percent: Math.round((done / steps.length) * 100), completed: progress?.mision1Completada === true };
+  return { steps, done, total: steps.length, percent: Math.round((done / steps.length) * 100), completed: isDesafio1Completado(progress) };
 }
