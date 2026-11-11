@@ -129,11 +129,11 @@ const StudentRegistrationModalContent: React.FC<{
       aria-labelledby="student-registration-title"
     >
       <div
-        className="w-full max-w-xl max-h-[92dvh] flex flex-col bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden text-slate-800 select-none"
+        className="w-full max-w-xl sm:max-w-3xl max-h-[96dvh] flex flex-col bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden text-slate-800 select-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 sm:px-8 sm:py-5 border-b border-slate-100 bg-gradient-to-r from-red-50/70 via-white to-slate-50 flex items-center justify-between gap-4 flex-shrink-0">
+        <div className="px-6 py-3 sm:px-8 sm:py-3.5 border-b border-slate-100 bg-gradient-to-r from-red-50/70 via-white to-slate-50 flex items-center justify-between gap-4 flex-shrink-0">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center p-1.5 flex-shrink-0">
               <img
@@ -154,7 +154,7 @@ const StudentRegistrationModalContent: React.FC<{
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 sm:px-8 sm:py-6 space-y-4 sm:space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4 sm:px-8 sm:py-4 space-y-3 sm:space-y-3.5">
           {errorMessage && (
             <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs sm:text-sm flex items-start gap-2">
               <svg className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,6 +166,8 @@ const StudentRegistrationModalContent: React.FC<{
             </div>
           )}
 
+          {/* The fields sit in two columns from `sm` up, so the whole form fits the screen without scrolling. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
           {/* 1. Nombres y Apellidos (Pre-filled, Title Case, Read-only) */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
@@ -347,8 +349,10 @@ const StudentRegistrationModalContent: React.FC<{
             )}
           </div>
 
+          </div>
+
           {/* 7. Terms and Personal Data Processing (Law 1581 of 2012) */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-red-50/20 border border-slate-200/90 space-y-2.5 shadow-xs">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-slate-50 to-red-50/20 border border-slate-200/90 space-y-2.5 shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
                 <svg className="w-4 h-4 text-[#C8102E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,7 +405,7 @@ const StudentRegistrationModalContent: React.FC<{
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-3 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3">
+          <div className="pt-2.5 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3">
             {onCancel && (
               <button
                 type="button"
