@@ -34,21 +34,24 @@ export function ImeriDialog() {
   };
 
   return (
-    <ParchmentDialog title="Imeri" subtitle="La cazadora que mejor conoce el pantano" paragraphs={EXPLICACION} voice={accepted ? ['01_imeri_02'] : ['01_imeri_02', '01_imeri_01']}>
+    <ParchmentDialog
+      title="Imeri"
+      subtitle="La cazadora que mejor conoce el pantano"
+      paragraphs={EXPLICACION}
+      question={accepted ? undefined : '¿Quieres que te ayude? En mi casa tengo lo que necesitas para cruzar el pantano.'}
+      voice={accepted ? ['01_imeri_02'] : ['01_imeri_02', '01_imeri_01']}
+    >
       {accepted ? (
         <div className="flex justify-end">
           <ParchmentButton onClick={close}>Entendido</ParchmentButton>
         </div>
       ) : (
-        <>
-          <p className="font-bold text-sm sm:text-base mb-3">¿Quieres que te ayude? En mi casa tengo lo que necesitas para cruzar el pantano.</p>
-          <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
-            <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
-              No, gracias
-            </ParchmentButton>
-            <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
-          </div>
-        </>
+        <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+          <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
+            No, gracias
+          </ParchmentButton>
+          <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
+        </div>
       )}
     </ParchmentDialog>
   );

@@ -21,6 +21,10 @@ interface PlayerState {
   initialSpawn: Spawn | null;
   // Teleport applied by PlayerController on the next frame.
   teleportRequest: Point | null;
+  // A scripted scene leads the avatar: the player's keys are ignored and it walks by itself to `walkTo` (or stands
+  // still while that is null). The camera stays free. null = the player is in control.
+  guide: { walkTo: Point | null } | null;
+  setGuide: (guide: PlayerState['guide']) => void;
   setAction: (action: PlayerAction) => void;
   // Health reaching 0 plays Death; PlayerController then respawns the player.
   takeDamage: (amount: number) => void;
@@ -43,6 +47,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   cameraDistance: null,
   initialSpawn: null,
   teleportRequest: null,
+  guide: null,
+  setGuide: (guide) => set({ guide }),
   setAction: (action) => set({ action }),
   takeDamage: (amount) =>
     set((state) => {
@@ -61,5 +67,5 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   requestTeleport: (teleportRequest) => set({ teleportRequest }),
   clearTeleportRequest: () => set({ teleportRequest: null }),
-  reset: () => set({ action: 'Idle', health: MAX_HEALTH, cameraDistance: null, initialSpawn: null, teleportRequest: null }),
+  reset: () => set({ action: 'Idle', health: MAX_HEALTH, cameraDistance: null, initialSpawn: null, teleportRequest: null, guide: null }),
 }));

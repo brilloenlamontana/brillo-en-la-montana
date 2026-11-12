@@ -7,6 +7,7 @@ import { playSfxAt } from '@/game/engine/audio/spatial';
 import { restPose } from '@/game/engine/models/sceneUtils';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { measureLeaf } from './doorLeaf';
+import { doorPushers } from './doorPushers';
 
 const UP = new Vector3(0, 1, 0);
 // The leaf starts turning when the avatar gets this close to its face (capsule radius 0.3 + a margin), so the avatar
@@ -123,19 +124,14 @@ export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn 
     placeLeaf(target, door, state.rotation);
   }, [target, door]);
 
-  useFrame((_, delta) => {
-    const rigidBody = body.current;
-    if (!rigidBody) return;
+  // Whoever stands at (x, y, z), the avatar or a door pusher, pushes the leaf just enough to clear them.
+  const push = ({ x, y, z }: { x: number; y: number; z: number }, dt: number) => {
     const state = swing.current;
-
     const sounds = sound ? DOOR_SOUNDS[sound] : null;
-    if (locked) state.angle = 0;
-    const { x, y, z } = usePlayerStore.getState().position;
     const px = x - door.hinge.x;
     const pz = z - door.hinge.z;
     const distance = Math.hypot(px, pz);
     const pushRadius = PUSH_RADIUS + door.halfExtents[2];
-    const dt = Math.min(delta, 0.05);
     // The avatar's feet between just under the leaf's bottom and its top, and within the swing of the leaf.
     if (y > door.bottom - 0.6 && y < door.top && distance > 0.15 && distance < door.length + pushRadius) {
       // Angle of the avatar around the hinge, measured like the leaf (0 = closed, same sense as a Y rotation).
@@ -156,6 +152,18 @@ export function PhysicsDoor({ node, target = node, hinge: hingeProp, closedTurn 
         }
       }
     }
+  };
+
+  useFrame((_, delta) => {
+    const rigidBody = body.current;
+    if (!rigidBody) return;
+    const state = swing.current;
+
+    const sounds = sound ? DOOR_SOUNDS[sound] : null;
+    if (locked) state.angle = 0;
+    const dt = Math.min(delta, 0.05);
+    push(usePlayerStore.getState().position, dt);
+    for (const pusher of doorPushers) push(pusher, dt);
     // Once a double gate is nudged open, its heavy leaves finish swinging open on their own so the center never pinches.
     if (!locked && sound === 'gate' && Math.abs(state.angle) > 0.03 && Math.abs(state.angle) < openAngle) {
       state.angle = MathUtils.clamp(state.angle + Math.sign(state.angle) * GATE_SWING_SPEED * dt, -openAngle, openAngle);

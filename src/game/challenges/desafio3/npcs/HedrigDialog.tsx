@@ -34,6 +34,7 @@ export function HedrigDialog() {
 
   return (
     <ParchmentDialog title="Hedrig" subtitle="La enana minera que conoce los túneles de la cumbre" paragraphs={EXPLICACION}
+      question={accepted ? undefined : '¿Quieres mi ayuda? En mi casa guardo lo que encontré entre las ruinas: te servirá allá arriba.'}
       voice={accepted ? ['03_hedrig_02'] : ['03_hedrig_02', '03_hedrig_01']}
     >
       {accepted ? (
@@ -41,15 +42,12 @@ export function HedrigDialog() {
           <ParchmentButton onClick={close}>Entendido</ParchmentButton>
         </div>
       ) : (
-        <>
-          <p className="font-bold text-sm sm:text-base mb-3">¿Quieres mi ayuda? En mi casa guardo lo que encontré entre las ruinas: te servirá allá arriba.</p>
-          <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
-            <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
-              No, gracias
-            </ParchmentButton>
-            <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
-          </div>
-        </>
+        <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+          <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
+            No, gracias
+          </ParchmentButton>
+          <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
+        </div>
       )}
     </ParchmentDialog>
   );

@@ -98,7 +98,7 @@ function StoreSounds() {
         else playSfx('ui_dialogo_cerrar', { volume: 0.6 });
       }
       if (state.backpackOpen !== previous.backpackOpen) playSfx(state.backpackOpen ? 'ui_mochila_abrir' : 'ui_mochila_cerrar', { volume: 0.8 });
-      if (state.cinematic && !previous.cinematic) playSfx('rc_caliz');
+      if (state.cinematic && !previous.cinematic) playSfx('rc_cinematica_corte', { volume: 0.6 });
     });
 
     const offPlayer = usePlayerStore.subscribe((state, previous) => {

@@ -1,7 +1,6 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { getBonosSummary } from '@/game/challenges/bonos';
-import { useVoice } from '@/game/engine/audio/useVoice';
-import { ParchmentButton } from '@/game/hud/ParchmentDialog';
+import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { STARS, useProgressStore } from '@/store/progressStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { DIALOG } from './dialogs';
@@ -37,15 +36,40 @@ function Row({ label, value, done }: { label: string; value: string; done: boole
   );
 }
 
-// Final victory of the game: the chalice was taken from the altar. Sums up what the player achieved: the three
-// challenges, the stars kept (each "bajo" cost one), the defeats and the two bonuses. No backdrop blur over the canvas.
+const TITULO = '¡Fin del juego: el cáliz brilla para todos!';
+const RELATO = [
+  'Sobre el altar, bajo la torre, la dríada posa su mano sobre el cáliz de madera con grabados de hojas de sauce y runas en el borde: brilla más de lo que jamás imaginaste. Su resplandor verde sube por la aguja del santuario, señala el camino de regreso a quienes tuvieron que abandonar su hogar y lleva su calor hasta la Villa de Boj.',
+  'El frío cede y la tierra vuelve a ser fértil: todo vuelve a estar bien. Atravesaste el Pantano de la Tristeza, el Bosque de la Oscuridad y los túneles de la Cumbre de la Desolación; el juego ha terminado y este es el resumen de tu aventura.',
+];
+const BONOS = {
+  todos: 'Encontraste los dos bonos ocultos: nada quedó por descubrir.',
+  faltan: 'Aún quedan bonos ocultos en el pantano y en el bosque: puedes volver a buscarlos.',
+};
+
+// Final victory of the game: the chalice shines again on its altar, for everyone. The narrator tells it first, in the
+// text box at the bottom; then comes the summary of what the player achieved: the three challenges, the stars kept
+// (each "bajo" cost one), the defeats and the two bonuses. No backdrop blur over the canvas.
 export function VictoriaDialog() {
   const isOpen = useDialogOpen(DIALOG.victoria);
+  return isOpen ? <Victoria /> : null;
+}
+
+function Victoria() {
   const progress = useProgressStore((state) => state.progress);
   const titleId = useId();
+  const [narrated, setNarrated] = useState(false);
   const bonos = getBonosSummary(progress);
-  useVoice(isOpen ? ['04_narrador_09', bonos.completed ? '04_narrador_10' : '04_narrador_11'] : null);
-  if (!isOpen) return null;
+
+  if (!narrated) {
+    return (
+      <ParchmentDialog
+        title={TITULO}
+        paragraphs={[...RELATO, bonos.completed ? BONOS.todos : BONOS.faltan]}
+        voice={['04_narrador_09', bonos.completed ? '04_narrador_10' : '04_narrador_11']}
+        onDone={() => setNarrated(true)}
+      />
+    );
+  }
 
   const derrotas = countDerrotas(progress);
 
@@ -58,22 +82,12 @@ export function VictoriaDialog() {
       >
         <p className="text-center text-xs sm:text-sm italic text-[#5c3a21]">Brillo en la montaña</p>
         <h2 id={titleId} className="text-center text-2xl sm:text-3xl font-bold mb-2">
-          ¡Fin del juego: recuperaste el cáliz!
+          {TITULO}
         </h2>
         <div className="flex justify-center gap-1 mb-3" role="img" aria-label={`${progress.estrellas} de ${STARS} estrellas`}>
           {Array.from({ length: STARS }, (_, i) => (
             <Star key={i} lit={i < progress.estrellas} />
           ))}
-        </div>
-        <div className="space-y-2.5 text-xs sm:text-sm leading-relaxed font-sans">
-          <p>
-            Sobre el altar, bajo la torre, tomas el cáliz de madera con grabados de hojas de sauce y runas en el borde: brilla más de lo que jamás imaginaste. Su
-            resplandor verde sube por la aguja del santuario y señala el camino de regreso a quienes tuvieron que abandonar su hogar.
-          </p>
-          <p>
-            El frío cede y la tierra vuelve a ser fértil: todo vuelve a estar bien. Atravesaste el Pantano de la Tristeza, el Bosque de la Oscuridad y los túneles de
-            la Cumbre de la Desolación; el juego ha terminado y este es el resumen de tu aventura:
-          </p>
         </div>
         <ul className="mt-3 text-xs sm:text-sm font-sans">
           <Row label="Desafío 1 · Pantano de la Tristeza" value={formatDate(progress.mision1CompletadaEn)} done={progress.mision1Completada} />
@@ -85,9 +99,7 @@ export function VictoriaDialog() {
           <Row label="Bono 2 · Amuleto del hada" value={progress.bono2Completado ? 'Obtenido' : 'Sin encontrar'} done={progress.bono2Completado} />
         </ul>
         <p className="mt-3 text-xs sm:text-sm font-sans italic text-[#5c3a21]">
-          {bonos.completed
-            ? 'Encontraste los dos bonos ocultos: nada quedó por descubrir.'
-            : 'Aún quedan bonos ocultos en el pantano y en el bosque: puedes volver a buscarlos.'}
+          {bonos.completed ? BONOS.todos : BONOS.faltan}
         </p>
         <div className="mt-5 pt-3 border-t border-[#5c3a21]/20 flex justify-end">
           <ParchmentButton onClick={() => useUIStore.getState().closeDialog()}>Seguir explorando</ParchmentButton>

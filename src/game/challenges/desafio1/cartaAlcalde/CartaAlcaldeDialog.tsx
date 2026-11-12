@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useVoice } from '@/game/engine/audio/useVoice';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
+import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
@@ -8,8 +8,14 @@ import { CARTA_ALCALDE_IMAGE } from '../assets';
 import { DIALOG } from '../dialogs';
 import { openCartaAlcalde } from './openCartaAlcalde';
 
-// The mayor's announcement, full screen. The first time the player enters the world it opens by itself as soon as the
-// loading screen goes away: the story starts by reading it.
+// What the announcement says (the text of the image), as the mayor's voice reads it.
+const ANUNCIO = [
+  'Se ha avistado un resplandor verde en La Cumbre de la Desesperación. Se buscan valientes que se atrevan a enfrentar los peligros del camino y que recuperen el tesoro de nuestro pueblo. La vida de nuestra gente está en sus manos...',
+];
+
+// The mayor's announcement: its picture over the world and, in the text box below, what it says as his voice reads it.
+// The first time the player enters the world it opens by itself as soon as the loading screen goes away: the story
+// starts by reading it.
 export function CartaAlcaldeDialog() {
   const isOpen = useDialogOpen(DIALOG.cartaAlcalde);
   const ready = useWorldStore((state) => state.ready);
@@ -29,8 +35,6 @@ export function CartaAlcaldeDialog() {
     image.decode().catch(() => undefined);
   }, []);
 
-  useVoice(isOpen ? ['00_alcalde_01'] : null);
-
   if (!isOpen) return null;
 
   const close = () => {
@@ -41,22 +45,15 @@ export function CartaAlcaldeDialog() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4 select-none">
-      <div className="relative max-w-full max-h-[90vh] flex items-center justify-center">
-        <button
-          type="button"
-          onClick={close}
-          className="absolute -top-2 -right-2 sm:top-2 sm:right-2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold cursor-pointer drop-shadow-md hover:scale-110 active:scale-95 transition-all"
-          aria-label="Cerrar anuncio"
-        >
-          &times;
-        </button>
-        <img
-          src={CARTA_ALCALDE_IMAGE}
-          alt="Anuncio del alcalde"
-          className="max-w-full max-h-[82vh] object-contain drop-shadow-2xl pointer-events-none"
-        />
+    <>
+      <div className="fixed inset-x-0 top-0 bottom-[11.5rem] z-40 flex items-center justify-center p-3 pointer-events-none select-none">
+        <img src={CARTA_ALCALDE_IMAGE} alt="Anuncio del alcalde" className="max-w-full max-h-full object-contain drop-shadow-2xl" />
       </div>
-    </div>
+      <ParchmentDialog title="Anuncio del alcalde" subtitle="Clavado en el tablón de la Villa de Boj" paragraphs={ANUNCIO} voice={['00_alcalde_01']}>
+        <div className="flex justify-end">
+          <ParchmentButton onClick={close}>Guardar el anuncio</ParchmentButton>
+        </div>
+      </ParchmentDialog>
+    </>
   );
 }

@@ -258,9 +258,19 @@ export function stopVoice() {
 
 // Says the clips in order (ids of docs/sonido/guion_voces.csv), replacing whatever was being said. Returns how to
 // silence them; that does nothing if something else took over meanwhile.
-export function playVoice(clips: readonly string[]): () => void {
+// `onDone` is told when the last clip ends by itself (not when it is silenced or replaced).
+export function playVoice(clips: readonly string[], onDone?: () => void): () => void {
+  return followVoice(clips, onDone).stop;
+}
+
+// Where a voice started with followVoice is: which of its clips and how far into it (s). `null` once it is over,
+// silenced or replaced.
+export type VoiceClock = () => { clip: number; time: number } | null;
+
+// Like playVoice, and it also tells how far along the voice is, for whoever writes its words as they are said.
+export function followVoice(clips: readonly string[], onDone?: () => void): { stop: () => void; clock: VoiceClock } {
   stopVoice();
-  if (!clips.length) return () => undefined;
+  if (!clips.length) return { stop: () => undefined, clock: () => null };
   const token = voiceToken;
   const element = new Audio();
   element.preload = 'auto';
@@ -273,7 +283,10 @@ export function playVoice(clips: readonly string[]): () => void {
   };
   const next = () => {
     if (voiceToken !== token) return;
-    if (index >= clips.length) return finish();
+    if (index >= clips.length) {
+      finish();
+      return void onDone?.();
+    }
     element.src = voiceUrl(clips[index++]);
     element.play().then(
       () => duck(true),
@@ -292,7 +305,36 @@ export function playVoice(clips: readonly string[]): () => void {
   element.addEventListener('error', next);
   next();
 
-  return () => {
-    if (voiceToken === token) stopVoice();
+  return {
+    stop: () => {
+      if (voiceToken === token) stopVoice();
+    },
+    clock: () => (voiceToken === token ? { clip: index - 1, time: element.currentTime } : null),
   };
 }
+
+// How long each clip lasts (s), read from the header of its file; 0 for one that cannot be loaded.
+const durations = new Map<string, Promise<number>>();
+const METADATA_TIMEOUT = 4000;
+
+function voiceDuration(clip: string): Promise<number> {
+  let duration = durations.get(clip);
+  if (!duration) {
+    duration = new Promise<number>((resolve) => {
+      const probe = new Audio();
+      const done = (seconds: number) => {
+        probe.removeAttribute('src');
+        resolve(Number.isFinite(seconds) ? seconds : 0);
+      };
+      probe.preload = 'metadata';
+      probe.addEventListener('loadedmetadata', () => done(probe.duration), { once: true });
+      probe.addEventListener('error', () => done(0), { once: true });
+      setTimeout(() => done(0), METADATA_TIMEOUT);
+      probe.src = voiceUrl(clip);
+    });
+    durations.set(clip, duration);
+  }
+  return duration;
+}
+
+export const voiceDurations = (clips: readonly string[]) => Promise.all(clips.map(voiceDuration));

@@ -57,6 +57,7 @@ export function ElfoDialog() {
 
   return (
     <ParchmentDialog title="El elfo del bosque" subtitle="Un mago elfo que vive en la copa de un árbol" paragraphs={EXPLICACION}
+      question={accepted ? undefined : '¿Quieres llevar mis herramientas? En mi casa tengo una espada, un lente y un mapa.'}
       voice={accepted ? ['02_elfo_02'] : ['02_elfo_02', '02_elfo_01']}
     >
       {accepted ? (
@@ -64,15 +65,12 @@ export function ElfoDialog() {
           <ParchmentButton onClick={close}>Entendido</ParchmentButton>
         </div>
       ) : (
-        <>
-          <p className="font-bold text-sm sm:text-base mb-3">¿Quieres llevar mis herramientas? En mi casa tengo una espada, un lente y un mapa.</p>
-          <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
-            <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
-              No, gracias
-            </ParchmentButton>
-            <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
-          </div>
-        </>
+        <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+          <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
+            No, gracias
+          </ParchmentButton>
+          <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
+        </div>
       )}
     </ParchmentDialog>
   );

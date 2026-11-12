@@ -28,7 +28,6 @@ const TOAST_VOICES: readonly (readonly [startsWith: string, clips: readonly stri
   ['El guante de minero es para el pulso', ['03_narrador_10']],
   ['Sin el guante de minero', ['03_narrador_11']],
   ['¡Te pones el guante de minero', ['03_narrador_12']],
-  ['La dríada abre las puertas', ['04_narrador_02']],
 ];
 
 export function voicesForToast(message: string): readonly string[] | null {

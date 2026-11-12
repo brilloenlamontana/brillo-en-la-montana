@@ -41,6 +41,11 @@ const DEATH_RESPAWN_DELAY = 4.1;
 // A joystick pushed this far counts as moving; past RUN it runs (same speeds as walking and Shift on a keyboard).
 const JOYSTICK_DEADZONE = 0.05;
 const JOYSTICK_RUN = 0.75;
+// A guided walk (playerStore.guide) stops this close to its target (m).
+const GUIDE_ARRIVE = 0.18;
+// Guided and moving less than GUIDE_STUCK_METERS in GUIDE_STUCK_SECONDS: something low is in the way.
+const GUIDE_STUCK_SECONDS = 0.45;
+const GUIDE_STUCK_METERS = 0.12;
 
 const STAND_STILL = { forward: false, backward: false, leftward: false, rightward: false, run: false, jump: false, joystick: { x: 0, y: 0 } };
 // Stable objects: @react-three/rapier resets the body to the (stale) object position when these props change identity,
@@ -73,6 +78,8 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
   const cameraPlaced = useRef(false);
   const appliedCameraDistance = useRef<number | null>(null);
   const diedAt = useRef<number | null>(null);
+  const guideForward = useRef(new Vector3());
+  const guideStuck = useRef({ since: 0, x: 0, z: 0, jump: false });
   // Every character uses the same capsule; only the point the camera looks at follows the character's height.
   const avatarName = useAuthStore((state) => state.user?.avatarName);
   const cameraTargetHeight = findCharacter(avatarName).height * CAMERA_TARGET_FRACTION + FEET_OFFSET[1];
@@ -147,6 +154,41 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
     if (isGameplayPaused()) {
       ecctrl.setMovement(STAND_STILL);
       if (player.action !== 'Idle') player.setAction('Idle');
+      followWithCamera();
+      return;
+    }
+
+    // A scripted scene leads the avatar (see playerStore.guide): it walks to the point by itself, whatever the camera
+    // looks at, and the keys do nothing.
+    if (player.guide) {
+      const target = player.guide.walkTo;
+      const dx = target ? target.x - ecctrl.currPos.x : 0;
+      const dz = target ? target.z - ecctrl.currPos.z : 0;
+      const distance = Math.hypot(dx, dz);
+      const walking = distance > GUIDE_ARRIVE;
+      if (walking) {
+        // ecctrl moves relative to the camera: the world direction is turned into "joystick" axes of the camera.
+        camera.getWorldDirection(guideForward.current);
+        const { x: fx, z: fz } = guideForward.current;
+        const flat = Math.hypot(fx, fz) || 1;
+        const ux = dx / distance;
+        const uz = dz / distance;
+        // Held back by a step (the stairs of the sanctuary): it hops over it, as a player would.
+        const stuck = guideStuck.current;
+        if (state.clock.elapsedTime - stuck.since > GUIDE_STUCK_SECONDS) {
+          stuck.jump = Math.hypot(ecctrl.currPos.x - stuck.x, ecctrl.currPos.z - stuck.z) < GUIDE_STUCK_METERS;
+          stuck.since = state.clock.elapsedTime;
+          stuck.x = ecctrl.currPos.x;
+          stuck.z = ecctrl.currPos.z;
+        } else if (state.clock.elapsedTime - stuck.since > 0.12) {
+          stuck.jump = false;
+        }
+        ecctrl.setMovement({ ...STAND_STILL, jump: stuck.jump, joystick: { x: (ux * -fz + uz * fx) / flat, y: (ux * fx + uz * fz) / flat } });
+      } else {
+        ecctrl.setMovement(STAND_STILL);
+      }
+      const guided: PlayerAction = walking ? 'Walking' : 'Idle';
+      if (player.action !== guided) player.setAction(guided);
       followWithCamera();
       return;
     }

@@ -31,8 +31,13 @@ export function AldeanoDialog() {
   };
 
   return (
-    <ParchmentDialog title="Aldeano de la Villa de Boj" subtitle="Lo que pasó en la villa" paragraphs={RELATO} voice={['01_aldeano_01', '01_aldeano_02']}>
-      <p className="font-bold text-sm sm:text-base mb-3">¿Necesitas ayuda para llegar a la Cumbre de la Desolación?</p>
+    <ParchmentDialog
+      title="Aldeano de la Villa de Boj"
+      subtitle="Lo que pasó en la villa"
+      paragraphs={RELATO}
+      question="¿Necesitas ayuda para llegar a la Cumbre de la Desolación?"
+      voice={['01_aldeano_01', '01_aldeano_02']}
+    >
       <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
         <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
           No
