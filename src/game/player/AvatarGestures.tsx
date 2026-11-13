@@ -76,7 +76,7 @@ function placeInHand(holder: Group, size: Vector3, grip: GestureItem, hand: Obje
 type HeldItemModelProps = { url: string; grip: GestureItem; skeleton: Object3D; height: number; visible: RefObject<boolean> };
 
 // The item, re-centered (its GLB is placed somewhere in the world), sized and hung from the hand bone.
-function HeldItemModel({ url, grip, skeleton, height, visible }: HeldItemModelProps) {
+export function HeldItemModel({ url, grip, skeleton, height, visible }: HeldItemModelProps) {
   const { scene } = useGLTF(url);
   const { holder, size } = useMemo(() => {
     const box = new Box3().setFromObject(scene);

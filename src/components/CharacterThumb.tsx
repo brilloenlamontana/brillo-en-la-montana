@@ -23,7 +23,7 @@ export function CharacterThumb({ character, photoURL, name, className = '' }: Ch
       <div
         role="img"
         aria-label={character.name}
-        className={`${base} bg-gradient-to-b from-red-50 to-white bg-no-repeat`}
+        className={`${base} bg-gradient-to-b from-papel-200 to-papel-50 bg-no-repeat`}
         style={{
           backgroundImage: `url(${character.imagePath})`,
           backgroundSize: `${(SPRITE_W / size) * 100}% ${(SPRITE_H / size) * 100}%`,
@@ -34,7 +34,7 @@ export function CharacterThumb({ character, photoURL, name, className = '' }: Ch
   }
   if (photoURL) return <img src={photoURL} alt={name || 'Perfil'} referrerPolicy="no-referrer" className={`${base} object-cover`} />;
   return (
-    <div className={`${base} bg-gradient-to-tr from-[#C8102E] to-[#E53E3E] flex items-center justify-center font-bold text-white`}>
+    <div className={`${base} bg-gradient-to-tr from-madera-600 to-madera-500 flex items-center justify-center font-bold text-papel-50`}>
       {(name && name[0]) || 'U'}
     </div>
   );

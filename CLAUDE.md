@@ -1,6 +1,6 @@
 # CLAUDE.md — Brillo en la montaña
 
-## 1. PRIMERA INSTRUCCIÓN OBLIGATORIA: `graphify` (Leer primero y mantener actualizado)
+## 1. PRIMERA INSTRUCCIÓN OBLIGATORIA: `graphify` (Leer primero, actualizar SOLO cuando el usuario lo pida)
 
 Este proyecto tiene un grafo de conocimiento persistente en `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`, `graph.html`) con *god nodes*, detección de comunidades y relaciones entre archivos.
 
@@ -13,11 +13,10 @@ Cuando el usuario escriba `/graphify`, usa la skill `graphify` instalada antes d
    - `graphify explain "<concepto>"` — detalle puntual de un nodo.
    - Si existe `graphify-out/wiki/index.md`, úsalo para navegación amplia antes de recorrer carpetas manualmente.
    - Lee `graphify-out/GRAPH_REPORT.md` únicamente para revisiones globales de arquitectura o cuando `query`/`path`/`explain` no basten, y abre archivos crudos solo en las rutas/líneas ubicadas por el grafo.
-   - Archivos modificados en `graphify-out/` tras hooks o actualizaciones incrementales son normales; nunca omitas `graphify` salvo que el usuario lo pida explícitamente.
-2. **Actualizar el árbol/grafo de `graphify` ante cambios funcionales:** Cada vez que implementes o actualices funcionalidades, agregues/renombres/elimines archivos, cambies contratos, componentes o relaciones de modo que el árbol de `graphify` deba cambiar, **actualízalo obligatoriamente antes de cerrar la tarea**:
-   - Cambios en código fuente: ejecuta `graphify update .` (solo AST, incremental y sin costo de API).
-   - Cambios que también incluyan documentación (`.md`, `.html`), imágenes/sprites o arquitectura semántica: ejecuta `/graphify . --update` (o `/graphify .` para reconstrucción completa).
-   - Un diff grande en `graphify-out/graph.json` (si llegara a versionarse) es esperado al regenerar el grafo; no omitas su actualización.
+   - Archivos modificados en `graphify-out/` tras hooks o actualizaciones incrementales son normales; nunca omitas `graphify` para lecturas salvo que el usuario lo pida explícitamente.
+2. **NO actualizar `graphify` automáticamente (solo bajo petición explícita del usuario):** **PROHIBIDO ejecutar `graphify update .` o `/graphify` por cuenta propia tras cada cambio o ciclo de prueba y error**, porque consume muchos tokens y tiempo en cada iteración. **El usuario es quien indica cuándo actualizar `graphify`**; ejecútalo única y exclusivamente cuando el usuario lo pida de forma explícita:
+   - Cuando el usuario lo solicite para cambios en código fuente: ejecuta `graphify update .` (solo AST, incremental y sin costo de API).
+   - Cuando el usuario lo solicite incluyendo documentación (`.md`, `.html`), imágenes/sprites o arquitectura semántica: ejecuta `/graphify . --update` (o `/graphify .` para reconstrucción completa).
 
 ---
 
@@ -54,29 +53,49 @@ npm run docker:prod   # Contenedor Docker prod (Nginx) en http://localhost:8081 
 
 ---
 
-## 4. Ingreso al Mundo 3D para Pruebas en Google Chrome (`?dev=<preset>`)
+## 4. Verificación (`lint`) y Pruebas en Google Chrome (`?dev=<preset>`)
+
+> **REGLA DE FLUJO DE TRABAJO — PROHIBIDO PROBAR EN CHROME POR CUENTA PROPIA:**
+> - **NO abras ni pruebes en Google Chrome automáticamente** después de hacer cambios (ni con Chrome DevTools MCP, ni con `/browser`, ni con Playwright/Puppeteer). **Las pruebas en Chrome las realiza exclusivamente el usuario** para evitar el alto consumo de tokens y tiempo en cada ciclo de prueba y error.
+> - **Cómo verificar tus cambios:** Al terminar de editar código, **ejecuta únicamente `npm run lint` (y `npx tsc -b` cuando aplique)** para comprobar que no haya errores, e indícale al usuario la URL `?dev=<preset>` para que él la pruebe.
+> - **Única excepción:** Solo conecta o abre Chrome si el usuario lo solicita explícitamente en su mensaje (por ejemplo, al capturar evidencias para los informes contractuales con `informes-contrato`).
 
 El motor requiere **Google Chrome real con soporte WebGPU** sobre `http://localhost:5174` (`npm run dev` o `npm run docker:dev`). En modo desarrollo (`import.meta.env.DEV`, eliminado por Vite en producción) existe `src/app/devSession.ts` para entrar al juego sin Google OAuth (`@correounivalle.edu.co`) y **sin leer ni escribir jamás en Cloud Firestore real**:
 
-1. **Cómo conectar Google Chrome desde Claude / automatización:**
+1. **Solo si el usuario solicita explícitamente conectar Google Chrome desde Claude / automatización:**
    - Usa **Chrome DevTools MCP** conectado a Google Chrome local, o lanza Chrome real con soporte GPU (`channel: 'chrome'` en Playwright/Puppeteer, evitando Chromium headless sin adaptador WebGPU).
    - Abre siempre las rutas con `?dev=<preset>`: `useAuthSession.ts` omite `onAuthStateChanged` y `isDevUser` (`authStore.ts`) bloquea toda lectura/escritura a Firestore en `progressService.ts`, `userService.ts` y `adminService.ts`.
 2. **URLs completas y casos de prueba disponibles (`http://localhost:5174`):**
    - **Desafío 1 — Villa de Boj, Casa de Imeri y Pantano de la Tristeza:**
      - `http://localhost:5174/mundo?dev=1` (alias: `http://localhost:5174/mundo?dev=villa`, `http://localhost:5174/mundo?dev=desafio1`) — Puerta de Villa de Boj desde cero (`x: -39, y: 12.4, z: 18`).
-     - `http://localhost:5174/mundo?dev=carta` — Puerta de Villa de Boj con el pergamino y narración del anuncio del alcalde abierto (`desafio1.cartaAlcalde`).
-     - `http://localhost:5174/mundo?dev=aldeano` — Plaza de Villa de Boj frente al aldeano (`x: -68.5, y: 12.2, z: 15.5`, carta leída).
-     - `http://localhost:5174/mundo?dev=aldeana` — En la villa frente a la aldeana (`x: -83, y: 12.2, z: 33`, carta leída).
-     - `http://localhost:5174/mundo?dev=imeriHablar` — Frente a la casa de Imeri con ayuda del aldeano aceptada, listo para hablar con Imeri.
+     - `http://localhost:5174/mundo?dev=carta` — A unos pasos del tablón de anuncios junto al portón (`x: -45, y: 12.2, z: 19.9`), anuncio sin leer: acércate y presiona `E` para leerlo (nunca se abre solo).
+     - `http://localhost:5174/mundo?dev=aldeana` — Junto al pozo de la plaza frente a la aldeana (`x: -74.8, y: 12.2, z: 20.4`, carta leída): cuenta lo ocurrido y pregunta si necesitas ayuda (Sí/No).
+     - `http://localhost:5174/mundo?dev=aldeanaPistas` — Frente a la aldeana con su ayuda ya aceptada: cuenta las habladurías del pozo (pistas de los bonos).
+     - `http://localhost:5174/mundo?dev=imeriHablar` — Frente a la casa de Imeri con ayuda de la aldeana aceptada, listo para hablar con Imeri.
      - `http://localhost:5174/mundo?dev=imeri` — Frente a la casa de Imeri (`x: 14.5, y: 11.8, z: 41`), puerta desbloqueada y mochila activa para entrar a recoger los 7 objetos.
      - `http://localhost:5174/mundo?dev=pantano` — Orilla seca antes del Pantano (`x: 50, y: 12.2, z: 24`) con **gema, soga e insecticida (5 pociones)** listos en la mochila.
      - `http://localhost:5174/mundo?dev=pantanoCasi` — Pantano con Golem apagado y `9/10` zumbadores derrotados: derrota al último zumbador para disparar la victoria del Desafío 1 en vivo.
      - `http://localhost:5174/mundo?dev=pantanoSuperado` — Pergamino y narración de **Pantano de la Tristeza superado** abiertos (`desafio1.pantanoSuperado`).
    - **Bono 1 — La Estatua de la Choza (salida del pantano):**
-     - `http://localhost:5174/mundo?dev=choza` — Etapa 1: junto a la choza de la estatua cubierta de moho (`x: -62, y: 9.9, z: -87.5`).
-     - `http://localhost:5174/mundo?dev=chozaLimpia` — Etapa 2: rostro de la estatua ya limpio (`estatuaLimpia: true`), diálogo abierto listo para encender el fuego.
-     - `http://localhost:5174/mundo?dev=chozaEncendida` — Etapa 3: fuego encendido en el plato (`estatuaEncendida: true`), listo para recibir el **Anillo de oro** y la **1.ª estrella extra**.
+     - `http://localhost:5174/mundo?dev=choza` — Etapa 1: afuera, junto a la puerta de la choza de la estatua cubierta de moho (`x: -62, y: 9.9, z: -87.5`).
+     - `http://localhost:5174/mundo?dev=chozaEstatua` — Etapa 1 jugable: dentro de la choza frente a la estatua (`x: -61.4, y: 9.9, z: -95.6`): `E` la examina y luego el avatar sube a la losa (los personajes bajos, a un banquito) y limpia el rostro a mano; mantén presionado el clic o `E` para frotar las 3 zonas de moho.
+     - `http://localhost:5174/mundo?dev=chozaLimpia` — Etapa 2 jugable: rostro ya limpio (`estatuaLimpia: true`), diálogo abierto; su botón (o `E` junto a la estatua) hace que el avatar se arrodille junto al plato y golpee dos piedras de chispa: haz clic varias veces seguidas para sacar chispas y prender el fuego.
+     - `http://localhost:5174/mundo?dev=chozaEncendida` — Etapa 3 jugable: fuego encendido en el plato (`estatuaEncendida: true`), diálogo abierto; su botón (o `E` junto a la estatua) hace que el avatar rodee el fuego, tome el **Anillo de oro** de las manos de la estatua y lo alce para mirarlo; al terminar recibe la **1.ª estrella extra**.
      - `http://localhost:5174/mundo?dev=bono1` — Bono 1 completado (`anilloOro` en mochila + `1 estrella extra`).
+     - **Estados de la choza (Bono 1)** — código en `src/game/challenges/desafio1/chozaEstatua/`; plan y avance en `docs/Plan_Bono1_Estatua.md`:
+
+       | Estado guardado (`progress`) | Aviso con `E` junto a la estatua | Qué se ve | Preset |
+       |---|---|---|---|
+       | Nada hecho, sin examinar | «examinar la estatua» (abre el diálogo de la inscripción) | Moho en rostro (`EstatuaMohoFrente/Ojos/Boca`) y cuerpo (`EstatuaMohoCuerpo`); trapo sobre la losa; pedernal y pirita junto al plato; plato apagado | `?dev=choza`, `?dev=chozaEstatua` |
+       | Examinada en esta sesión (`useChozaStore.examinada`, no se guarda) | «limpiar el rostro de la estatua» | Igual | — |
+       | `estatuaLimpia: true` | «encender el fuego en el plato» | Rostro limpio; moho del cuerpo; plato apagado | `?dev=chozaLimpia` |
+       | `estatuaEncendida: true` | «tomar el anillo de la estatua» | Fuego encendido con luz y sonido (`obj_fogata`); sin moho; anillo en las manos de la estatua | `?dev=chozaEncendida` |
+       | `bono1Completado: true` (+ `anilloOro` en `collectedItems`, `vidasExtra` +1) | «contemplar la estatua» | Fuego encendido; manos vacías | `?dev=bono1` |
+
+       Escenas en curso (solo en memoria, `useChozaStore`; mientras duran, la cámara es fija, el avatar lo mueve la escena y salir o abrir un diálogo las cancela sin guardar):
+       - `limpieza` (`limpieza.ts`, `LimpiezaEscena`, `LimpiezaHud`): `camino` (rodea el plato hasta la losa) → `frota` (mantener clic/`E`; palma con trapo contra el rostro; 3 zonas de ~4 s; `limpiezaViva.avance` 0‥3; los personajes bajos suben a un banquito) → `fin` → guarda `estatuaLimpia` y abre el diálogo.
+       - `encendido` (`encendido.ts`, `EncendidoEscena`, `EncendidoHud`): `camino` (al borde del plato, que es sólido) → `agacha` (clip `Arrodillarse`) → `chispa` (clics: golpe de pirita contra pedernal, chispas; `encendidoVivo.brasa` 0‥1 que se enfría sola) → `llamas` (suben alrededor de la estatua, queman `EstatuaMohoCuerpo`; el avatar se aparta y queda mirando el fuego) → guarda `estatuaEncendida` y abre el diálogo.
+       - `anillo` (`anillo.ts`, `AnilloEscena`, `AnilloHud`): `camino` (rodea el fuego) → `alcanza` (mano derecha sobre el anillo, izquierda debajo) → `alza` (el anillo pasa a la mano y lo sube a los ojos) → `mira` (lo gira a la luz del fuego) → guarda `bono1Completado`, la estrella extra y el anillo, y abre el diálogo final (con `05_narrador_05`).
    - **Desafío 2 — Casa del Elfo y Bosque de la Oscuridad:**
      - `http://localhost:5174/mundo?dev=desafio2` (alias: `http://localhost:5174/mundo?dev=elfo`) — Pie del árbol gigante frente al Elfo (`x: -36.4, y: 11.9, z: -122.5`) tras superar el Desafío 1.
      - `http://localhost:5174/mundo?dev=elfoCasa` — Ayuda del Elfo aceptada y puerta de su casa abierta en la copa del árbol para subir a recoger espada, lente y mapa.
@@ -97,8 +116,8 @@ El motor requiere **Google Chrome real con soporte WebGPU** sobre `http://localh
      - `http://localhost:5174/mundo?dev=espectro` — Cámara del Espectro Simona en los túneles (`x: 126, y: 30.5, z: -178.5`) con la muñeca (`3`) lista para calmarla y ver su transformación en `NinaClara`.
      - `http://localhost:5174/mundo?dev=espectroSinMuneca` — Cámara del Espectro **sin la muñeca**, para probar la persecución, daño por frío/escarcha y el mensaje al intentar calmarla sin muñeca.
      - `http://localhost:5174/mundo?dev=puente` — Antes del puente de madera sobre la grieta (`x: 138, y: 35.8, z: -165`), espectro ya calmado.
-     - `http://localhost:5174/mundo?dev=ogro` — Sala del Ogro y mesa de pulso (`x: 111.5, y: 44, z: -166`), espectro calmado y **guante de minero (`1`)** listo para ganarle el pulso.
-     - `http://localhost:5174/mundo?dev=ogroSinGuante` — Sala del Ogro **sin el guante de minero**, para probar cómo el Ogro te repele y quita 20 PV al intentar pasar o retarlo sin guante.
+     - `http://localhost:5174/mundo?dev=ogro` — Sala del Ogro y mesa de pulso (`x: 111.5, y: 44, z: -166`), espectro calmado y **guante de minero (`1`)** en la mochila: presiona `E` junto a la mesa: el avatar se pone el guante, apoya el codo en la mesa y juega a las vencidas (cámara fija, cercana y alta); gana haciendo clic muchas veces.
+     - `http://localhost:5174/mundo?dev=ogroSinGuante` — Sala del Ogro **sin el guante de minero**, para probar cómo el Ogro te golpea (20 PV por golpe, sin teletransporte ni aviso) al acercarte a la escalera, y cómo te gana las vencidas (pierdes una estrella) si lo retas sin guante.
      - `http://localhost:5174/mundo?dev=ogroVencido` — Ogro vencido en el pulso (`ogroVencido: true`), diálogo `desafio3.ogroVencido` abierto y escalera en espiral despejada.
      - `http://localhost:5174/mundo?dev=escaleraCumbre` — Últimos peldaños antes de salir a la Cumbre (`x: 106.75, y: 53.0, z: -164.7`, `mision3Completada: false`), para subir y disparar en vivo la llegada a la Cumbre.
    - **Relato de Cierre — Cumbre de la Desolación, Santuario, Dríada, Cáliz y Cinemática Final:**

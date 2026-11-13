@@ -1,5 +1,6 @@
 import { useProgressStore } from '@/store/progressStore';
 import { getItemState } from './mission';
+import { PulsoHud } from './ogro/PulsoHud';
 import { useTunelStore } from './tunelStore';
 
 // The spectre's cold: a pale blue frost closes in from the edges of the screen as she gets near, and flashes when she
@@ -34,6 +35,7 @@ export function Desafio3Hud() {
     <>
       <FrioDelEspectro />
       <BrujulaActiva />
+      <PulsoHud />
     </>
   );
 }

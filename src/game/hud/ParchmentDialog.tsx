@@ -15,7 +15,9 @@ type ParchmentDialogProps = {
   tone?: Tone;
   // Told once, when everything has been said.
   onDone?: () => void;
-  // Footer (the answers, or the button that closes it): only shown once everything has been said.
+  // Closing it: an × in its top corner, shown once everything has been said.
+  onClose?: () => void;
+  // Footer with the answers to a question: only shown once everything has been said.
   children?: ReactNode;
 };
 
@@ -28,10 +30,15 @@ const READING_CHARS_PER_SECOND = 17;
 // A breath after the last word, before the answers show up or the next speaker goes on.
 const PAUSE_SECONDS = 0.5;
 
-const TONES: Record<Tone, { panel: string; name: string }> = {
-  pergamino: { panel: 'border-[#5c3a21] bg-[#f4e4bc]/95 text-[#3e2723]', name: 'text-[#5c3a21]' },
-  driada: { panel: 'border-emerald-700 bg-emerald-50/95 text-emerald-950', name: 'text-emerald-700' },
-  jugador: { panel: 'border-[#C8102E] bg-white/95 text-slate-900', name: 'text-[#C8102E]' },
+// The box is the parchment scroll (public/sprites-2d/aseets/pergamino.png) stretched to the size of what it holds;
+// the padding keeps the text off its rollers and its curled edges. Each voice has its own colour for its name.
+const PERGAMINO = '/sprites-2d/aseets/pergamino.png';
+// Downloaded ahead, so the first narration does not show an empty box.
+if (typeof window !== 'undefined') new Image().src = PERGAMINO;
+const TONES: Record<Tone, { name: string }> = {
+  pergamino: { name: 'text-[#5c3a21]' },
+  driada: { name: 'text-emerald-800' },
+  jugador: { name: 'text-[#C8102E]' },
 };
 
 type Page = { text: string; start: number; question: boolean };
@@ -64,7 +71,7 @@ function paginate(paragraphs: readonly string[], question: string | undefined): 
 // everything has been said. It is a dialog for the game (the avatar stands still, the items wait) but it does not
 // cover the canvas, so the camera can still be turned to look around. No backdrop blur: blurring a live 3D canvas
 // every frame is expensive on phones.
-export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, tone = 'pergamino', onDone, children }: ParchmentDialogProps) {
+export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, tone = 'pergamino', onDone, onClose, children }: ParchmentDialogProps) {
   const voiceKey = voice?.join('|') ?? '';
   // By its content: the dialogs build their paragraphs anew on every render.
   const textKey = JSON.stringify([paragraphs, question ?? '']);
@@ -139,6 +146,23 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
     };
   }, [said, voiceKey, total]);
 
+  // Once everything has been said, Escape (or Enter) closes it as the × does.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+  useEffect(() => {
+    if (!done) return;
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.key === 'Escape' || event.key === 'Enter') && onCloseRef.current) {
+        event.preventDefault();
+        onCloseRef.current();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [done]);
+
   // The page being written: a page that is complete stays until the next word comes.
   const index = Math.max(0, pages.findLastIndex((each) => each.start < typed));
   const page = pages[index] ?? { text: '', start: 0, question: false };
@@ -150,18 +174,39 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
       <div
         role="dialog"
         aria-label={title}
-        className={`pointer-events-auto w-full max-w-5xl rounded-2xl border-2 sm:border-[3px] shadow-2xl px-4 py-3 sm:px-7 sm:py-4 font-serif ${style.panel}`}
+        style={{ backgroundImage: `url(${PERGAMINO})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
+        className="relative pointer-events-auto w-full max-w-5xl text-[#3e2723] drop-shadow-[0_6px_14px_rgba(0,0,0,0.45)] px-[7%] pt-6 pb-5 sm:pt-8 sm:pb-7 font-serif"
       >
-        <div className="flex items-baseline justify-between gap-3 mb-1.5">
+        {/* Shown once everything has been said, in the top corner of the paper by the right roller: it closes the scroll
+            and the game goes on. */}
+        {done && onClose && (
+          <button
+            type="button"
+            onClick={() => {
+              playSfx('ui_boton', { volume: 0.6 });
+              onClose();
+            }}
+            aria-label="Cerrar y seguir"
+            title="Cerrar y seguir (Esc)"
+            className="absolute top-[17%] right-[5.2%] w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 border-[#5c3a21] text-[#5c3a21] bg-[#f4e4bc]/70 hover:bg-[#5c3a21] hover:text-[#f4e4bc] active:scale-95 transition-colors cursor-pointer"
+          >
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        )}
+        <div className="flex items-center justify-between gap-3 mb-1 min-h-7 sm:min-h-8">
           <p className="min-w-0 truncate">
             <span className={`text-xs sm:text-sm font-bold uppercase tracking-wider ${style.name}`}>{title}</span>
             {subtitle && <span className="ml-2 text-[11px] sm:text-xs italic opacity-70">{subtitle}</span>}
           </p>
-          {pages.length > 1 && (
-            <span className="shrink-0 text-[10px] sm:text-[11px] font-mono opacity-60">
-              {index + 1}/{pages.length}
-            </span>
-          )}
+          <div className="flex shrink-0 items-center gap-2.5">
+            {pages.length > 1 && (
+              <span className="text-[10px] sm:text-[11px] font-mono opacity-60">
+                {index + 1}/{pages.length}
+              </span>
+            )}
+          </div>
         </div>
         {/* The words still to come are there, unseen: the box keeps its size and no word jumps to the next line. */}
         <p className={`min-h-[3.9em] text-sm sm:text-lg leading-snug ${page.question ? 'font-bold' : ''}`}>
@@ -170,11 +215,7 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
             {page.text.slice(written)}
           </span>
         </p>
-        {done && children ? (
-          <div className="mt-2.5 pt-2.5 border-t border-current/15">{children}</div>
-        ) : (
-          !done && <p className="mt-2 text-[10px] sm:text-[11px] opacity-60 font-sans">Escucha hasta el final. Mientras tanto puedes girar la cámara para mirar alrededor.</p>
-        )}
+        {done && children && <div className="mt-2 pt-2 border-t border-current/15">{children}</div>}
       </div>
     </div>
   );

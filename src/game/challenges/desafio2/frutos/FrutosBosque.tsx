@@ -3,6 +3,7 @@ import { Html, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Box3, Frustum, Group, InstancedMesh, Matrix4, Sphere, Vector3, type BufferGeometry, type Material, type Mesh, type Object3D } from 'three';
 import { InteractionPrompt } from '@/game/engine/interaction/InteractionPrompt';
+import { PROMPT_Z_RANGE } from '@/game/engine/interaction/promptLayer';
 import { useInteractKey } from '@/game/engine/interaction/useInteractKey';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
@@ -217,7 +218,7 @@ export function FrutosBosque({ maxDistance, enabled }: FrutosBosqueProps) {
     <>
       <primitive object={orchard.group} />
       {fruit && (
-        <Html position={[fruit.center.x, fruit.top + 0.35, fruit.center.z]} center>
+        <Html zIndexRange={PROMPT_Z_RANGE} position={[fruit.center.x, fruit.top + 0.35, fruit.center.z]} center>
           <InteractionPrompt action="comer la fruta" onActivate={eat} />
         </Html>
       )}

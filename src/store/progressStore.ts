@@ -27,6 +27,8 @@ export interface GameProgress {
   // --- Story ---
   // Items picked up in any house.
   collectedItems: string[];
+  // Arrival stories already told (see challenges/llegada.ts).
+  historiasContadas: string[];
 
   // Challenge 1
   openedMayorLetter: boolean;
@@ -94,6 +96,7 @@ interface ProgressState {
 // The story from the very beginning (everything except the whole-game fields).
 export const STORY_START = {
   collectedItems: [],
+  historiasContadas: [],
   openedMayorLetter: false,
   aldeanoHelp: 'pending',
   interactedWithImeri: false,
@@ -135,6 +138,7 @@ const DEFAULT_PROGRESS: GameProgress = {
   reinicios: {},
   ...STORY_START,
   collectedItems: [],
+  historiasContadas: [],
   zumbadoresDefeated: [],
   duendesDefeated: [],
   frutosComidos: [],
@@ -176,6 +180,7 @@ export function normalizeProgress(saved: Partial<GameProgress> | undefined): Gam
   progress.derrotas = isRecord(progress.derrotas) ? progress.derrotas : {};
   progress.reinicios = isRecord(progress.reinicios) ? progress.reinicios : {};
   progress.collectedItems = list(progress.collectedItems);
+  progress.historiasContadas = list(progress.historiasContadas);
   progress.zumbadoresDefeated = list(progress.zumbadoresDefeated);
   progress.duendesDefeated = list(progress.duendesDefeated);
   progress.frutosComidos = list(progress.frutosComidos);

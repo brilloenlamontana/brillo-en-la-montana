@@ -43,7 +43,8 @@ export function PlayerSounds() {
     m.verticalSpeed += (dy / delta - m.verticalSpeed) * Math.min(1, delta * 18);
 
     const alive = player.health > 0;
-    const jump = alive && !isGameplayPaused() && (getKeys().jump || Boolean(useButtonStore.getState().buttons['jump']));
+    // Led by a scripted scene the avatar does not jump, whatever the keys say.
+    const jump = alive && !isGameplayPaused() && player.guide === null && (getKeys().jump || Boolean(useButtonStore.getState().buttons['jump']));
     if (jump && !m.jumpHeld && !m.falling) playSfx('jug_salto', { volume: 0.55 });
     m.jumpHeld = jump;
 

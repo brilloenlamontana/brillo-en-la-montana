@@ -27,8 +27,8 @@ export function HedrigDialog() {
       .getState()
       .showToast(
         help === 'accepted'
-          ? 'Hedrig abrió su casa: entra y recoge el guante de minero, la brújula y la muñeca de trapo.'
-          : 'La puerta de la casa de Hedrig seguirá cerrada. Puedes volver a hablar con ella.',
+          ? 'Hedrig: «Ya abrí mi casa. Entra y recoge el guante de minero, la brújula y la muñeca de trapo».'
+          : 'Hedrig: «Mi puerta seguirá cerrada. Si cambias de idea, aquí estaré, junto a la fogata».',
       );
   };
 
@@ -36,12 +36,9 @@ export function HedrigDialog() {
     <ParchmentDialog title="Hedrig" subtitle="La enana minera que conoce los túneles de la cumbre" paragraphs={EXPLICACION}
       question={accepted ? undefined : '¿Quieres mi ayuda? En mi casa guardo lo que encontré entre las ruinas: te servirá allá arriba.'}
       voice={accepted ? ['03_hedrig_02'] : ['03_hedrig_02', '03_hedrig_01']}
+      onClose={accepted ? close : undefined}
     >
-      {accepted ? (
-        <div className="flex justify-end">
-          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
-        </div>
-      ) : (
+      {!accepted && (
         <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
           <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
             No, gracias

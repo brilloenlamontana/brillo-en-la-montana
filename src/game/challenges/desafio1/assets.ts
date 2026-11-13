@@ -8,6 +8,8 @@ export const DESAFIO1_MODELS = {
     empalizada: `${DIR}/VillaDeBoj/Empalizada.glb`,
     villa: `${DIR}/VillaDeBoj/Villa.glb`,
     porton: `${DIR}/VillaDeBoj/Porton.glb`,
+    // The notice board by the gate with the mayor's announcement nailed to it.
+    tablonAnuncio: `${DIR}/VillaDeBoj/TablonAnuncio.glb`,
   },
   pantanoTristeza: {
     pozos: `${DIR}/PantanoTristeza/PantanoPozos.glb`,
@@ -24,12 +26,8 @@ export const DESAFIO1_MODELS = {
     interior: `${DIR}/ChozaEstatua/ChozaInterior.glb`,
     recogibles: `${DIR}/ChozaEstatua/ChozaRecogibles`,
   },
-  cartaAlcalde: '/models-3d/objects/Card.glb',
-  aldeano: '/models-3d/npcs/Aldeano.glb',
   aldeana: '/models-3d/npcs/Aldeana.glb',
   imeri: '/models-3d/npcs/Imeri.glb',
   golem: '/models-3d/enemies/Golem.glb',
   zumbador: '/models-3d/enemies/Zumbador.glb',
 } as const;
-
-export const CARTA_ALCALDE_IMAGE = '/sprites-2d/aseets/mayor-announcement.png';

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { usePlayerStore } from '@/game/player/playerStore';
 import { useUIStore } from '@/store/uiStore';
 import { BackpackIcon } from './BackpackIcon';
 import { BackpackPanel } from './BackpackPanel';
@@ -16,6 +17,8 @@ export function BackpackButton() {
     if (!active) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.repeat || event.key.toLowerCase() !== 'b') return;
+      // A scripted scene has the avatar (the arm wrestling with the Ogre): the backpack stays shut.
+      if (usePlayerStore.getState().guide !== null) return;
       const ui = useUIStore.getState();
       ui.setBackpackOpen(!ui.backpackOpen);
     };

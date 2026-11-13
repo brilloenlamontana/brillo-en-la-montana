@@ -3,8 +3,10 @@ import { Html, useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, RigidBody, type RapierRigidBody } from '@react-three/rapier';
 import { Quaternion, Vector3, type Group, type SkinnedMesh } from 'three';
+import { useSalida } from '@/game/challenges/llegada';
 import { createFootsteps } from '@/game/engine/audio/spatial';
 import { InteractionPrompt } from '@/game/engine/interaction/InteractionPrompt';
+import { PROMPT_Z_RANGE } from '@/game/engine/interaction/promptLayer';
 import { useInteractKey } from '@/game/engine/interaction/useInteractKey';
 import { playOnceAndHold } from '@/game/engine/models/animation';
 import { doorPushers } from '@/game/engine/physics/doorPushers';
@@ -14,6 +16,7 @@ import { useDialogOpen } from '@/store/uiStore';
 import { RELATO_CIERRE_MODELS } from '../assets';
 import { DIALOG } from '../dialogs';
 import { isCalizTomado, isSantuarioAbierto } from '../mission';
+import { LLEGADA, LLEGADA_SECONDS, SALE_ANTES } from './llegadaSantuario';
 import { ALTAR_YAW, CAMINO_DRIADA, CAMINO_JUGADOR, useRitualStore } from './ritual';
 
 const URL = RELATO_CIERRE_MODELS.driada;
@@ -56,6 +59,12 @@ export function Driada({ visible }: { visible: boolean }) {
   const tomado = useProgressStore((state) => isCalizTomado(state.progress));
   const talking = useDialogOpen(DIALOG.driada);
   const fase = useRitualStore((state) => state.fase);
+  // The story of the summit is ending: she comes out, however far the player still is.
+  const sale = useSalida(LLEGADA.id, LLEGADA_SECONDS, SALE_ANTES);
+  const saleRef = useRef(false);
+  useEffect(() => {
+    saleRef.current = sale;
+  }, [sale]);
   // Already spoken to on an earlier visit: she is at her spot.
   const [initial] = useState<Phase>(() => (isSantuarioAbierto(useProgressStore.getState().progress) ? 'lista' : 'espera'));
   const [phase, setPhase] = useState<Phase>(initial);
@@ -170,7 +179,7 @@ export function Driada({ visible }: { visible: boolean }) {
     } else {
       l.tramo = 0;
       l.playerPoint = -1;
-      if (l.phase === 'espera' && Math.hypot(player.x - SPOT[0], player.z - SPOT[2]) < MEET_RANGE) next = 'camina';
+      if (l.phase === 'espera' && (saleRef.current || Math.hypot(player.x - SPOT[0], player.z - SPOT[2]) < MEET_RANGE)) next = 'camina';
       if (l.phase === 'camina') {
         const step = work.step.set(SPOT[0] - l.position.x, SPOT[1] - l.position.y, SPOT[2] - l.position.z);
         const distance = step.length();
@@ -226,7 +235,7 @@ export function Driada({ visible }: { visible: boolean }) {
         <primitive object={scene} />
       </group>
       {canTalk && (
-        <Html position={[0, PROMPT_HEIGHT, 0]} center>
+        <Html zIndexRange={PROMPT_Z_RANGE} position={[0, PROMPT_HEIGHT, 0]} center>
           <InteractionPrompt action="hablar con la dríada" onActivate={startTalk} />
         </Html>
       )}

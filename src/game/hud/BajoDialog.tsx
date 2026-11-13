@@ -2,16 +2,15 @@ import { bajoDialog, VIDA_EXTRA_DIALOG, type Bajo } from '@/game/challenges/prog
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
-import { ParchmentButton, ParchmentDialog } from './ParchmentDialog';
+import { ParchmentDialog } from './ParchmentDialog';
 
-const BAJOS: Record<Bajo, { title: string; paragraphs: string[]; button: string }> = {
+const BAJOS: Record<Bajo, { title: string; paragraphs: string[] }> = {
   1: {
     title: 'Caíste en primer bajo',
     paragraphs: [
       'Perdiste una estrella. Como un primer bajo rendimiento en la universidad, todavía estás a tiempo de recuperarte.',
       'Vuelves al inicio de este desafío y conservas todo lo que has logrado. Te quedan dos estrellas.',
     ],
-    button: 'Seguir adelante',
   },
   2: {
     title: 'Caíste en segundo bajo',
@@ -19,7 +18,6 @@ const BAJOS: Record<Bajo, { title: string; paragraphs: string[]; button: string 
       'Perdiste otra estrella. Un segundo bajo rendimiento te obliga a repetir el camino.',
       'Vuelves a la Villa de Boj y la aventura empieza desde cero: tendrás que volver a pedir ayuda, recoger los objetos y superar cada desafío otra vez. Te queda una sola estrella.',
     ],
-    button: 'Empezar de nuevo',
   },
   3: {
     title: 'Caíste en tercer bajo',
@@ -27,7 +25,6 @@ const BAJOS: Record<Bajo, { title: string; paragraphs: string[]; button: string 
       'Perdiste tu última estrella. Acabas de perder: ya no puedes volver a jugar con este personaje.',
       'Puedes volver a entrar, pero tienes que escoger otro personaje y comenzar desde cero, con tres estrellas.',
     ],
-    button: 'Elegir otro personaje',
   },
 };
 
@@ -35,9 +32,8 @@ const VIDA_EXTRA = {
   title: 'Perdiste una estrella extra',
   paragraphs: [
     'Te derrotaron, pero la estrella que ganaste con un bono te salvó: no caes en bajo rendimiento.',
-    'Vuelves al inicio de este desafío y conservas todo lo que has logrado, junto con tus estrellas de siempre.',
+    'Las estrellas que tenías en ese momento no se afectan. Vuelves al inicio de este desafío y conservas todo lo que has logrado.',
   ],
-  button: 'Seguir adelante',
 };
 
 // Explains the "bajo" just suffered (see challenges/progression.ts). After the third one, closing it forgets the
@@ -47,7 +43,7 @@ export function BajoDialog() {
   const bajo = ([1, 2, 3] as const).find((level) => dialog === bajoDialog(level));
   const extra = dialog === VIDA_EXTRA_DIALOG;
   if (!bajo && !extra) return null;
-  const { title, paragraphs, button } = bajo ? BAJOS[bajo] : VIDA_EXTRA;
+  const { title, paragraphs } = bajo ? BAJOS[bajo] : VIDA_EXTRA;
   const voice = bajo ? `05_narrador_0${bajo}` : '05_narrador_04';
 
   const close = () => {
@@ -61,12 +57,6 @@ export function BajoDialog() {
   };
 
   return (
-    <ParchmentDialog title={title} subtitle={bajo ? 'Bajo rendimiento' : 'Estrella extra de un bono'} paragraphs={paragraphs} voice={[voice]}>
-      <div className="flex justify-end">
-        <ParchmentButton tone={bajo === 3 ? 'decline' : 'accept'} onClick={close}>
-          {button}
-        </ParchmentButton>
-      </div>
-    </ParchmentDialog>
+    <ParchmentDialog title={title} subtitle={bajo ? 'Bajo rendimiento' : 'Estrella extra de un bono'} paragraphs={paragraphs} voice={[voice]} onClose={close} />
   );
 }

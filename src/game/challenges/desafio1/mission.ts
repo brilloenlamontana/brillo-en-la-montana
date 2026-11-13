@@ -67,12 +67,12 @@ function getMissionSteps(progress: Progress): MissionStep[] {
   const items = collected(progress);
   const pociones = countPociones(progress);
   const zumbadores = defeatedZumbadores(progress);
-  const aldeano = progress?.aldeanoHelp ?? 'pending';
+  const aldeana = progress?.aldeanoHelp ?? 'pending';
   const imeri = progress?.imeriHelp ?? 'pending';
 
   return [
-    { id: 'carta', label: 'Leer el anuncio del alcalde', detail: 'Pergamino frente al portón de la Villa de Boj', done: progress?.openedMayorLetter === true },
-    { id: 'aldeano', label: 'Aceptar la ayuda del aldeano', detail: 'En la plaza de la Villa de Boj', done: aldeano === 'accepted', status: answerLabel(aldeano) },
+    { id: 'carta', label: 'Leer el anuncio del alcalde', detail: 'Tablón de anuncios junto al portón de la Villa de Boj', done: progress?.openedMayorLetter === true },
+    { id: 'aldeana', label: 'Aceptar la ayuda de la aldeana', detail: 'Junto al pozo de la plaza de la Villa de Boj', done: aldeana === 'accepted', status: answerLabel(aldeana) },
     { id: 'imeri', label: 'Aceptar la ayuda de Imeri', detail: 'Frente a su casa; abre la puerta y activa la mochila', done: imeri === 'accepted', status: progress?.interactedWithImeri ? answerLabel(imeri) : 'Sin hablar' },
     { id: 'gema', label: 'Recoger la gema', detail: 'Interior de la casa de Imeri', done: items.includes('gema') },
     { id: 'soga', label: 'Recoger la soga', detail: 'Interior de la casa de Imeri', done: items.includes('soga') },

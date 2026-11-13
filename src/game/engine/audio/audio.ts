@@ -1,12 +1,15 @@
-import { useAudioStore } from './audioStore';
+import { useAudioStore, type Volumes } from './audioStore';
 import { ambienceUrl, musicUrl, SFX, sfxUrl, voiceUrl, type AmbienceId, type MusicId, type SfxId } from './catalog';
 
 // The sound of the game (Web Audio): one-shot effects, looping beds (music, ambience, loops placed in the world) and
 // the voices of the dialogs. Browsers only let a page sound after the player has interacted with it, so everything
 // here fails silently until then and the game simply goes on without sound.
 
-type Bus = 'sfx' | 'music' | 'ambience';
-const BUS_VOLUME: Record<Bus, number> = { sfx: 0.85, music: 0.3, ambience: 0.45 };
+// `voice`: recorded lines called out in the world (shout); the dialog voices play through their own <audio> element.
+type Bus = 'sfx' | 'music' | 'ambience' | 'voice';
+const BUS_VOLUME: Record<Bus, number> = { sfx: 0.85, music: 0.3, ambience: 0.45, voice: 0.85 };
+// Which of the player's volumes (audioStore) each bus follows.
+const BUS_CHANNEL = { sfx: 'efectos', music: 'musica', ambience: 'ambiente', voice: 'voces' } as const satisfies Record<Bus, keyof Volumes>;
 // While a voice speaks, music and ambience step back.
 const DUCKED = 0.4;
 const DUCK_SECONDS = 0.4;
@@ -17,21 +20,33 @@ const LOOP_TRIM = 0.05;
 type Graph = { context: AudioContext; master: GainNode; buses: Record<Bus, GainNode> };
 let graph: Graph | null = null;
 let failed = false;
+// A voice is speaking: music and ambience step back.
+let ducked = false;
+
+// How loud everything plays, and each bus, from the player's volumes. The general volume is not applied again here:
+// moving it already moves every kind of sound (audioStore.setVolume).
+const masterLevel = () => (useAudioStore.getState().muted ? 0 : 1);
+const busLevel = (bus: Bus) => {
+  const level = BUS_VOLUME[bus] * useAudioStore.getState().volumes[BUS_CHANNEL[bus]];
+  return ducked && (bus === 'music' || bus === 'ambience') ? level * DUCKED : level;
+};
+// The dialog voices do not go through the graph: their <audio> element takes both volumes itself.
+const voiceLevel = () => Math.min(1, useAudioStore.getState().volumes.voces);
 
 function getGraph(): Graph | null {
   if (graph || failed) return graph;
   try {
     const context = new AudioContext();
     const master = context.createGain();
-    master.gain.value = useAudioStore.getState().muted ? 0 : 1;
+    master.gain.value = masterLevel();
     master.connect(context.destination);
-    const bus = (volume: number) => {
+    const bus = (name: Bus) => {
       const gain = context.createGain();
-      gain.gain.value = volume;
+      gain.gain.value = busLevel(name);
       gain.connect(master);
       return gain;
     };
-    graph = { context, master, buses: { sfx: bus(BUS_VOLUME.sfx), music: bus(BUS_VOLUME.music), ambience: bus(BUS_VOLUME.ambience) } };
+    graph = { context, master, buses: { sfx: bus('sfx'), music: bus('music'), ambience: bus('ambience'), voice: bus('voice') } };
   } catch {
     failed = true;
   }
@@ -46,8 +61,14 @@ const ramp = (gain: GainNode, value: number, seconds: number, context: AudioCont
 };
 
 useAudioStore.subscribe((state) => {
-  if (graph) ramp(graph.master, state.muted ? 0 : 1, 0.15, graph.context);
-  if (voice) voice.element.muted = state.muted;
+  if (graph) {
+    ramp(graph.master, masterLevel(), 0.1, graph.context);
+    for (const bus of Object.keys(graph.buses) as Bus[]) ramp(graph.buses[bus], busLevel(bus), 0.1, graph.context);
+  }
+  if (voice) {
+    voice.element.muted = state.muted;
+    voice.element.volume = voiceLevel();
+  }
 });
 
 // Called on the first key or tap: from then on the browser lets the game sound.
@@ -134,7 +155,7 @@ export function shout(clip: string, { volume = 1, rate = 1 }: SfxOptions = {}) {
     source.playbackRate.value = rate;
     const gain = g.context.createGain();
     gain.gain.value = volume;
-    source.connect(gain).connect(g.buses.sfx);
+    source.connect(gain).connect(g.buses.voice);
     source.start();
   });
 }
@@ -241,10 +262,11 @@ let voice: { element: HTMLAudioElement; token: number } | null = null;
 let voiceToken = 0;
 
 function duck(on: boolean) {
+  ducked = on;
   const g = graph;
   if (!g) return;
-  ramp(g.buses.music, BUS_VOLUME.music * (on ? DUCKED : 1), DUCK_SECONDS, g.context);
-  ramp(g.buses.ambience, BUS_VOLUME.ambience * (on ? DUCKED : 1), DUCK_SECONDS, g.context);
+  ramp(g.buses.music, busLevel('music'), DUCK_SECONDS, g.context);
+  ramp(g.buses.ambience, busLevel('ambience'), DUCK_SECONDS, g.context);
 }
 
 export function stopVoice() {
@@ -275,6 +297,7 @@ export function followVoice(clips: readonly string[], onDone?: () => void): { st
   const element = new Audio();
   element.preload = 'auto';
   element.muted = useAudioStore.getState().muted;
+  element.volume = voiceLevel();
   voice = { element, token };
   let index = 0;
 
