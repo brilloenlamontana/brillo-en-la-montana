@@ -122,6 +122,7 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
      - `http://localhost:5174/seleccion-personaje?dev=personaje` — Selección de género (`Hombre` / `Mujer`) y de los 12 avatares disponibles.
      - `http://localhost:5174/seleccion-personaje?dev=personajePerdido` — Selección de personaje con `Elfa` y `Guerrero` bloqueados tras haber caído en 3.er bajo.
      - `http://localhost:5174/admin?dev=admin` — Panel administrativo completo en memoria.
+     - `http://localhost:5174/login?dev=admin` — Inicio de sesión único: como la cuenta es administradora (lista `VITE_ADMIN_EMAILS` o `role: 'admin'` en su perfil) redirige sola a `/admin`; cualquier otra cuenta sigue como estudiante (registro → personaje → mundo). Desde el panel, «Ver Mundo 3D» deja al administrador jugar como estudiante. `/admin` ya no tiene pantalla de inicio de sesión propia: sin sesión lleva a `/login`.
    - **Modificadores combinables en cualquier URL (`&vidas=`, `&bonos=`, `&vida=`, `&dialogo=`, `&mochila=`, `&avatar=`, `&perdidos=`, `&spawn=`):**
      - Puedes combinar cualquier preset base con:
        - `&vidas=1` · `&vidas=2` · `&vidas=3` (fija 1, 2 o 3 estrellas base; ej.: `http://localhost:5174/mundo?dev=bosque&vidas=1`).

@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { AnimationUtils, LoopOnce, MathUtils, Matrix4, Quaternion, Vector3, type AnimationClip, type Group, type Mesh, type Object3D } from 'three';
+import { AnimationUtils, LoopOnce, MathUtils, Matrix4, Quaternion, Vector3, type AnimationClip, type Group, type Material, type Mesh, type MeshStandardMaterial, type Object3D } from 'three';
 import { avatarModelUrl, findCharacter, genderFolder } from '@/data/characters';
 import { playOnceAndHold, setPace } from '@/game/engine/models/animation';
 import { useAuthStore, type AvatarGender } from '@/store/authStore';
@@ -11,6 +11,7 @@ import { GESTURE_NAMES, keepGestureTracks, type GestureName } from './gestureSto
 import { usePlayerStore, type ScenePose } from './playerStore';
 
 const FADE_SECONDS = 0.25;
+const TEXTURE_ANISOTROPY = 8;
 const ANIMATIONS_DIR = '/models-3d/animations';
 // Every character shares the Mixamo skeleton, so the clips are skeleton-only files reused by all of them: the
 // locomotion set of the character's gender plus the clips common to everyone.
@@ -240,7 +241,17 @@ export function Avatar() {
   // The skinned body follows the bones far from its rest bounding box (death, big strides): never cull it.
   useEffect(() => {
     scene.traverse((object) => {
-      if ((object as Mesh).isMesh) object.frustumCulled = false;
+      const mesh = object as Mesh;
+      if (!mesh.isMesh) return;
+      mesh.frustumCulled = false;
+      // Its texture stays sharp where the surface turns away from the camera (cheeks, arms, cape).
+      for (const material of ([] as Material[]).concat(mesh.material)) {
+        const map = (material as MeshStandardMaterial).map;
+        if (map && map.anisotropy !== TEXTURE_ANISOTROPY) {
+          map.anisotropy = TEXTURE_ANISOTROPY;
+          map.needsUpdate = true;
+        }
+      }
     });
   }, [scene]);
 

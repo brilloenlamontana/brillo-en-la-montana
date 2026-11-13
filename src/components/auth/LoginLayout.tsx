@@ -1,8 +1,7 @@
 import React from 'react';
-import { SnowEffect } from '@/components/SnowEffect';
+import { WorldBackdrop } from '@/components/WorldBackdrop';
 
 interface LoginLayoutProps {
-  accessType: 'admin' | 'student';
   onSignIn: () => void | Promise<void>;
   loading?: boolean;
   errorMessage?: string | null;
@@ -10,23 +9,20 @@ interface LoginLayoutProps {
 }
 
 export const LoginLayout: React.FC<LoginLayoutProps> = ({
-  accessType,
   onSignIn,
   loading = false,
   errorMessage = null,
   children,
 }) => {
-  const badgeLabel = accessType === 'admin' ? 'Acceso Administrativo' : 'Acceso Estudiantil';
-
   return (
-    <main className="min-h-[100dvh] w-full bg-gradient-to-br from-madera-900 via-madera-800 to-madera-900 flex flex-col justify-between items-center px-4 py-6 sm:py-10 relative overflow-x-hidden select-none">
-      <SnowEffect />
+    <main className="min-h-[100dvh] w-full bg-madera-900 flex flex-col justify-between items-center px-4 py-6 sm:py-10 relative overflow-x-hidden select-none">
+      <WorldBackdrop />
 
       {/* Top Spacer */}
-      <div className="h-2 sm:h-6" />
+      <div className="h-2 sm:h-6 relative z-10" />
 
       {/* Login Card */}
-      <section className="w-full max-w-[420px] sm:max-w-[440px] bg-papel-100 border-[3px] border-madera-600 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] rounded-3xl py-10 px-8 sm:py-12 sm:px-10 flex flex-col items-center text-center z-10 my-auto">
+      <section className="w-full max-w-[420px] sm:max-w-[440px] bg-papel-100 border-[3px] border-madera-600 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] relative rounded-3xl py-10 px-8 sm:py-12 sm:px-10 flex flex-col items-center text-center z-10 my-auto">
         {/* Univalle Emblem Box */}
         <div className="p-3.5 bg-papel-200/90 rounded-2xl border border-papel-300 mb-6 shadow-sm flex items-center justify-center">
           <img 
@@ -38,16 +34,13 @@ export const LoginLayout: React.FC<LoginLayoutProps> = ({
 
         {/* Institutional Pill Badge */}
         <span className="px-3.5 py-1.5 rounded-full bg-papel-300/80 text-madera-600 text-[11px] sm:text-xs font-bold tracking-wider uppercase mb-3.5">
-          {badgeLabel}
+          Acceso Institucional
         </span>
 
         {/* Game Title (strictly two lines on all screens) */}
-        <h1 
-          style={{ fontFamily: '"Snowburst One", system-ui' }}
-          className="text-2xl sm:text-3xl text-madera-800 tracking-wide mb-8 sm:mb-9 flex flex-col items-center leading-snug"
-        >
+        <h1 className="font-serif font-bold text-3xl sm:text-4xl text-madera-800 tracking-tight mb-8 sm:mb-9 flex flex-col items-center leading-tight">
           <span>Brillo en la</span>
-          <span>Montaña</span>
+          <span className="text-musgo-700">Montaña</span>
         </h1>
 
         {/* Error Alert Box */}
@@ -74,9 +67,9 @@ export const LoginLayout: React.FC<LoginLayoutProps> = ({
       </section>
 
       {/* Institutional Footer */}
-      <footer className="w-full max-w-md text-center text-madera-400 text-[11px] sm:text-xs tracking-wide leading-relaxed pt-6 pb-2 z-10 flex flex-col items-center">
-        <p className="text-madera-400">Desarrollado por Dirección de Desarrollo Estudiantil y Éxito Académico - DEXIA</p>
-        <p className="text-[10px] text-madera-500 mt-1">© 2026 Universidad del Valle</p>
+      <footer className="w-full max-w-md text-center text-papel-200 text-[11px] sm:text-xs tracking-wide leading-relaxed pt-6 pb-2 z-10 relative flex flex-col items-center drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+        <p className="text-papel-200">Desarrollado por Dirección de Desarrollo Estudiantil y Éxito Académico - DEXIA</p>
+        <p className="text-[10px] text-papel-300 mt-1">© 2026 Universidad del Valle</p>
       </footer>
 
       {children}

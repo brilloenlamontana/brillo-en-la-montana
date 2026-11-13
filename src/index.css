@@ -1,4 +1,4 @@
-/* Fonts (Open Sans, Snowburst One) are linked in index.html. */
+/* Fonts (Open Sans) are linked in index.html. */
 @import "tailwindcss";
 
 /* Palette of the game, shared by every screen (in-game HUD, sign-in, registration, character selection, profile):
@@ -207,6 +207,25 @@ button:focus-visible {
 }
 
 /* The spectre's touch (Challenge 3 HUD): a pale flash that fades. */
+/* The backdrop of the screens outside the game (WorldBackdrop): the picture drifts very slowly. */
+@keyframes fondo-deriva {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.09) translate3d(-1.2%, -0.8%, 0);
+  }
+}
+.animate-fondo-deriva {
+  animation: fondo-deriva 40s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fondo-deriva {
+    animation: none;
+  }
+}
+
 @keyframes espectro-toque {
   from {
     opacity: 0.45;

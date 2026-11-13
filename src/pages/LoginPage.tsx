@@ -6,8 +6,8 @@ import { StudentRegistrationModal } from '@/components/modals/StudentRegistratio
 import { isPopupDismissed, saveRegistration, signInWithGoogle, signOutUser, type RegistrationData } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 
-// Sign in with Google and, the first time, the student registration (with the Ley 1581 consent). Once registered the
-// onboarding redirect takes the player to the character selection or straight to the world.
+// The one sign-in of the game, with Google. An administrator is taken to the dashboard; a student registers the first
+// time (with the Ley 1581 consent) and then goes to the character selection or straight to the world (see onboarding).
 export function LoginPage() {
   const step = useOnboardingRedirect('/login');
   useMenuMusic();
@@ -44,7 +44,7 @@ export function LoginPage() {
 
   return (
     <>
-      <LoginLayout accessType="student" onSignIn={signIn} loading={signingIn} />
+      <LoginLayout onSignIn={signIn} loading={signingIn} />
       <StudentRegistrationModal
         isOpen={step === 'registro'}
         user={user}
