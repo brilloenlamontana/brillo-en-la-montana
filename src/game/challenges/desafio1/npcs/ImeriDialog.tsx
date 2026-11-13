@@ -28,27 +28,27 @@ export function ImeriDialog() {
       .getState()
       .showToast(
         help === 'accepted'
-          ? 'Imeri abrió su casa y se activó tu mochila: entra y recoge lo que te sirva.'
-          : 'La puerta de la casa de Imeri seguirá cerrada. Puedes volver a hablar con ella.',
+          ? 'Imeri: «Pasa, la puerta ya está abierta. Entra y recoge lo que te sirva, y guárdalo en tu mochila».'
+          : 'Imeri: «Como prefieras. Mi puerta seguirá cerrada, pero si cambias de opinión, vuelve a hablarme».',
       );
   };
 
   return (
-    <ParchmentDialog title="Imeri" subtitle="La cazadora que mejor conoce el pantano" paragraphs={EXPLICACION} voice={accepted ? ['01_imeri_02'] : ['01_imeri_02', '01_imeri_01']}>
-      {accepted ? (
-        <div className="flex justify-end">
-          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+    <ParchmentDialog
+      title="Imeri"
+      subtitle="La cazadora que mejor conoce el pantano"
+      paragraphs={EXPLICACION}
+      question={accepted ? undefined : '¿Quieres que te ayude? En mi casa tengo lo que necesitas para cruzar el pantano.'}
+      voice={accepted ? ['01_imeri_02'] : ['01_imeri_02', '01_imeri_01']}
+      onClose={accepted ? close : undefined}
+    >
+      {!accepted && (
+        <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+          <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
+            No, gracias
+          </ParchmentButton>
+          <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
         </div>
-      ) : (
-        <>
-          <p className="font-bold text-sm sm:text-base mb-3">¿Quieres que te ayude? En mi casa tengo lo que necesitas para cruzar el pantano.</p>
-          <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
-            <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
-              No, gracias
-            </ParchmentButton>
-            <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
-          </div>
-        </>
       )}
     </ParchmentDialog>
   );

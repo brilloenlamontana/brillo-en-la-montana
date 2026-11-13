@@ -5,6 +5,7 @@ import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useMundoRecuperado } from '@/game/world/recuperado';
 import { useZoneStore } from '@/game/world/zoneStore';
+import { useAuthStore } from '@/store/authStore';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { useUIStore } from '@/store/uiStore';
@@ -98,7 +99,7 @@ function StoreSounds() {
         else playSfx('ui_dialogo_cerrar', { volume: 0.6 });
       }
       if (state.backpackOpen !== previous.backpackOpen) playSfx(state.backpackOpen ? 'ui_mochila_abrir' : 'ui_mochila_cerrar', { volume: 0.8 });
-      if (state.cinematic && !previous.cinematic) playSfx('rc_caliz');
+      if (state.cinematic && !previous.cinematic) playSfx('rc_cinematica_corte', { volume: 0.6 });
     });
 
     const offPlayer = usePlayerStore.subscribe((state, previous) => {
@@ -125,7 +126,7 @@ function StoreSounds() {
     const offToast = useToastStore.subscribe((state, previous) => {
       if (state.id === previous.id || !state.message) return;
       playSfx(CANNOT.test(state.message) ? 'ui_no_se_puede' : 'ui_aviso', { volume: CANNOT.test(state.message) ? 0.8 : 0.5 });
-      const clips = voicesForToast(state.message);
+      const clips = voicesForToast(state.message, useAuthStore.getState().user?.gender);
       // A dialog that opened at the same time has the word.
       if (clips && !useUIStore.getState().dialog) playVoice(clips);
     });

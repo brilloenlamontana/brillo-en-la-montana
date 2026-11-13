@@ -3,7 +3,7 @@ import { TUNEL_WALL_ROWS } from './tunelColliderData';
 
 // Collision of the Summit tunnels (the maze of TunelesEstructura.glb). It is not written by hand: the export batch
 // (tools/blender/export_lote.py) walks the real galleries with rays on a 0.4 m grid (floors, walls, the crevasse and
-// its bridge, the cave-ins, the Ogre's platform and arm-wrestling table, the exit stairs) and writes two things:
+// its bridge, the cave-ins, the Ogre's arm-wrestling table, the exit stairs) and writes two things:
 // - the floor, one continuous mesh (TunelSueloColision in TunelesColision.glb) whose slopes and steps are smooth ramps,
 //   used as a trimesh like the terrain, so the avatar never trips on a seam;
 // - the walls, as cuboids along the real edge of what can be walked (tunelColliderData.ts).

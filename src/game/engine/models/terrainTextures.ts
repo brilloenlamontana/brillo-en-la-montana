@@ -1,8 +1,58 @@
-import { ClampToEdgeWrapping, SRGBColorSpace, TextureLoader, type Material, type Mesh, type MeshStandardMaterial, type Object3D, type Texture } from 'three';
+import {
+  ClampToEdgeWrapping,
+  NoColorSpace,
+  RepeatWrapping,
+  SRGBColorSpace,
+  TextureLoader,
+  type Material,
+  type Mesh,
+  type MeshStandardMaterial,
+  type Object3D,
+  type Texture,
+} from 'three';
+import { materialColor, positionWorld, texture as sample } from 'three/tsl';
+import type { MeshStandardNodeMaterial } from 'three/webgpu';
+
+type ColorNode = NonNullable<MeshStandardNodeMaterial['colorNode']>;
 
 // Materials painted with the baked terrain texture (TerrenoColor 4096 px + TerrenoRugosidad).
 const TERRAIN_MATERIALS = new Set(['TerrenoMaterial', 'TerrenoTapa']);
 const TEXTURE_SLOTS = ['map', 'roughnessMap', 'metalnessMap'] as const;
+
+// The baked colour covers the whole map with one picture (about 10 texels per metre), which looks blurred and blocky
+// under the avatar's feet. Two things sharpen it without a bigger picture:
+// - anisotropic filtering, because the ground is almost always seen at a grazing angle;
+// - a small grey picture of earth grain that repeats over the ground (in world space, at two sizes so the repetition
+//   does not show) and lightens or darkens the baked colour a little: detail that only shows from near.
+const ANISOTROPY = 8;
+const DETAIL_URL = '/textures/terreno-detalle.jpg';
+// Metres each copy of the grain covers, near and far, and how much it changes the colour (0 nothing).
+const DETAIL_NEAR_METERS = 1.7;
+const DETAIL_FAR_METERS = 9;
+const DETAIL_STRENGTH = 0.75;
+
+const sharpen = (texture: Texture | null) => {
+  if (!texture || texture.anisotropy === ANISOTROPY) return;
+  texture.anisotropy = ANISOTROPY;
+  texture.needsUpdate = true;
+};
+
+// The baked colour (whichever picture the material shows) times the grain: built once, shared by every terrain material.
+let detailed: ColorNode | null = null;
+function detailedColor(): ColorNode {
+  if (detailed) return detailed;
+  const grain = new TextureLoader().load(DETAIL_URL);
+  grain.wrapS = grain.wrapT = RepeatWrapping;
+  grain.colorSpace = NoColorSpace;
+  grain.anisotropy = ANISOTROPY;
+  const ground = positionWorld.xz;
+  const near = sample(grain, ground.div(DETAIL_NEAR_METERS)).r;
+  const far = sample(grain, ground.div(DETAIL_FAR_METERS).add(0.37)).r;
+  // The grain is grey around 0.5: around 1 as a factor.
+  const factor = near.mul(0.65).add(far.mul(0.35)).sub(0.5).mul(DETAIL_STRENGTH).add(1);
+  detailed = materialColor.mul(factor);
+  return detailed;
+}
 
 const materialsOf = (root: Object3D): MeshStandardMaterial[] => {
   const found: MeshStandardMaterial[] = [];
@@ -24,6 +74,7 @@ let override: Texture | null = null;
 
 const applyLook = (material: MeshStandardMaterial) => {
   const next = override ?? ownMaps.get(material) ?? null;
+  sharpen(next);
   if (material.map === next) return;
   material.map = next;
   material.needsUpdate = true;
@@ -34,8 +85,18 @@ const register = (material: MeshStandardMaterial) => {
     registered.add(material);
     ownMaps.set(material, material.map);
   }
+  withDetail(material);
   applyLook(material);
 };
+
+// The renderer (WebGPU) turns each material into a node material, copying its properties: a colour node set on the
+// plain material is taken along.
+function withDetail(material: MeshStandardMaterial) {
+  const nodes = material as MeshStandardMaterial & { colorNode?: ColorNode | null };
+  if (nodes.colorNode) return;
+  nodes.colorNode = detailedColor();
+  material.needsUpdate = true;
+}
 
 // The terrain materials of `root` follow the colour texture set with setTerrainColorOverride.
 export function registerTerrainMaterials(root: Object3D) {
@@ -88,6 +149,7 @@ export function shareTerrainTextures(source: Object3D, ...targets: Object3D[]) {
       duplicates.forEach((texture) => texture.dispose());
       registered.add(material);
       ownMaps.set(material, shared.map);
+      withDetail(material);
       material.needsUpdate = true;
       applyLook(material);
     }

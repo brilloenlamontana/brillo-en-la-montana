@@ -1,15 +1,43 @@
-/* Fonts (Open Sans, Snowburst One) are linked in index.html. */
+/* Fonts (Open Sans) are linked in index.html. */
 @import "tailwindcss";
 
-/* Universidad del Valle palette */
+/* Palette of the game, shared by every screen (in-game HUD, sign-in, registration, character selection, profile):
+   parchment paper, wood and ink, gold for what is valued, moss for what is fine and an earthy crimson for alerts.
+   The Universidad del Valle red stays only in its own logo. Used as Tailwind colours: bg-papel-100,
+   text-madera-800, border-madera-600/20, text-oro-600, bg-musgo-50, text-carmesi... */
+@theme {
+  --color-papel-50: #fdf8ec;
+  --color-papel-100: #f9efd8;
+  --color-papel-200: #f4e4bc;
+  --color-papel-300: #e8d09c;
+  --color-papel-400: #d6b77a;
+  --color-madera-300: #b49a86;
+  --color-madera-400: #8d6e63;
+  --color-madera-500: #6d4c3d;
+  --color-madera-600: #5c3a21;
+  --color-madera-700: #4a2e1a;
+  --color-madera-800: #3e2723;
+  --color-madera-900: #2a1a12;
+  --color-oro-300: #f8e08a;
+  --color-oro-400: #f4d03f;
+  --color-oro-600: #b7791f;
+  --color-musgo-50: #eef2df;
+  --color-musgo-200: #cbd8a4;
+  --color-musgo-500: #7a9a3a;
+  --color-musgo-600: #5b7a2a;
+  --color-musgo-700: #4f6b22;
+  --color-carmesi: #a93226;
+  --color-carmesi-claro: #f6e0d6;
+}
+
 :root {
-  --uv-red: #C8102E;
-  --uv-bg-page: #F8FAFC;
-  --uv-text-main: #0F172A;
-  --uv-success: #059669;
-  --uv-success-light: #ECFDF5;
-  --uv-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  --uv-shadow-red: 0 10px 25px -4px rgba(200, 16, 46, 0.28);
+  --uv-red: #a93226;
+  --uv-bg-page: #f9efd8;
+  --uv-text-main: #3e2723;
+  --uv-success: #4f6b22;
+  --uv-success-light: #eef2df;
+  --uv-shadow-sm: 0 1px 3px 0 rgba(62, 39, 35, 0.12);
+  --uv-shadow-red: 0 10px 25px -4px rgba(62, 39, 35, 0.35);
 }
 
 * {
@@ -42,17 +70,17 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #f4e4bc;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #b49a86;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #8d6e63;
 }
 
 button,
@@ -63,7 +91,7 @@ textarea {
 }
 
 button:focus-visible {
-  outline: 2px solid var(--uv-red);
+  outline: 2px solid #b7791f;
   outline-offset: 2px;
 }
 
@@ -76,21 +104,21 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #C8102E 0%, #E53E3E 100%);
-  color: #FFFFFF;
-  font-weight: 600;
+  background: linear-gradient(180deg, #6d4c3d 0%, #5c3a21 100%);
+  color: #f4d03f;
+  font-weight: 700;
   border-radius: 0.875rem;
   padding: 0.75rem 1.5rem;
   box-shadow: var(--uv-shadow-red);
-  border: none;
+  border: 2px solid #3e2723;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .uv-btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #A80D26 0%, #C8102E 100%);
+  background: linear-gradient(180deg, #5c3a21 0%, #4a2e1a 100%);
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px -4px rgba(200, 16, 46, 0.35);
+  box-shadow: 0 12px 28px -4px rgba(62, 39, 35, 0.45);
 }
 
 .uv-btn-primary:active:not(:disabled) {
@@ -109,21 +137,21 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: #FFFFFF;
-  color: #334155;
-  font-weight: 500;
+  background: #fdf8ec;
+  color: #5c3a21;
+  font-weight: 600;
   border-radius: 0.875rem;
   padding: 0.75rem 1.25rem;
-  border: 1px solid #E2E8F0;
+  border: 2px solid rgba(92, 58, 33, 0.35);
   box-shadow: var(--uv-shadow-sm);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .uv-btn-secondary:hover:not(:disabled) {
-  background: #F8FAFC;
-  color: #0F172A;
-  border-color: #CBD5E1;
+  background: #f4e4bc;
+  color: #3e2723;
+  border-color: #5c3a21;
 }
 
 .uv-btn-secondary:active:not(:disabled) {
@@ -138,10 +166,10 @@ button:focus-visible {
 .uv-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: #FFFFFF;
-  border: 1px solid #CBD5E1;
+  background: #fdf8ec;
+  border: 1px solid rgba(92, 58, 33, 0.35);
   border-radius: 0.875rem;
-  color: #0F172A;
+  color: #3e2723;
   font-size: 0.875rem;
   outline: none;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
@@ -150,18 +178,18 @@ button:focus-visible {
 }
 
 .uv-input::placeholder {
-  color: #94A3B8;
+  color: #b49a86;
 }
 
 .uv-input:focus {
-  border-color: var(--uv-red);
-  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.15);
+  border-color: #5c3a21;
+  box-shadow: 0 0 0 3px rgba(183, 121, 31, 0.3);
 }
 
 .uv-input:disabled {
-  background: #F1F5F9;
-  border-color: #E2E8F0;
-  color: #64748B;
+  background: #f4e4bc;
+  border-color: rgba(92, 58, 33, 0.2);
+  color: #8d6e63;
   cursor: not-allowed;
 }
 
@@ -175,10 +203,29 @@ button:focus-visible {
   font-weight: 600;
   background: var(--uv-success-light);
   color: var(--uv-success);
-  border: 1px solid #A7F3D0;
+  border: 1px solid #cbd8a4;
 }
 
 /* The spectre's touch (Challenge 3 HUD): a pale flash that fades. */
+/* The backdrop of the screens outside the game (WorldBackdrop): the picture drifts very slowly. */
+@keyframes fondo-deriva {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.09) translate3d(-1.2%, -0.8%, 0);
+  }
+}
+.animate-fondo-deriva {
+  animation: fondo-deriva 40s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fondo-deriva {
+    animation: none;
+  }
+}
+
 @keyframes espectro-toque {
   from {
     opacity: 0.45;

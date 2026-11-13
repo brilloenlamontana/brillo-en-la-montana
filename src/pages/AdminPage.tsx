@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { LoginLayout } from '@/components/auth/LoginLayout';
-import { SnowEffect } from '@/components/SnowEffect';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { playAsStudent } from '@/app/onboarding';
+import { WorldBackdrop } from '@/components/WorldBackdrop';
 import { SEDES } from '@/data/univalle';
 import { getMissionSummary } from '@/game/challenges/desafio1/mission';
 import { getBonosSummary } from '@/game/challenges/bonos';
@@ -16,15 +16,15 @@ import {
   fetchAllUsers,
   hasAnyAdmin,
   isAdminAccount,
-  signInAsAdmin,
   subscribeToUsers,
   type AdminUserRecord,
 } from '@/services/adminService';
-import { isPopupDismissed, signOutUser } from '@/services/userService';
+import { signOutUser } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 import { STARS } from '@/store/progressStore';
 
-// Admin dashboard: every player's registration and Challenge 1 progress, live. Who sees it is decided here only for
+// Admin dashboard: every player's registration and progress, live. It has no sign-in of its own: whoever is not signed
+// in goes to the game's sign-in, which brings administrators back here. Who sees it is decided here only for
 // the interface; the data itself must be protected by the Firestore security rules (see README).
 export default function AdminPage() {
   const user = useAuthStore((state) => state.user);
@@ -104,29 +104,12 @@ export default function AdminPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setAuthLoading(true);
-    setAuthError(null);
-    try {
-      const { rejectedEmail } = await signInAsAdmin();
-      if (rejectedEmail) {
-        setAuthError(`El correo ${rejectedEmail} no es institucional. Solo se admiten cuentas institucionales de la Universidad del Valle (@correounivalle.edu.co).`);
-      }
-    } catch (error) {
-      if (!isPopupDismissed(error)) {
-        console.error('Could not sign in to the dashboard:', error);
-        setAuthError('Error al iniciar sesión con Google. Inténtalo de nuevo.');
-      }
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   const handleClaimFirstAdmin = async () => {
     if (!user) return;
     setAuthLoading(true);
     try {
       await claimFirstAdmin(user);
+      useAuthStore.getState().updateUser({ role: 'admin' });
       setLoadingUsers(true);
       setAccess({ uid: user.uid, admin: true, anyAdmin: true });
       setAuthError(null);
@@ -136,6 +119,12 @@ export default function AdminPage() {
     } finally {
       setAuthLoading(false);
     }
+  };
+
+  // An administrator who wants to play goes on as a student (registration, character) for the rest of the visit.
+  const goPlay = () => {
+    playAsStudent();
+    navigate('/mundo');
   };
 
   const handleSignOut = async () => {
@@ -204,23 +193,14 @@ export default function AdminPage() {
   }, [filteredUsers]);
 
 
-  // 1. STATE: NOT AUTHENTICATED -> Show Admin Login
-  if (!user) {
-    return (
-      <LoginLayout
-        accessType="admin"
-        onSignIn={handleGoogleSignIn}
-        loading={authLoading}
-        errorMessage={authError}
-      />
-    );
-  }
+  // 1. STATE: NOT AUTHENTICATED -> the one sign-in of the game (it brings administrators back here)
+  if (!user) return <Navigate to="/login" replace />;
 
   // 2. STATE: LOGGED IN BUT NOT ADMIN -> Access Denied / First Admin Bootstrap
   if (isAdminUser === false) {
     return (
-      <main className="h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 flex items-center justify-center p-4 select-none overflow-y-auto relative">
-        <SnowEffect />
+      <main className="h-screen w-full bg-madera-900 flex items-center justify-center p-4 select-none overflow-y-auto relative">
+        <WorldBackdrop />
         <div className="w-full max-w-lg bg-white rounded-3xl p-8 shadow-2xl border border-slate-200 text-center flex flex-col items-center z-10">
           <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 mb-4 shadow-inner">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,6 +213,7 @@ export default function AdminPage() {
           <p className="text-sm text-slate-600 mb-4">
             Has iniciado sesión con la cuenta <strong>{user.email}</strong>, pero este usuario no tiene privilegios de <strong>Administrador</strong> en el sistema.
           </p>
+          {authError && <p className="text-xs text-red-600 mb-4">{authError}</p>}
 
           {/* If there are NO admins yet, allow initializing first admin */}
           {hasAnyAdminInDB === false && (
@@ -253,7 +234,7 @@ export default function AdminPage() {
 
           <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
             <button
-              onClick={() => navigate('/mundo')}
+              onClick={goPlay}
               className="flex-1 py-3 px-4 rounded-xl border border-slate-300 text-slate-700 font-medium text-xs hover:bg-slate-50 transition cursor-pointer"
             >
               Ir al Mundo de Juego
@@ -322,7 +303,7 @@ export default function AdminPage() {
           </button>
 
           <button
-            onClick={() => navigate('/mundo')}
+            onClick={goPlay}
             className="hidden md:flex px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-medium items-center gap-2 transition cursor-pointer"
           >
             <span>Ver Mundo 3D</span>

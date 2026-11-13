@@ -18,7 +18,10 @@ export const countBonos = (progress: Progress) => Number(isBono1Completado(progr
 
 // Winning a bonus gives one extra star (an extra life): the count to save together with the bonus.
 export const withExtraStar = (progress: Progress) => Math.min(MAX_EXTRA_STARS, (progress?.vidasExtra ?? 0) + 1);
-export const EXTRA_STAR_TOAST = '¡Ganaste una estrella extra! Si te derrotan, la pierdes a ella antes que a tus tres estrellas y solo vuelves al inicio del desafío.';
+// However many stars the player has by then (one, two or three), they are not touched. EXTRA_STAR_VOICE says it aloud
+// at the end of the dialog of each bonus.
+export const EXTRA_STAR_TOAST = '¡Ganaste una estrella extra! Si te derrotan, la pierdes a ella primero: las estrellas que tengas en ese momento no se afectan, y solo vuelves al inicio del desafío.';
+export const EXTRA_STAR_VOICE = '05_narrador_05';
 
 // Steps of both bonuses, as the admin dashboard shows them for each player.
 export function getBonosSummary(progress: Progress) {

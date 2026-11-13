@@ -134,8 +134,9 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
 ### Flujo de la historia
 
 1. **Inicio:** la primera vez que se entra al mundo, la carta del alcalde se abre sola.
-2. **Aldeano** (plaza de Villa Boj): cuenta lo que pasó y pregunta si necesitas ayuda. Con **No**, Imeri no aparece y su
-   casa sigue cerrada; se le puede volver a preguntar al salir y regresar.
+2. **Aldeana** (junto al pozo de la plaza de la Villa de Boj): cuenta lo que pasó y pregunta si necesitas ayuda. Con
+   **No**, Imeri no aparece y su casa sigue cerrada; se le puede volver a preguntar al salir y regresar. Con la ayuda ya
+   aceptada, cuenta las habladurías del pozo (pistas de los bonos).
 3. **Imeri** espera frente a su casa, con la puerta cerrada. Con **Sí**, la puerta se abre y la mochila se activa: gema,
    soga y 5 pociones (que forman el insecticida).
 4. **Pantano:** el golem y los zumbadores despiertan al pisar el lodo y quitan vida. La gema apaga al golem, el

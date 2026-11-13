@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-// Which game dialog is open (one at a time; ids are defined by each challenge, e.g. 'desafio1.aldeano') and whether
+// Which game dialog is open (one at a time; ids are defined by each challenge, e.g. 'desafio1.aldeana') and whether
 // the backpack is open. While either is open (or a cinematic plays) the avatar stands still.
 interface UIState {
   dialog: string | null;

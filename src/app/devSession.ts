@@ -75,6 +75,8 @@ const PANTANO_ORILLA: Spawn = { x: 50, y: 12.2, z: 24, yaw: Math.PI / 2 };
 const BOSQUE_ENTRADA: Spawn = { x: -25, y: 13.3, z: -182, yaw: Math.PI };
 const CASA_HEDRIG: Spawn = { x: 82, y: 25.3, z: -211.6, yaw: Math.PI / 2 };
 const CHOZA: Spawn = { x: -62, y: 9.9, z: -87.5, yaw: Math.PI };
+// Inside the hut, facing the statue's face.
+const FRENTE_ESTATUA: Spawn = { x: -61.4, y: 9.9, z: -95.6, yaw: -Math.PI / 4 };
 const CLARO: Spawn = { x: 40, y: 16, z: -221.5, yaw: Math.PI };
 const PLAZA_SANTUARIO: Spawn = { x: 147, y: 53.4, z: -153, yaw: Math.PI / 2 };
 // Inside the sanctuary, within reach of the chalice on the altar (163.2, 53.85, -153).
@@ -97,22 +99,23 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
   villa: { spawn: PLAYER_START },
   desafio1: { spawn: PLAYER_START },
 
-  // Mayor's announcement scroll open at the gate.
-  carta: { spawn: PLAYER_START, dialog: 'desafio1.cartaAlcalde' },
+  // A few steps from the notice board by the gate, announcement not read yet: walking up to it opens it.
+  carta: { spawn: { x: -45, y: 12.2, z: 19.9, yaw: -Math.PI / 2 } },
 
-  // In the Villa Boj square in front of the male villager, letter already read.
-  aldeano: {
-    spawn: { x: -68.5, y: 12.2, z: 15.5, yaw: -Math.PI / 2 },
-    progress: { openedMayorLetter: true },
-  },
-
-  // In front of the female villager in Villa Boj.
+  // By the well of the Villa de Boj square, in front of the villager woman, announcement already read: she tells what
+  // happened and asks whether you need help.
   aldeana: {
-    spawn: { x: -83, y: 12.2, z: 33, yaw: Math.PI },
+    spawn: { x: -74.8, y: 12.2, z: 20.4, yaw: -Math.PI / 2 },
     progress: { openedMayorLetter: true },
   },
 
-  // In front of Imeri with the villager's help accepted, ready to talk to her and accept her help.
+  // In front of the villager woman with her help already accepted: she tells the old tales (hints of the bonuses).
+  aldeanaPistas: {
+    spawn: { x: -74.8, y: 12.2, z: 20.4, yaw: -Math.PI / 2 },
+    progress: { openedMayorLetter: true, aldeanoHelp: 'accepted' },
+  },
+
+  // In front of Imeri with the villager woman's help accepted, ready to talk to her and accept her help.
   imeriHablar: {
     spawn: FRENTE_IMERI,
     progress: { openedMayorLetter: true, aldeanoHelp: 'accepted' },
@@ -168,16 +171,22 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
     progress: DESAFIO1_DONE,
   },
 
+  // Bonus 1 (stage 1) — In front of the statue, its face still under the moss: E starts cleaning it by hand.
+  chozaEstatua: {
+    spawn: FRENTE_ESTATUA,
+    progress: DESAFIO1_DONE,
+  },
+
   // Bonus 1 (stage 2) — Statue's face already cleaned of moss, ready to light the fire in the stone dish.
   chozaLimpia: {
-    spawn: CHOZA,
+    spawn: FRENTE_ESTATUA,
     progress: { ...DESAFIO1_DONE, estatuaLimpia: true },
     dialog: 'desafio1.estatua',
   },
 
   // Bonus 1 (stage 3) — Fire lit at the statue's feet, ready to claim the gold ring and the 1st extra star.
   chozaEncendida: {
-    spawn: CHOZA,
+    spawn: FRENTE_ESTATUA,
     progress: { ...DESAFIO1_DONE, estatuaLimpia: true, estatuaEncendida: true },
     dialog: 'desafio1.estatua',
   },

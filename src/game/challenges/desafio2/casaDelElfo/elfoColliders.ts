@@ -6,7 +6,7 @@ import { directionXZ, orientedBox, segmentBox, wallBox, type ColliderBox, type P
 const DECK_Y = 21.698;
 
 // Spiral staircase: centerline through the top of the treads, from the ground to the deck (every 4 treads).
-const STAIR_PATH: Point3[] = [
+export const STAIR_PATH: Point3[] = [
   [-42.04, 10.2, -142.43], [-41.67, 10.46, -142.67], [-40.07, 11.44, -143.32], [-38.37, 12.41, -143.51], [-36.63, 13.39, -143.24],
   [-35.1, 14.37, -142.51], [-33.69, 15.35, -141.62], [-32.62, 16.32, -140.35], [-31.99, 17.3, -138.81], [-31.86, 18.28, -137.09],
   [-32.24, 19.25, -135.46], [-33.1, 20.23, -134.04], [-34.36, 21.21, -132.95], [-34.72, 21.45, -132.74],

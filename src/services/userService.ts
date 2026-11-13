@@ -1,5 +1,5 @@
 import { signInWithPopup, signOut, type User } from 'firebase/auth';
-import { arrayUnion, deleteField, doc, getDoc, setDoc, type DocumentData } from 'firebase/firestore';
+import { arrayUnion, collection, deleteField, doc, getDoc, getDocs, limit, query, setDoc, where, type DocumentData } from 'firebase/firestore';
 import { CHARACTERS } from '@/data/characters';
 import { findFacultadByCodigo, findProgramaByCodigo, findSedeByCodigo } from '@/data/univalle';
 import { isDevUser, useAuthStore, type AvatarGender, type UserData } from '@/store/authStore';
@@ -89,13 +89,39 @@ export async function saveRegistration(uid: string, data: RegistrationData): Pro
 
 type Character = { nickname: string; avatarName: string; gender: AvatarGender };
 
+// Nicknames are unique regardless of case, accents and spacing: "Valérius" and " valerius" are the same one. Each
+// profile keeps that key (nicknameKey) next to the nickname, so it can be looked up.
+export const nicknameKey = (nickname: string) =>
+  nickname
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+// Sandbox (?dev=...): no Firestore. The other sandbox player's nickname counts as taken, to try the message.
+const DEV_TAKEN = new Set(['fabian']);
+
+// Whether another player already uses this nickname. Profiles saved before nicknameKey existed are matched by their
+// exact nickname. A failed lookup is thrown: the caller does not save a nickname it could not check.
+export async function isNicknameTaken(uid: string, nickname: string): Promise<boolean> {
+  const key = nicknameKey(nickname);
+  if (isDevUser(uid)) return DEV_TAKEN.has(key);
+  const users = collection(db, 'users');
+  const [byKey, byName] = await Promise.all([
+    getDocs(query(users, where('nicknameKey', '==', key), limit(2))),
+    getDocs(query(users, where('nickname', '==', nickname.trim()), limit(2))),
+  ]);
+  return [...byKey.docs, ...byName.docs].some((snapshot) => snapshot.id !== uid);
+}
+
 export const saveCharacter = (uid: string, character: Character) =>
-  isDevUser(uid) ? Promise.resolve() : setDoc(userRef(uid), character, { merge: true });
+  isDevUser(uid) ? Promise.resolve() : setDoc(userRef(uid), { ...character, nicknameKey: nicknameKey(character.nickname) }, { merge: true });
 
 // The profile editor only changes the names: the character is chosen once and can only change by losing it.
 // Only the nickname can be changed from the profile: the name comes from the institutional account.
 export const saveProfile = (uid: string, profile: { nickname: string }) =>
-  isDevUser(uid) ? Promise.resolve() : setDoc(userRef(uid), profile, { merge: true });
+  isDevUser(uid) ? Promise.resolve() : setDoc(userRef(uid), { ...profile, nicknameKey: nicknameKey(profile.nickname) }, { merge: true });
 
 // The run was lost (third "bajo"): the character is forgotten and recorded as lost for good, so the onboarding asks to
 // choose a different one. The registration (programme, sede...) is untouched.

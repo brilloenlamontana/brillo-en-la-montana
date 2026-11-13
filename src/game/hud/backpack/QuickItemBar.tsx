@@ -11,6 +11,8 @@ import { useActiveBackpack } from './useActiveBackpack';
 // Using an item: the avatar takes it out of the backpack and handles it, and its effect happens at the instant of the
 // gesture that uses it (the gem leaves the hand, the bottle is squeezed). Without a gesture it happens at once.
 function activateItem(backpack: Backpack, id: string) {
+  // A scripted scene has the avatar (the arm wrestling with the Ogre): nothing is taken out of the backpack.
+  if (usePlayerStore.getState().guide !== null) return;
   const item = backpack.items.find((candidate) => candidate.id === id);
   const owned = backpack.stateOf(id, useProgressStore.getState().progress) === 'owned';
   if (item && owned && usePlayerStore.getState().health > 0 && !isGameplayPaused()) {

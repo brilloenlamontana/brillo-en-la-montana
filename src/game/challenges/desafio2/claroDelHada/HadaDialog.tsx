@@ -1,4 +1,5 @@
-import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
+import { EXTRA_STAR_TOAST, EXTRA_STAR_VOICE } from '@/game/challenges/bonos';
+import { ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { useProgressStore } from '@/store/progressStore';
 import { useUIStore } from '@/store/uiStore';
 import { DIALOG } from '../dialogs';
@@ -13,6 +14,7 @@ const AGRADECIMIENTO = [
 const AMULETO = [
   'Tomas el amuleto del atril de raíces: es tibio, y dentro de la piedra late una luz pequeña, igual a la que viste parpadear desde el sendero.',
   'El hada vuela en círculos a tu alrededor, riendo: «Ahora llevas un poco de mi luz. Cuando el camino se ponga oscuro, recuerda que te desviaste para ayudar: eso vale más que llegar primero».',
+  EXTRA_STAR_TOAST,
 ];
 
 const DESPEDIDA = [
@@ -30,11 +32,7 @@ export function HadaDialog() {
 
   if (dialog === DIALOG.hadaAmuleto) {
     return (
-      <ParchmentDialog title="¡Bono 2 completado!" subtitle="Recibiste el amuleto del hada" paragraphs={AMULETO} voice={['02_narrador_13', '02_hada_02']}>
-        <div className="flex justify-end">
-          <ParchmentButton onClick={close}>Seguir el camino</ParchmentButton>
-        </div>
-      </ParchmentDialog>
+      <ParchmentDialog title="¡Bono 2 completado!" subtitle="Recibiste el amuleto del hada" paragraphs={AMULETO} voice={['02_narrador_13', '02_hada_02', EXTRA_STAR_VOICE]} onClose={close} />
     );
   }
   if (dialog !== DIALOG.hada) return null;
@@ -42,10 +40,7 @@ export function HadaDialog() {
   return (
     <ParchmentDialog title="El hada del claro" subtitle="Bono 2 · Una lucecita entre los árboles" paragraphs={completado ? DESPEDIDA : AGRADECIMIENTO}
       voice={completado ? ['02_hada_03', '02_narrador_14', '02_hada_04'] : ['02_narrador_12', '02_hada_01']}
-    >
-      <div className="flex justify-end">
-        <ParchmentButton onClick={close}>{completado ? 'Hasta pronto' : 'Recoger el amuleto'}</ParchmentButton>
-      </div>
-    </ParchmentDialog>
+      onClose={close}
+    />
   );
 }

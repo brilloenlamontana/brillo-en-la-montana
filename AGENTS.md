@@ -1,15 +1,15 @@
 # AGENTS.md — Brillo en la montaña
 
-> **PRIORIDAD MÁXIMA — REGLA #1 (Obligatoria al iniciar y al finalizar cambios): Usar y actualizar `graphify`**
+> **PRIORIDAD MÁXIMA — REGLA #1: Consultar `graphify` al iniciar, pero actualizarlo SOLO cuando el usuario lo pida**
 > 1. **Leer `graphify` primero (primera acción siempre):** Este proyecto cuenta con un grafo de conocimiento en `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`, `graph.html`). Antes de ejecutar búsquedas (`grep`), explorar directorios o abrir archivos fuente para entender el proyecto, su arquitectura o relaciones entre módulos, **consulta primero el grafo**:
 >    - `graphify query "<pregunta>"` — contexto general sobre módulos, flujos o componentes.
 >    - `graphify path "<NodoA>" "<NodoB>"` — ruta más corta y conexión entre dos conceptos o archivos.
 >    - `graphify explain "<nodo>"` — explicación puntual de un símbolo, módulo o entidad.
 >    - Lee `graphify-out/GRAPH_REPORT.md` cuando necesites visión global de comunidades, *God Nodes* o arquitectura general, y lee solo los archivos/líneas concretos que el grafo indique.
 >    - Incluye siempre esta regla en el prompt de cualquier subagente que explores sobre el código.
-> 2. **Actualizar `graphify` tras cambios funcionales o estructurales:** Cada vez que agregues, modifiques o muevas funcionalidades, archivos, componentes, rutas, modelos o relaciones que hagan cambiar el árbol/grafo del proyecto, **debes actualizar el grafo antes de dar por terminada la tarea**:
->    - Para cambios en código (`.ts`, `.tsx`, `.js`, `.json`): ejecuta `graphify update .` (extracción AST incremental, sin costo de API).
->    - Si también cambian documentos (`.md`, `.html`), sprites/imágenes o relaciones semánticas: ejecuta `/graphify . --update` (o `/graphify .` si se requiere reconstrucción completa).
+> 2. **NO actualizar `graphify` automáticamente (solo bajo petición explícita del usuario):** **PROHIBIDO ejecutar `graphify update .` o `/graphify` por cuenta propia tras cada cambio o ciclo de prueba y error**, ya que consume demasiados tokens y tiempo. **Solo el usuario decide cuándo actualizar `graphify`**; ejecútalo única y exclusivamente cuando el usuario lo solicite de forma explícita:
+>    - Cuando el usuario lo pida para cambios en código (`.ts`, `.tsx`, `.js`, `.json`): ejecuta `graphify update .` (extracción AST incremental, sin costo de API).
+>    - Cuando el usuario lo pida incluyendo documentos (`.md`, `.html`), sprites/imágenes o relaciones semánticas: ejecuta `/graphify . --update` (o `/graphify .` si pide reconstrucción completa).
 
 ---
 
@@ -30,29 +30,49 @@ Reglas específicas de obligado cumplimiento:
 
 ---
 
-## Pruebas en Navegador (Google Chrome + WebGPU + Modo Sandbox `?dev=...`)
+## Verificación de Cambios (`lint`) y Pruebas en Navegador (`?dev=...`)
+
+> **REGLA DE FLUJO DE TRABAJO — PROHIBIDO PROBAR EN CHROME POR CUENTA PROPIA:**
+> - **NO abras ni pruebes en Google Chrome automáticamente** tras hacer cambios (ni con Chrome DevTools MCP, ni con `/browser`, ni con Playwright/Puppeteer). **Las pruebas en Chrome las hace exclusivamente el usuario** para no gastar tokens ni tiempo en cada iteración de prueba y error.
+> - **Cómo debes verificar tus cambios:** Tras editar código, **ejecuta únicamente `npm run lint` (y `npx tsc -b` cuando aplique)** para validar que no existan errores de linter ni de tipos, y entrégale al usuario la URL `?dev=<preset>` correspondiente para que él la pruebe.
+> - **Única excepción:** Solo abre o interactúa con Chrome si el usuario te lo pide explícitamente en su mensaje (p. ej., para tomar capturas del informe contractual con la skill `informes-contrato`).
 
 El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seguro (`http://localhost:5174` con `npm run dev` o `npm run docker:dev`). En desarrollo (`import.meta.env.DEV`) existe `src/app/devSession.ts`, que se elimina al 100 % en *builds* de producción:
 
-1. **Cómo abrir Chrome desde el agente:**
+1. **Solo si el usuario pide explícitamente abrir Chrome desde el agente:**
    - Usa las herramientas de **Chrome DevTools MCP** (plugin `chrome-devtools`) o `/browser` sobre Google Chrome local (no navegadores sin WebGPU).
    - Navega siempre con `?dev=<preset>` para omitir Google OAuth (`@correounivalle.edu.co`) y proteger Firestore real (`isDevUser` en `authStore.ts` desactiva lecturas/escrituras en `progressService.ts`, `userService.ts` y `adminService.ts`).
 2. **URLs completas y casos de prueba disponibles (`http://localhost:5174`):**
    - **Desafío 1 — Villa de Boj, Casa de Imeri y Pantano de la Tristeza:**
      - `http://localhost:5174/mundo?dev=1` (alias: `http://localhost:5174/mundo?dev=villa`, `http://localhost:5174/mundo?dev=desafio1`) — Puerta de Villa de Boj desde cero (`x: -39, y: 12.4, z: 18`).
-     - `http://localhost:5174/mundo?dev=carta` — Puerta de Villa de Boj con el pergamino y narración del anuncio del alcalde abierto (`desafio1.cartaAlcalde`).
-     - `http://localhost:5174/mundo?dev=aldeano` — Plaza de Villa de Boj frente al aldeano (`x: -68.5, y: 12.2, z: 15.5`, carta leída).
-     - `http://localhost:5174/mundo?dev=aldeana` — En la villa frente a la aldeana (`x: -83, y: 12.2, z: 33`, carta leída).
-     - `http://localhost:5174/mundo?dev=imeriHablar` — Frente a la casa de Imeri con ayuda del aldeano aceptada, listo para hablar con Imeri.
+     - `http://localhost:5174/mundo?dev=carta` — A unos pasos del tablón de anuncios junto al portón (`x: -45, y: 12.2, z: 19.9`), anuncio sin leer: acércate y presiona `E` para leerlo (nunca se abre solo).
+     - `http://localhost:5174/mundo?dev=aldeana` — Junto al pozo de la plaza frente a la aldeana (`x: -74.8, y: 12.2, z: 20.4`, carta leída): cuenta lo ocurrido y pregunta si necesitas ayuda (Sí/No).
+     - `http://localhost:5174/mundo?dev=aldeanaPistas` — Frente a la aldeana con su ayuda ya aceptada: cuenta las habladurías del pozo (pistas de los bonos).
+     - `http://localhost:5174/mundo?dev=imeriHablar` — Frente a la casa de Imeri con ayuda de la aldeana aceptada, listo para hablar con Imeri.
      - `http://localhost:5174/mundo?dev=imeri` — Frente a la casa de Imeri (`x: 14.5, y: 11.8, z: 41`), puerta desbloqueada y mochila activa para entrar a recoger los 7 objetos.
      - `http://localhost:5174/mundo?dev=pantano` — Orilla seca antes del Pantano (`x: 50, y: 12.2, z: 24`) con **gema, soga e insecticida (5 pociones)** listos en la mochila.
      - `http://localhost:5174/mundo?dev=pantanoCasi` — Pantano con Golem apagado y `9/10` zumbadores derrotados: derrota al último zumbador para disparar la victoria del Desafío 1 en vivo.
      - `http://localhost:5174/mundo?dev=pantanoSuperado` — Pergamino y narración de **Pantano de la Tristeza superado** abiertos (`desafio1.pantanoSuperado`).
    - **Bono 1 — La Estatua de la Choza (salida del pantano):**
-     - `http://localhost:5174/mundo?dev=choza` — Etapa 1: junto a la choza de la estatua cubierta de moho (`x: -62, y: 9.9, z: -87.5`).
-     - `http://localhost:5174/mundo?dev=chozaLimpia` — Etapa 2: rostro de la estatua ya limpio (`estatuaLimpia: true`), diálogo abierto listo para encender el fuego.
-     - `http://localhost:5174/mundo?dev=chozaEncendida` — Etapa 3: fuego encendido en el plato (`estatuaEncendida: true`), listo para recibir el **Anillo de oro** y la **1.ª estrella extra**.
+     - `http://localhost:5174/mundo?dev=choza` — Etapa 1: afuera, junto a la puerta de la choza de la estatua cubierta de moho (`x: -62, y: 9.9, z: -87.5`).
+     - `http://localhost:5174/mundo?dev=chozaEstatua` — Etapa 1 jugable: dentro de la choza frente a la estatua (`x: -61.4, y: 9.9, z: -95.6`): `E` la examina y luego el avatar sube a la losa (los personajes bajos, a un banquito) y limpia el rostro a mano; mantén presionado el clic o `E` para frotar las 3 zonas de moho.
+     - `http://localhost:5174/mundo?dev=chozaLimpia` — Etapa 2 jugable: rostro ya limpio (`estatuaLimpia: true`), diálogo abierto; su botón (o `E` junto a la estatua) hace que el avatar se arrodille junto al plato y golpee dos piedras de chispa: haz clic varias veces seguidas para sacar chispas y prender el fuego.
+     - `http://localhost:5174/mundo?dev=chozaEncendida` — Etapa 3 jugable: fuego encendido en el plato (`estatuaEncendida: true`), diálogo abierto; su botón (o `E` junto a la estatua) hace que el avatar rodee el fuego, tome el **Anillo de oro** de las manos de la estatua y lo alce para mirarlo; al terminar recibe la **1.ª estrella extra**.
      - `http://localhost:5174/mundo?dev=bono1` — Bono 1 completado (`anilloOro` en mochila + `1 estrella extra`).
+     - **Estados de la choza (Bono 1)** — código en `src/game/challenges/desafio1/chozaEstatua/`; plan y avance en `docs/Plan_Bono1_Estatua.md`:
+
+       | Estado guardado (`progress`) | Aviso con `E` junto a la estatua | Qué se ve | Preset |
+       |---|---|---|---|
+       | Nada hecho, sin examinar | «examinar la estatua» (abre el diálogo de la inscripción) | Moho en rostro (`EstatuaMohoFrente/Ojos/Boca`) y cuerpo (`EstatuaMohoCuerpo`); trapo sobre la losa; pedernal y pirita junto al plato; plato apagado | `?dev=choza`, `?dev=chozaEstatua` |
+       | Examinada en esta sesión (`useChozaStore.examinada`, no se guarda) | «limpiar el rostro de la estatua» | Igual | — |
+       | `estatuaLimpia: true` | «encender el fuego en el plato» | Rostro limpio; moho del cuerpo; plato apagado | `?dev=chozaLimpia` |
+       | `estatuaEncendida: true` | «tomar el anillo de la estatua» | Fuego encendido con luz y sonido (`obj_fogata`); sin moho; anillo en las manos de la estatua | `?dev=chozaEncendida` |
+       | `bono1Completado: true` (+ `anilloOro` en `collectedItems`, `vidasExtra` +1) | «contemplar la estatua» | Fuego encendido; manos vacías | `?dev=bono1` |
+
+       Escenas en curso (solo en memoria, `useChozaStore`; mientras duran, la cámara es fija, el avatar lo mueve la escena y salir o abrir un diálogo las cancela sin guardar):
+       - `limpieza` (`limpieza.ts`, `LimpiezaEscena`, `LimpiezaHud`): `camino` (rodea el plato hasta la losa) → `frota` (mantener clic/`E`; palma con trapo contra el rostro; 3 zonas de ~4 s; `limpiezaViva.avance` 0‥3; los personajes bajos suben a un banquito) → `fin` → guarda `estatuaLimpia` y abre el diálogo.
+       - `encendido` (`encendido.ts`, `EncendidoEscena`, `EncendidoHud`): `camino` (al borde del plato, que es sólido) → `agacha` (clip `Arrodillarse`) → `chispa` (clics: golpe de pirita contra pedernal, chispas; `encendidoVivo.brasa` 0‥1 que se enfría sola) → `llamas` (suben alrededor de la estatua, queman `EstatuaMohoCuerpo`; el avatar se aparta y queda mirando el fuego) → guarda `estatuaEncendida` y abre el diálogo.
+       - `anillo` (`anillo.ts`, `AnilloEscena`, `AnilloHud`): `camino` (rodea el fuego) → `alcanza` (mano derecha sobre el anillo, izquierda debajo) → `alza` (el anillo pasa a la mano y lo sube a los ojos) → `mira` (lo gira a la luz del fuego) → guarda `bono1Completado`, la estrella extra y el anillo, y abre el diálogo final (con `05_narrador_05`).
    - **Desafío 2 — Casa del Elfo y Bosque de la Oscuridad:**
      - `http://localhost:5174/mundo?dev=desafio2` (alias: `http://localhost:5174/mundo?dev=elfo`) — Pie del árbol gigante frente al Elfo (`x: -36.4, y: 11.9, z: -122.5`) tras superar el Desafío 1.
      - `http://localhost:5174/mundo?dev=elfoCasa` — Ayuda del Elfo aceptada y puerta de su casa abierta en la copa del árbol para subir a recoger espada, lente y mapa.
@@ -102,6 +122,7 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
      - `http://localhost:5174/seleccion-personaje?dev=personaje` — Selección de género (`Hombre` / `Mujer`) y de los 12 avatares disponibles.
      - `http://localhost:5174/seleccion-personaje?dev=personajePerdido` — Selección de personaje con `Elfa` y `Guerrero` bloqueados tras haber caído en 3.er bajo.
      - `http://localhost:5174/admin?dev=admin` — Panel administrativo completo en memoria.
+     - `http://localhost:5174/login?dev=admin` — Inicio de sesión único: como la cuenta es administradora (lista `VITE_ADMIN_EMAILS` o `role: 'admin'` en su perfil) redirige sola a `/admin`; cualquier otra cuenta sigue como estudiante (registro → personaje → mundo). Desde el panel, «Ver Mundo 3D» deja al administrador jugar como estudiante. `/admin` ya no tiene pantalla de inicio de sesión propia: sin sesión lleva a `/login`.
    - **Modificadores combinables en cualquier URL (`&vidas=`, `&bonos=`, `&vida=`, `&dialogo=`, `&mochila=`, `&avatar=`, `&perdidos=`, `&spawn=`):**
      - Puedes combinar cualquier preset base con:
        - `&vidas=1` · `&vidas=2` · `&vidas=3` (fija 1, 2 o 3 estrellas base; ej.: `http://localhost:5174/mundo?dev=bosque&vidas=1`).

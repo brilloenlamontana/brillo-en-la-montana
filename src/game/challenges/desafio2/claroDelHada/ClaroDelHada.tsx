@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { AMULETO_HADA, EXTRA_STAR_TOAST, withExtraStar } from '@/game/challenges/bonos';
+import { AMULETO_HADA, withExtraStar } from '@/game/challenges/bonos';
 import { playSfx } from '@/game/engine/audio/audio';
 import { Collectibles, type Collectible } from '@/game/engine/interaction/Collectibles';
 import { InteractionSpot } from '@/game/engine/interaction/InteractionSpot';
@@ -54,7 +54,6 @@ function recogerAmuleto(id: string) {
   const { progress } = useProgressStore.getState();
   playSfx('d2_amuleto');
   saveProgress({ collectedItems: [...progress.collectedItems, id], bono2Completado: true, vidasExtra: withExtraStar(progress) });
-  useToastStore.getState().showToast(EXTRA_STAR_TOAST);
   useUIStore.getState().openDialog(DIALOG.hadaAmuleto);
 }
 

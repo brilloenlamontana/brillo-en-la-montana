@@ -36,11 +36,7 @@ export function ElfoDialog() {
 
   if (completed) {
     return (
-      <ParchmentDialog title="El elfo del bosque" subtitle="Mago protector del bosque" paragraphs={FELICITACION} voice={['02_elfo_03']}>
-        <div className="flex justify-end">
-          <ParchmentButton onClick={close}>Gracias, elfo</ParchmentButton>
-        </div>
-      </ParchmentDialog>
+      <ParchmentDialog title="El elfo del bosque" subtitle="Mago protector del bosque" paragraphs={FELICITACION} voice={['02_elfo_03']} onClose={close} />
     );
   }
   const answer = (help: 'accepted' | 'rejected') => {
@@ -50,29 +46,24 @@ export function ElfoDialog() {
       .getState()
       .showToast(
         help === 'accepted'
-          ? 'El elfo abrió su casa en la copa del árbol: sube y toma la espada, el lente y el mapa. Tu mochila ya guarda sus herramientas.'
-          : 'La casa del elfo seguirá cerrada. Puedes volver a hablar con él.',
+          ? 'Elfo: «Abrí mi casa en la copa del árbol. Sube y toma la espada, el lente y el mapa: desde ahora tu mochila guarda mis herramientas».'
+          : 'Elfo: «Mi casa seguirá cerrada. Si cambias de opinión, vuelve a hablar conmigo».',
       );
   };
 
   return (
     <ParchmentDialog title="El elfo del bosque" subtitle="Un mago elfo que vive en la copa de un árbol" paragraphs={EXPLICACION}
+      question={accepted ? undefined : '¿Quieres llevar mis herramientas? En mi casa tengo una espada, un lente y un mapa.'}
       voice={accepted ? ['02_elfo_02'] : ['02_elfo_02', '02_elfo_01']}
+      onClose={accepted ? close : undefined}
     >
-      {accepted ? (
-        <div className="flex justify-end">
-          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+      {!accepted && (
+        <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+          <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
+            No, gracias
+          </ParchmentButton>
+          <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
         </div>
-      ) : (
-        <>
-          <p className="font-bold text-sm sm:text-base mb-3">¿Quieres llevar mis herramientas? En mi casa tengo una espada, un lente y un mapa.</p>
-          <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
-            <ParchmentButton tone="decline" onClick={() => answer('rejected')}>
-              No, gracias
-            </ParchmentButton>
-            <ParchmentButton onClick={() => answer('accepted')}>Sí, ayúdame</ParchmentButton>
-          </div>
-        </>
       )}
     </ParchmentDialog>
   );

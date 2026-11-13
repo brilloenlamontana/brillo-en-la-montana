@@ -5,10 +5,10 @@ export const VISIBLE_FROM = {
   // From the swamp on, the village is behind the mountains.
   villaBoj: visibleFrom(['villa', 'camino', 'casa'], ['imeri']),
   cartaAlcalde: visibleFrom(['villa', 'camino', 'casa']),
-  // Once at Imeri's house the villager is no longer drawn.
-  aldeano: visibleFrom(['villa', 'camino']),
+  // Once at Imeri's house the villager woman is no longer drawn.
+  aldeana: visibleFrom(['villa', 'camino']),
   casaExterior: visibleFrom(['villa', 'camino', 'casa', 'pantano'], ['imeri']),
-  // In the swamp nothing of the village (villager included) nor of the inside of Imeri's house is drawn.
+  // In the swamp nothing of the village (villager woman included) nor of the inside of Imeri's house is drawn.
   casaInterior: visibleFrom(['casa'], ['imeri']),
   imeri: visibleFrom(['camino', 'casa'], ['imeri']),
   // The golem and the zumbadores only exist near the swamp.

@@ -3,6 +3,7 @@ import type { Spawn } from '@/game/player/playerStore';
 import { PLAYER_START, RESPAWN_POINT } from '@/game/player/spawn';
 import { DESAFIO1_BACKPACK } from './backpack';
 import { Desafio1Dialogs } from './Desafio1Dialogs';
+import { Desafio1Hud } from './Desafio1Hud';
 import { Desafio1World } from './Desafio1World';
 import { isDesafio1Completado } from './mission';
 
@@ -16,6 +17,7 @@ export const desafio1: Challenge = {
   title: 'Pantano de la Tristeza',
   World: Desafio1World,
   Dialogs: Desafio1Dialogs,
+  Hud: Desafio1Hud,
   backpack: DESAFIO1_BACKPACK,
   regions: ['villa', 'camino', 'casa', 'pantano'],
   // The Villa Boj square.

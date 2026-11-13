@@ -7,7 +7,6 @@ import { countDerrotas, getCierreSummary } from '@/game/challenges/relatoCierre/
 import { isDevUser, useAuthStore, type UserData } from '@/store/authStore';
 import { normalizeProgress, STARS, useProgressStore, type GameProgress } from '@/store/progressStore';
 import { db } from './firebase';
-import { signInWithGoogle, signOutUser } from './userService';
 
 // Admin dashboard data. NOTE: these checks only shape the interface; any signed-in browser can call Firestore, so the
 // security rules must allow reading every user and writing roles only to admins.
@@ -38,8 +37,6 @@ export interface AdminUserRecord {
   // Last time the player progressed in the game (written by saveProgress).
   progressUpdatedAt?: string;
 }
-
-const INSTITUTIONAL_DOMAIN = '@correounivalle.edu.co';
 
 // Accounts listed in VITE_ADMIN_EMAILS (comma separated) are admins from their first sign-in.
 const configuredAdminEmails = (): string[] =>
@@ -78,18 +75,13 @@ export async function hasAnyAdmin(): Promise<boolean> {
   }
 }
 
-// Signs in to the dashboard with Google. Only institutional accounts (or configured admins) stay signed in;
-// configured admins get the role written on their profile.
-export async function signInAsAdmin(): Promise<{ rejectedEmail?: string }> {
-  const { user } = await signInWithGoogle();
-  const email = (user.email ?? '').toLowerCase().trim();
-  const configured = isConfiguredAdmin(email);
-  if (!email.endsWith(INSTITUTIONAL_DOMAIN) && !configured) {
-    await signOutUser();
-    return { rejectedEmail: email };
-  }
-  if (configured) await grantAdminRole(user.uid);
-  return {};
+// Called when a session opens: whether this account is an administrator. The accounts listed in VITE_ADMIN_EMAILS are,
+// from their first sign-in, and get the role written on their profile (merged, nothing else is touched) so the
+// dashboard lists them as such.
+export function withAdminRole(user: UserData): UserData {
+  if (user.role === 'admin' || isDevUser(user.uid) || !isConfiguredAdmin(user.email)) return user;
+  grantAdminRole(user.uid).catch((error) => console.error('Could not write the admin role:', error));
+  return { ...user, role: 'admin' };
 }
 
 export const claimFirstAdmin = (user: UserData) =>
@@ -189,7 +181,7 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
     'Misión 1 (Avance)',
     'Misión 1 (Completada)',
     'Anuncio del Alcalde (Leído)',
-    'Ayuda del Aldeano',
+    'Ayuda de la Aldeana',
     'Ayuda de Imeri',
     'Gema',
     'Soga',
@@ -250,7 +242,7 @@ export const exportUsersToCSV = (users: AdminUserRecord[]): void => {
       escapeCSV(`${percent}%`),
       escapeCSV(completed ? `Sí (${u.progress?.mision1CompletadaEn ? new Date(u.progress.mision1CompletadaEn).toLocaleString('es-CO') : 'sin fecha'})` : 'No'),
       escapeCSV(yesNo(step('carta').done)),
-      escapeCSV(step('aldeano').status),
+      escapeCSV(step('aldeana').status),
       escapeCSV(step('imeri').status),
       escapeCSV(yesNo(step('gema').done)),
       escapeCSV(yesNo(step('soga').done)),

@@ -3,6 +3,7 @@ import { Html, useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Quaternion, Vector3, type Group, type Mesh } from 'three';
 import { InteractionPrompt } from '@/game/engine/interaction/InteractionPrompt';
+import { PROMPT_Z_RANGE } from '@/game/engine/interaction/promptLayer';
 import { useInteractKey } from '@/game/engine/interaction/useInteractKey';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { isGameplayPaused, useUIStore } from '@/store/uiStore';
@@ -144,7 +145,7 @@ export function Hada({ visible, liberada, canTalk }: HadaProps) {
         <meshBasicMaterial color="#ffe98a" transparent opacity={0.1} depthWrite={false} toneMapped={false} />
       </mesh>
       {near && (
-        <Html position={[0, PROMPT_HEIGHT, 0]} center>
+        <Html zIndexRange={PROMPT_Z_RANGE} position={[0, PROMPT_HEIGHT, 0]} center>
           <InteractionPrompt action="hablar con el hada" onActivate={talk} />
         </Html>
       )}

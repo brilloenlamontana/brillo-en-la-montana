@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { isGameplayPaused } from '@/store/uiStore';
 import { InteractionPrompt } from './InteractionPrompt';
+import { PROMPT_Z_RANGE } from './promptLayer';
 import { useInteractKey } from './useInteractKey';
 
 type InteractionSpotProps = {
@@ -48,7 +49,7 @@ export function InteractionSpot({ position, radius, heightRange = [-2, 1.5], pro
 
   if (!near) return null;
   return (
-    <Html position={[position[0], position[1] + promptHeight, position[2]]} center>
+    <Html zIndexRange={PROMPT_Z_RANGE} position={[position[0], position[1] + promptHeight, position[2]]} center>
       <InteractionPrompt action={prompt} onActivate={onInteract} />
     </Html>
   );

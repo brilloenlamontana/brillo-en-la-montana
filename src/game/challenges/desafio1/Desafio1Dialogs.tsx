@@ -1,8 +1,7 @@
 import { Desafio1Sounds } from './Desafio1Sounds';
 import { CartaAlcaldeDialog } from './cartaAlcalde/CartaAlcaldeDialog';
 import { EstatuaDialog } from './chozaEstatua/EstatuaDialog';
-import { AldeanaDialog } from './npcs/Aldeana';
-import { AldeanoDialog } from './npcs/AldeanoDialog';
+import { AldeanaAyudaDialog, AldeanaDialog } from './npcs/Aldeana';
 import { ImeriDialog } from './npcs/ImeriDialog';
 import { PantanoSuperadoDialog } from './pantanoTristeza/PantanoSuperadoDialog';
 
@@ -11,7 +10,7 @@ export function Desafio1Dialogs() {
   return (
     <>
       <CartaAlcaldeDialog />
-      <AldeanoDialog />
+      <AldeanaAyudaDialog />
       <ImeriDialog />
       <PantanoSuperadoDialog />
       <AldeanaDialog />

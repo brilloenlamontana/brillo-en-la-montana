@@ -21,8 +21,8 @@ export const countDerrotas = (progress: Progress) => Object.values(progress?.der
 export function getCierreSummary(progress: Progress) {
   const steps: MissionStep[] = [
     { id: 'cumbre', label: 'Llegar a la Cumbre de la Desolación', detail: 'Por los túneles, tras vencer al ogro', done: isUnlocked(progress) },
-    { id: 'driada', label: 'Escuchar a la dríada', detail: 'Frente a las puertas de sauce del santuario', done: isSantuarioAbierto(progress) },
-    { id: 'caliz', label: 'Tomar el cáliz', detail: 'Sobre el altar, bajo la torre del santuario', done: isCalizTomado(progress) },
+    { id: 'driada', label: 'Convencer a la dríada', detail: 'Frente a las puertas de sauce del santuario', done: isSantuarioAbierto(progress) },
+    { id: 'caliz', label: 'Despertar la luz del cáliz', detail: 'La dríada posa su mano sobre él, en el altar del santuario', done: isCalizTomado(progress) },
   ];
   const done = steps.filter((step) => step.done).length;
   return { unlocked: isUnlocked(progress), steps, done, total: steps.length, percent: Math.round((done / steps.length) * 100), completed: isJuegoCompletado(progress) };

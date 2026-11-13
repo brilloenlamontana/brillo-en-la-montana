@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { CharacterThumb } from '@/components/CharacterThumb';
 import { CHARACTERS } from '@/data/characters';
-import { saveProfile } from '@/services/userService';
+import { isNicknameTaken, saveProfile } from '@/services/userService';
 import { useAuthStore, type UserData } from '@/store/authStore';
 
 // three.js only loads when the profile opens (the login and selection pages do not need it otherwise).
@@ -9,13 +10,64 @@ const CharacterPreview3D = lazy(() => import('@/components/CharacterPreview3D').
 
 type ProfileModalProps = { user: UserData; onClose: () => void };
 
+// The nickname saves itself this long after the last key, once it is valid and free.
+const AUTOSAVE_MS = 1000;
+const MIN_LENGTH = 3;
+const SAVED_SHOWN_MS = 2500;
+
+type NickStatus =
+  | { kind: 'idle' }
+  | { kind: 'typing' }
+  | { kind: 'checking' }
+  | { kind: 'saved' }
+  | { kind: 'taken'; name: string }
+  | { kind: 'invalid'; message: string }
+  | { kind: 'error' };
+
+function NickStatusLine({ status }: { status: NickStatus }) {
+  const base = 'flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold';
+  switch (status.kind) {
+    case 'typing':
+      return <span className={`${base} text-madera-400`}>Se guardará al terminar de escribir…</span>;
+    case 'checking':
+      return (
+        <span className={`${base} text-madera-500`}>
+          <span className="w-3 h-3 rounded-full border-2 border-madera-400 border-t-transparent animate-spin" aria-hidden="true" />
+          Comprobando y guardando…
+        </span>
+      );
+    case 'saved':
+      return (
+        <span className={`${base} text-musgo-700`}>
+          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12.5 10 17.5 19 7" />
+          </svg>
+          Guardado
+        </span>
+      );
+    case 'taken':
+      return <span className={`${base} text-carmesi`}>«{status.name}» no está disponible: otro aventurero ya lo usa.</span>;
+    case 'invalid':
+      return <span className={`${base} text-carmesi`}>{status.message}</span>;
+    case 'error':
+      return <span className={`${base} text-carmesi`}>No se pudo guardar. Revisa tu conexión y vuelve a intentarlo.</span>;
+    default:
+      return null;
+  }
+}
+
 // The player's profile, all on one screen: the account (name and email come from the institutional account and
-// cannot be edited), the nickname (the only thing that can be changed), the academic registration and the character
-// in 3D. The character cannot be changed: it is only replaced by losing it.
+// cannot be edited), the nickname (the only thing that can be changed: it saves itself a moment after the last key,
+// if no other player uses it), the academic registration and the character in 3D. The character cannot be changed:
+// it is only replaced by losing it. Drawn on the page body, above every panel of the game.
 export function ProfileModal({ user, onClose }: ProfileModalProps) {
   const [nickname, setNickname] = useState(user.nickname ?? '');
-  const [isSaving, setIsSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [status, setStatus] = useState<NickStatus>({ kind: 'idle' });
+  // The nickname last saved, the pending autosave and the latest request (an older answer is ignored).
+  const saved = useRef(user.nickname ?? '');
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const request = useRef(0);
+  const alive = useRef(true);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -26,28 +78,68 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
   }, [onClose]);
 
   const character = CHARACTERS.find((candidate) => candidate.glbName === user.avatarName) ?? null;
-  const unchanged = nickname.trim() === (user.nickname ?? '');
 
-  const handleSave = async (e: FormEvent) => {
+  const save = useCallback(
+    async (value: string) => {
+      const name = value.trim();
+      if (name === saved.current) return setStatus({ kind: 'idle' });
+      if (name.length < MIN_LENGTH) return setStatus({ kind: 'invalid', message: `Escribe al menos ${MIN_LENGTH} caracteres.` });
+      const id = ++request.current;
+      setStatus({ kind: 'checking' });
+      try {
+        if (await isNicknameTaken(user.uid, name)) {
+          if (alive.current && id === request.current) setStatus({ kind: 'taken', name });
+          return;
+        }
+        await saveProfile(user.uid, { nickname: name });
+        saved.current = name;
+        useAuthStore.getState().updateUser({ nickname: name });
+        if (alive.current && id === request.current) setStatus({ kind: 'saved' });
+      } catch (err) {
+        console.error('Could not update the nickname:', err);
+        if (alive.current && id === request.current) setStatus({ kind: 'error' });
+      }
+    },
+    [user.uid],
+  );
+
+  // A moment after the last key, the nickname saves itself.
+  const handleChange = (value: string) => {
+    setNickname(value);
+    clearTimeout(timer.current);
+    setStatus(value.trim() === saved.current ? { kind: 'idle' } : { kind: 'typing' });
+    timer.current = setTimeout(() => void save(value), AUTOSAVE_MS);
+  };
+
+  // "Guardado" fades after a while.
+  useEffect(() => {
+    if (status.kind !== 'saved') return;
+    const fade = setTimeout(() => setStatus({ kind: 'idle' }), SAVED_SHOWN_MS);
+    return () => clearTimeout(fade);
+  }, [status]);
+
+  // Closing before the moment has passed still saves what was written.
+  const latest = useRef(nickname);
+  useEffect(() => {
+    latest.current = nickname;
+  }, [nickname]);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      if (timer.current !== undefined) {
+        clearTimeout(timer.current);
+        void save(latest.current);
+      }
+    };
+  }, [save]);
+
+  // Enter saves at once.
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!nickname.trim()) {
-      setFeedback({ type: 'error', message: 'Por favor ingresa un nickname válido.' });
-      return;
-    }
-    try {
-      setIsSaving(true);
-      setFeedback(null);
-      const profile = { nickname: nickname.trim() };
-      await saveProfile(user.uid, profile);
-      useAuthStore.getState().updateUser(profile);
-      setFeedback({ type: 'success', message: '¡Nickname actualizado!' });
-      setTimeout(onClose, 900);
-    } catch (err) {
-      console.error('Could not update the profile:', err);
-      setFeedback({ type: 'error', message: 'Ocurrió un error al guardar los cambios.' });
-    } finally {
-      setIsSaving(false);
-    }
+    clearTimeout(timer.current);
+    timer.current = undefined;
+    void save(nickname);
   };
 
   const academic = [
@@ -57,26 +149,26 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
     ['Programa', user.programaNombre],
   ].filter((row): row is [string, string] => Boolean(row[1]));
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/60 select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-madera-900/60 select-none"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="profile-modal-title"
     >
       <form
-        onSubmit={handleSave}
+        onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl max-h-[96dvh] flex flex-col bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden text-slate-800"
+        className="relative w-full max-w-4xl max-h-[96dvh] flex flex-col bg-papel-100 rounded-3xl border-[3px] border-madera-600 shadow-2xl overflow-hidden text-madera-800"
       >
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 px-5 py-3 sm:px-7 border-b border-slate-100 bg-gradient-to-r from-red-50/70 via-white to-slate-50 flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 px-5 py-3 sm:px-7 border-b border-madera-600/15 bg-gradient-to-r from-papel-200/70 via-papel-50 to-papel-50 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <img src="/univalle.svg" alt="Universidad del Valle" className="w-9 h-9 object-contain flex-shrink-0" />
             <div className="min-w-0">
-              <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-[#C8102E]">Perfil de usuario</span>
-              <h2 id="profile-modal-title" className="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-tight">
+              <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-madera-600">Perfil de usuario</span>
+              <h2 id="profile-modal-title" className="font-serif text-base sm:text-lg font-bold tracking-tight text-madera-900 leading-tight">
                 Tu aventurero
               </h2>
             </div>
@@ -84,7 +176,7 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-papel-100 hover:bg-papel-300 active:scale-95 text-madera-500 hover:text-madera-800 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer"
             aria-label="Cerrar perfil"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,104 +189,80 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
         <div className="flex-1 min-h-0 overflow-y-auto sm:overflow-hidden grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] gap-4 sm:gap-6 p-4 sm:p-5">
           {/* Left: account, nickname, registration */}
           <div className="flex flex-col gap-3 min-w-0">
-            <div className="flex items-center gap-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/80">
-              <CharacterThumb character={character} photoURL={user.photoURL} name={user.name} className="w-14 h-14 border-2 border-red-200 shadow-xs" />
+            <div className="flex items-center gap-3.5 p-3 rounded-2xl border border-madera-600/20 bg-papel-50/80">
+              <CharacterThumb character={character} photoURL={user.photoURL} name={user.name} className="w-14 h-14 border-2 border-papel-400 shadow-xs" />
               <div className="min-w-0">
-                <p className="font-bold text-slate-900 truncate text-sm sm:text-base" title={user.name}>{user.name}</p>
-                <p className="text-[11px] sm:text-xs text-slate-500 truncate" title={user.email}>{user.email}</p>
-                <span className="uv-badge-emerald mt-1">Cuenta institucional</span>
+                <p className="font-bold text-madera-900 truncate text-sm sm:text-base" title={user.name}>{user.name}</p>
+                <p className="text-[11px] sm:text-xs text-madera-500 truncate" title={user.email}>{user.email}</p>
               </div>
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="profile-nickname" className="text-xs font-semibold text-slate-700 flex justify-between">
+              <label htmlFor="profile-nickname" className="text-xs font-semibold text-madera-700 flex justify-between">
                 <span>Nickname en el videojuego</span>
-                <span className="text-slate-400 font-mono text-[11px]">{nickname.length}/16</span>
+                <span className="text-madera-400 font-mono text-[11px]">{nickname.length}/16</span>
               </label>
               <input
                 id="profile-nickname"
                 type="text"
                 maxLength={16}
                 value={nickname}
-                onChange={(e) => {
-                  setNickname(e.target.value);
-                  setFeedback(null);
-                }}
+                onChange={(e) => handleChange(e.target.value)}
+                aria-describedby="profile-nickname-status"
                 onKeyDown={(e) => e.stopPropagation()}
                 placeholder="Ej: Valerius"
                 className="uv-input font-medium"
               />
-              <p className="text-[10px] sm:text-[11px] text-slate-500">Es lo único que puedes cambiar. Tu nombre viene de tu cuenta institucional.</p>
+              <div id="profile-nickname-status" role="status" aria-live="polite" className="min-h-[1.25rem] flex items-center">
+                {status.kind === 'idle' ? (
+                  <p className="text-[10px] sm:text-[11px] text-madera-500">Es lo único que puedes cambiar: se guarda solo al terminar de escribir.</p>
+                ) : (
+                  <NickStatusLine status={status} />
+                )}
+              </div>
             </div>
 
             {academic.length > 0 && (
-              <div className="rounded-2xl border border-slate-200 p-3">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#C8102E] mb-2">Registro académico</p>
+              <div className="rounded-2xl border border-madera-600/20 p-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-madera-600 mb-2">Registro académico</p>
                 <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[11px] sm:text-xs">
                   {academic.map(([label, value]) => (
                     <div key={label} className="contents">
-                      <dt className="text-slate-500">{label}</dt>
-                      <dd className="font-semibold text-slate-800 truncate text-right" title={value}>{value}</dd>
+                      <dt className="text-madera-500">{label}</dt>
+                      <dd className="font-semibold text-madera-800 truncate text-right" title={value}>{value}</dd>
                     </div>
                   ))}
                 </dl>
               </div>
             )}
 
-            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-slate-200 text-[11px]">
-              <span className="flex items-center gap-2 min-w-0">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                <span className="truncate"><strong className="text-slate-800">Ley 1581 de 2012</strong> · uso institucional, sin divulgación</span>
-              </span>
-              <span className="uv-badge-emerald flex-shrink-0">Autorizado</span>
-            </div>
 
-            {feedback && (
-              <p
-                role="status"
-                className={`px-3 py-2 rounded-xl text-xs font-medium border ${
-                  feedback.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
-                }`}
-              >
-                {feedback.message}
-              </p>
-            )}
           </div>
 
           {/* Right: the character in 3D */}
-          <div className="flex flex-col min-h-0 rounded-2xl border border-slate-200 bg-gradient-to-b from-red-50/60 to-white overflow-hidden">
+          <div className="flex flex-col min-h-0 rounded-2xl border border-madera-600/20 bg-gradient-to-b from-papel-200/60 to-papel-50 overflow-hidden">
             <div className="relative h-[clamp(14rem,48dvh,24rem)] sm:h-auto sm:flex-1 sm:min-h-[14rem]">
               {character ? (
                 <Suspense fallback={<img src={character.imagePath} alt={character.name} className="h-full w-full object-contain" />}>
                   <CharacterPreview3D character={character} />
                 </Suspense>
               ) : (
-                <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-slate-500">
+                <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-madera-500">
                   Todavía no has elegido tu personaje.
                 </p>
               )}
             </div>
             {character && (
-              <div className="px-4 py-2.5 border-t border-slate-100 bg-white/80 text-center">
-                <p className="text-base sm:text-lg font-bold text-slate-900 leading-tight">{character.name}</p>
-                <p className="text-[10px] sm:text-[11px] text-slate-500 leading-snug mt-0.5">
-                  No se puede cambiar: solo eliges otro si caes en tercer bajo rendimiento.
-                </p>
+              <div className="px-4 py-2.5 border-t border-madera-600/15 bg-papel-50/80 text-center">
+                <p className="text-base sm:text-lg font-bold text-madera-900 leading-tight">{character.name}</p>
+               
               </div>
             )}
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 px-4 py-3 sm:px-6 border-t border-slate-100 bg-slate-50/80 flex-shrink-0">
-          <button type="button" onClick={onClose} disabled={isSaving} className="uv-btn-secondary w-full sm:w-auto text-xs sm:text-sm py-2.5 px-5">
-            Cerrar
-          </button>
-          <button type="submit" disabled={isSaving || unchanged} className="uv-btn-primary w-full sm:w-auto text-xs sm:text-sm py-2.5 px-7">
-            {isSaving ? 'Guardando…' : 'Guardar nickname'}
-          </button>
-        </div>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -6,6 +6,7 @@ import { usePlayerStore } from '@/game/player/playerStore';
 import { useLoopNear } from '@/game/engine/audio/useLoopNear';
 import { useProgressStore } from '@/store/progressStore';
 import { InteractionPrompt } from './InteractionPrompt';
+import { PROMPT_Z_RANGE } from './promptLayer';
 import { useInteractKey } from './useInteractKey';
 
 // An item lying in the world: a GLB already placed in world coordinates.
@@ -103,7 +104,7 @@ export function Collectibles({ items, active, enabled, onCollect }: Collectibles
           >
             <primitive object={item.scene} />
             {focusedId === item.id && (
-              <Html position={[item.center.x, item.top + 0.35, item.center.z]} center>
+              <Html zIndexRange={PROMPT_Z_RANGE} position={[item.center.x, item.top + 0.35, item.center.z]} center>
                 <InteractionPrompt action={`recoger: ${item.name}`} onActivate={collectFocused} />
               </Html>
             )}
