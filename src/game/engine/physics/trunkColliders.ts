@@ -11,94 +11,55 @@ export function boundingBoxCore(geometry: BufferGeometry): TrunkCore {
   return { center: box.getCenter(new Vector3()), half: box.getSize(new Vector3()).multiplyScalar(0.5) };
 }
 
-// The foliage of a conifer as one box, from the ground to its tip: as wide as its lowest boughs (the widest, measured
-// in the `band` meters above the lowest leaf) times `fit` — a square inside their circle — so the avatar does not walk
-// through the leaves. `ground` is how far below the lowest leaf the ground is.
-export function foliageBox(geometry: BufferGeometry, { band = 1.8, fit = 0.75, ground = 1.9 } = {}): TrunkCore {
-  if (!geometry.boundingBox) geometry.computeBoundingBox();
-  const box = geometry.boundingBox!;
-  const position = geometry.attributes.position;
-  let radius = 0;
-  for (let i = 0; i < position.count; i++) {
-    if (position.getY(i) - box.min.y < band) radius = Math.max(radius, Math.hypot(position.getX(i), position.getZ(i)));
-  }
-  const bottom = box.min.y - ground;
-  return { center: new Vector3(0, (bottom + box.max.y) / 2, 0), half: new Vector3(radius * fit, (box.max.y - bottom) / 2, radius * fit) };
-}
-
-type LowBark = {
-  // Side of the cells the bark is measured in (m).
-  cell?: number;
+type Trunk = {
   // Height of the ground in the model (its roots go below it).
   ground?: number;
-  // Bark lower than this above the ground is stepped over (thin roots lying on the earth): it gets no box.
-  stepOver?: number;
-  // Bark higher than this is over every head (branches): it gets no box.
-  head?: number;
+  // The trunk is measured between these heights over the ground (m): above the flare of the roots, under the branches.
+  band?: readonly [number, number];
+  // Height of the box over the ground (m).
+  height?: number;
 };
 
-// What the avatar bumps into of a tree with spreading roots and a leaning trunk: the bark between the ground and the
-// height of a head, as a handful of boxes. The bark is sampled into a grid of `cell` meters; every cell where it rises
-// above `stepOver` gets a column (from under the ground if the bark starts low, from the bark itself if it hangs, like
-// a low branch), and neighbouring columns of about the same height are joined along x.
-export function lowBarkBoxes(geometry: BufferGeometry, { cell = 0.7, ground = 0, stepOver = 0.55, head = 2.4 }: LowBark = {}): TrunkCore[] {
+// The trunk alone of a tree with spreading roots and low branches, as one box: neither the roots nor the branches get
+// in the way. The bark between the heights of `band` is sampled; the trunk is where most of it is (the median), and
+// its half-width the distance most of those points are within, so a branch crossing that height does not widen it.
+export function trunkBox(geometry: BufferGeometry, { ground = 0, band = [0.8, 1.7], height = 3 }: Trunk = {}): TrunkCore {
   const position = geometry.attributes.position;
   const index = geometry.index;
   const triangles = (index ? index.count : position.count) / 3;
-  const columns = new Map<string, { ix: number; iz: number; min: number; max: number }>();
+  const corner = (i: number) => (index ? index.getX(i) : i);
   const a = new Vector3();
   const b = new Vector3();
   const c = new Vector3();
   const p = new Vector3();
-  const corner = (i: number) => (index ? index.getX(i) : i);
+  const xs: number[] = [];
+  const zs: number[] = [];
   for (let t = 0; t < triangles; t++) {
     a.fromBufferAttribute(position, corner(t * 3));
     b.fromBufferAttribute(position, corner(t * 3 + 1));
     c.fromBufferAttribute(position, corner(t * 3 + 2));
-    if (Math.min(a.y, b.y, c.y) > ground + head || Math.max(a.y, b.y, c.y) < ground - 0.2) continue;
-    // Points all over the triangle, closer together than half a cell.
-    const n = Math.min(10, Math.max(1, Math.ceil(Math.max(a.distanceTo(b), b.distanceTo(c), c.distanceTo(a)) / (cell * 0.5))));
+    if (Math.min(a.y, b.y, c.y) > ground + band[1] || Math.max(a.y, b.y, c.y) < ground + band[0]) continue;
+    // Points all over the triangle, about 0.3 m apart.
+    const n = Math.min(10, Math.max(1, Math.ceil(Math.max(a.distanceTo(b), b.distanceTo(c), c.distanceTo(a)) / 0.3)));
     for (let i = 0; i <= n; i++) {
       for (let j = 0; j <= n - i; j++) {
         p.set(0, 0, 0).addScaledVector(a, i / n).addScaledVector(b, j / n).addScaledVector(c, (n - i - j) / n);
-        if (p.y < ground - 0.2 || p.y > ground + head) continue;
-        const ix = Math.floor(p.x / cell);
-        const iz = Math.floor(p.z / cell);
-        const key = `${ix},${iz}`;
-        const column = columns.get(key);
-        if (!column) columns.set(key, { ix, iz, min: p.y, max: p.y });
-        else {
-          column.min = Math.min(column.min, p.y);
-          column.max = Math.max(column.max, p.y);
-        }
+        if (p.y < ground + band[0] || p.y > ground + band[1]) continue;
+        xs.push(p.x);
+        zs.push(p.z);
       }
     }
   }
-
-  // Columns worth a box, row by row.
-  const solid = [...columns.values()]
-    .filter(({ min, max }) => max > ground + stepOver && min < ground + head - 0.4)
-    .map(({ ix, iz, min, max }) => ({ ix, iz, bottom: min < ground + stepOver ? ground - 1 : min - 0.05, top: max }))
-    .sort((m, n) => m.iz - n.iz || m.ix - n.ix);
-  const boxes: TrunkCore[] = [];
-  for (let i = 0; i < solid.length; ) {
-    const first = solid[i];
-    let last = first;
-    let bottom = first.bottom;
-    let top = first.top;
-    let j = i + 1;
-    while (j < solid.length && solid[j].iz === first.iz && solid[j].ix === last.ix + 1 && Math.abs(solid[j].bottom - first.bottom) < 0.5 && Math.abs(solid[j].top - first.top) < 0.7) {
-      last = solid[j];
-      bottom = Math.min(bottom, last.bottom);
-      top = Math.max(top, last.top);
-      j++;
-    }
-    const x0 = first.ix * cell;
-    const x1 = (last.ix + 1) * cell;
-    boxes.push({ center: new Vector3((x0 + x1) / 2, (bottom + top) / 2, (first.iz + 0.5) * cell), half: new Vector3((x1 - x0) / 2, (top - bottom) / 2, cell / 2) });
-    i = j;
-  }
-  return boxes;
+  if (xs.length === 0) return boundingBoxCore(geometry);
+  const middle = (values: number[]) => [...values].sort((m, n) => m - n)[Math.floor(values.length / 2)];
+  const x = middle(xs);
+  const z = middle(zs);
+  const reach = xs.map((value, i) => Math.hypot(value - x, zs[i] - z)).sort((m, n) => m - n);
+  // A square inside the circle most of the bark is within; never thinner than a sapling nor wider than a great trunk.
+  const half = Math.min(1.4, Math.max(0.3, reach[Math.floor(reach.length * 0.7)] * 0.85));
+  const bottom = ground - 1;
+  const top = ground + height;
+  return { center: new Vector3(x, (bottom + top) / 2, z), half: new Vector3(half, (top - bottom) / 2, half) };
 }
 
 // The cuboids of every tree. Each root node of `scene` is a tree and its first mesh painted with `material` is what is

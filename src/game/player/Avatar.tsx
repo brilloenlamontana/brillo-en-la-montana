@@ -9,6 +9,7 @@ import { AvatarGestures, HeldItemModel } from './AvatarGestures';
 import { GESTURES, HAND_AXES } from './gestureTable';
 import { GESTURE_NAMES, gestureAim, keepGestureTracks, type GestureName } from './gestureStore';
 import { usePlayerStore, type ScenePose } from './playerStore';
+import { createCloth, restCloth, stepCloth } from './cloth';
 
 const FADE_SECONDS = 0.25;
 const TEXTURE_ANISOTROPY = 8;
@@ -259,6 +260,13 @@ export function Avatar() {
     [scene],
   );
 
+  // Its cape, skirt or tail, if the model has one (cloth.ts): it swings after the body has been posed.
+  const cloth = useMemo(() => createCloth(scene), [scene]);
+  useEffect(() => {
+    if (!cloth) return;
+    return () => restCloth(cloth);
+  }, [cloth]);
+
   // The skinned body follows the bones far from its rest bounding box (death, big strides): never cull it.
   useEffect(() => {
     scene.traverse((object) => {
@@ -336,6 +344,8 @@ export function Avatar() {
     for (const clip of ['Walking', 'Running'] as const) {
       setPace(actions[clip], MathUtils.clamp(m.speed / (natural[clip] * character.height), ...TIME_SCALE_RANGE));
     }
+
+    if (cloth) stepCloth(cloth, avatar, delta);
   });
 
   return (

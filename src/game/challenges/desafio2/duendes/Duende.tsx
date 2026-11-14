@@ -13,6 +13,7 @@ import { useProgressStore } from '@/store/progressStore';
 import { DESAFIO2_MODELS } from '../assets';
 import { fueraDeLosArboles } from '../bosqueOscuridad/obstaculos';
 import { useBosqueStore } from '../bosqueStore';
+import { calmPacks, packAwake } from './manadas';
 
 const URL = DESAFIO2_MODELS.duende;
 // The model is 1.7 m tall: goblins are ~1.1 m.
@@ -43,8 +44,8 @@ type DuendeAction = 'Idle' | 'Running' | 'Double_Combo_Attack' | 'Dead';
 
 const between = ([min, max]: readonly [number, number]) => min + Math.random() * (max - min);
 
-// A wild goblin of the Dark Forest. It waits at its spot; while the player is in the forest it chases them and
-// attacks when close; when the player leaves it walks back. The elven sword defeats it (saved in progress): it falls
+// A wild goblin of the Dark Forest. It waits at its spot; when the player comes near its pack (manadas.ts) it chases
+// them and attacks when close; when the player leaves it walks back. The elven sword defeats it (saved in progress): it falls
 // with the Dead animation and disappears.
 export function Duende({ index, home }: { index: number; home: readonly [number, number] }) {
   const { scene, animations } = useGLTF(URL);
@@ -150,7 +151,10 @@ export function Duende({ index, home }: { index: number; home: readonly [number,
       p.set(home[0], p.y, home[1]);
     }
 
-    const chase = useZoneStore.getState().region === 'bosque' && player.health > 0;
+    // Its pack goes after the player once they come near one of its goblins; out of the forest (or fallen) all calm down.
+    const inForest = useZoneStore.getState().region === 'bosque' && player.health > 0;
+    if (!inForest) calmPacks();
+    const chase = inForest && packAwake(index, player.position.x, player.position.z);
     const toPlayerX = player.position.x - p.x, toPlayerZ = player.position.z - p.z;
     const playerDistance = Math.hypot(toPlayerX, toPlayerZ);
     let action: DuendeAction = 'Idle';

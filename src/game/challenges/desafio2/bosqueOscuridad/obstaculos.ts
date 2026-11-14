@@ -47,3 +47,20 @@ export function fueraDeLosArboles(point: { x: number; y: number; z: number }, ra
     }
   }
 }
+
+// Whether a walker of `radius` with its feet at (x, y, z) would be inside a trunk.
+export function tocaUnArbol(x: number, y: number, z: number, radius: number): boolean {
+  const cx = Math.floor(x / CELL);
+  const cz = Math.floor(z / CELL);
+  for (let i = cx - 1; i <= cx + 1; i++) {
+    for (let j = cz - 1; j <= cz + 1; j++) {
+      const list = cells.get(`${i},${j}`);
+      if (!list) continue;
+      for (const tree of list) {
+        if (tree.bottom > y + 1 || tree.top < y + 0.3) continue;
+        if (Math.hypot(x - tree.x, z - tree.z) < tree.radius + radius) return true;
+      }
+    }
+  }
+  return false;
+}
