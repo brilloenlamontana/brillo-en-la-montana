@@ -58,15 +58,11 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   },
   setVolume: (channel, volume) => {
     const level = Math.min(1, Math.max(0, volume));
-    const before = get().volumes;
-    const volumes = { ...before, [channel]: level };
-    // The general volume carries every kind of sound along with it, in proportion (from silence, all to its level),
-    // so their bars move with it. Each kind can then be set on its own.
+    const volumes = { ...get().volumes, [channel]: level };
+    // The general volume sets every kind of sound to its own level: all the bars end up where it is. Each kind can
+    // then be set apart on its own.
     if (channel === 'general') {
-      for (const other of Object.keys(DEFAULT_VOLUMES) as VolumeChannel[]) {
-        if (other === 'general') continue;
-        volumes[other] = before.general > 0.001 ? Math.min(1, (before[other] * level) / before.general) : level;
-      }
+      for (const other of Object.keys(DEFAULT_VOLUMES) as VolumeChannel[]) volumes[other] = level;
     }
     remember(VOLUMES_KEY, JSON.stringify(volumes));
     // Turning a sound up brings the game out of silence.

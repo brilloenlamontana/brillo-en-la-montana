@@ -1,4 +1,4 @@
-import { Suspense, useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { useProgressStore } from '@/store/progressStore';
@@ -6,8 +6,8 @@ import { handleDefeat, resumeSpawn } from './challenges/progression';
 import { CHALLENGES } from './challenges/registry';
 import { AdaptiveResolution } from './engine/rendering/AdaptiveResolution';
 import { RenderGate } from './engine/rendering/RenderGate';
-import { createRenderer } from './engine/rendering/renderer';
-import { START_DPR } from './engine/rendering/resolution';
+import { createRenderer, DEV_STATS } from './engine/rendering/renderer';
+import { renderQuality } from './engine/rendering/resolution';
 import { Player } from './player/Player';
 import { usePlayerStore } from './player/playerStore';
 import { GlowMaterials } from './engine/rendering/GlowPass';
@@ -18,7 +18,11 @@ import { classifyRegion } from './world/regions';
 import { Warmup } from './world/Warmup';
 import { ZoneTracker } from './world/ZoneTracker';
 
-// The 3D world (WebGPU): the shared map, every challenge of the registry and the player, whose defeats cost a star.
+// Development only: the performance meter (frames per second, processor and graphics card time, draw calls). Vite
+// drops this branch, and with it the meter's code, from the published game. `?perf=0` hides it.
+const DevStats = import.meta.env.DEV ? lazy(() => import('./engine/rendering/DevStats').then((m) => ({ default: m.DevStats }))) : null;
+
+// The 3D world (WebGPU, or WebGL 2 where there is none): the shared map, every challenge of the registry and the player, whose defeats cost a star.
 // The player appears at the checkpoint of the saved progress (read once, when the world opens) and the warmup
 // prepares that part of the map. Warmup goes last inside the Suspense so it starts once everything has loaded.
 export function GameCanvas() {
@@ -28,8 +32,13 @@ export function GameCanvas() {
   });
 
   return (
-    <Canvas camera={{ position: [start.spawn.x, start.spawn.y + 1.5, start.spawn.z + 2], far: 450 }} dpr={START_DPR} gl={createRenderer}>
+    <Canvas camera={{ position: [start.spawn.x, start.spawn.y + 1.5, start.spawn.z + 2], far: 450 }} dpr={renderQuality().startDpr} gl={createRenderer}>
       <RenderGate />
+      {DEV_STATS && DevStats && (
+        <Suspense fallback={null}>
+          <DevStats />
+        </Suspense>
+      )}
       <AdaptiveResolution />
       <Ambience />
       <MundoRecuperado />

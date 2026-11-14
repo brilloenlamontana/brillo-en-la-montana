@@ -16,8 +16,9 @@ npm run build          # tsc estricto + build de producción en dist/
 npm run lint           # oxlint
 ```
 
-El navegador debe soportar **WebGPU** (Chrome/Edge recientes, Safari 26+). Si no lo soporta, el juego muestra un aviso en
-lugar del mundo: no hay respaldo a WebGL.
+El juego dibuja con **WebGPU** (Chrome/Edge recientes, Safari 26+) y, donde no lo hay, con **WebGL 2** usando el mismo
+renderer y los mismos shaders (TSL). Solo si el navegador no ofrece ninguno de los dos muestra un aviso en lugar del
+mundo. `?render=webgl` fuerza WebGL para probar.
 
 ## Docker (desarrollo y producción)
 

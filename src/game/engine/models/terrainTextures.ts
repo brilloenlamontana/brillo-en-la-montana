@@ -12,6 +12,7 @@ import {
 } from 'three';
 import { materialColor, positionWorld, texture as sample } from 'three/tsl';
 import type { MeshStandardNodeMaterial } from 'three/webgpu';
+import { knownBackend } from '@/game/engine/rendering/backend';
 
 type ColorNode = NonNullable<MeshStandardNodeMaterial['colorNode']>;
 
@@ -91,7 +92,10 @@ const register = (material: MeshStandardMaterial) => {
 
 // The renderer (WebGPU) turns each material into a node material, copying its properties: a colour node set on the
 // plain material is taken along.
+// Only with WebGPU: drawn with WebGL 2 the grain read as a restless speckle over the ground, so there the terrain keeps
+// its plain baked colour.
 function withDetail(material: MeshStandardMaterial) {
+  if (knownBackend() === 'webgl') return;
   const nodes = material as MeshStandardMaterial & { colorNode?: ColorNode | null };
   if (nodes.colorNode) return;
   nodes.colorNode = detailedColor();

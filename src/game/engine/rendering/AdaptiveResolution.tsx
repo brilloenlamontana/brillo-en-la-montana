@@ -1,6 +1,6 @@
 import { useThree } from '@react-three/fiber';
 import { PerformanceMonitor, type PerformanceMonitorApi } from '@react-three/drei';
-import { dprForFactor, START_DPR, START_FACTOR } from './resolution';
+import { renderQuality } from './resolution';
 import { useWorldStore } from './worldStore';
 
 // Frame-rate margin where nothing changes: under the lower bound quality goes down, over the upper one it goes up. On
@@ -17,15 +17,16 @@ export function AdaptiveResolution() {
   const ready = useWorldStore((state) => state.ready);
   const setDpr = useThree((state) => state.setDpr);
   if (!ready) return null;
+  const { dprForFactor, startDpr, startFactor } = renderQuality();
 
   return (
     <PerformanceMonitor
-      factor={START_FACTOR}
+      factor={startFactor}
       step={0.1}
       bounds={bounds}
       flipflops={6}
       onChange={({ factor }: PerformanceMonitorApi) => setDpr(dprForFactor(factor))}
-      onFallback={() => setDpr(START_DPR)}
+      onFallback={() => setDpr(startDpr)}
     />
   );
 }

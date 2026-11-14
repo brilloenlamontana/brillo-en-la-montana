@@ -3,17 +3,16 @@ import { OrbitControls, useAnimations, useGLTF } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { type Group, type Mesh } from 'three';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { WebGPURenderer } from 'three/webgpu';
 import { avatarModelUrl, genderFolder, type CharacterOption } from '@/data/characters';
-import { useWebGPUSupport } from '@/game/engine/rendering/useWebGPUSupport';
+import { newRenderer } from '@/game/engine/rendering/renderer';
+import { useRenderBackend } from '@/game/engine/rendering/useRenderBackend';
 
 const FOV = 28;
 
-// Its own small WebGPU renderer, transparent over the card. It never reports to the world's error screen: if
-// anything fails here the sprite is shown instead.
+// Its own small renderer (WebGPU, or WebGL 2 where there is none), transparent over the card. It never reports to the
+// world's error screen: if anything fails here the sprite is shown instead.
 async function createPreviewRenderer({ canvas }: { canvas: unknown }) {
-  const renderer = new WebGPURenderer({ canvas: canvas as HTMLCanvasElement, alpha: true, antialias: true });
-  await renderer.init();
+  const { renderer } = await newRenderer(canvas as HTMLCanvasElement, { alpha: true, antialias: true });
   return renderer;
 }
 
@@ -58,11 +57,11 @@ class PreviewBoundary extends Component<{ fallback: ReactNode; children: ReactNo
 }
 
 // The player's character in 3D, in its Idle, framed whole whatever its height; it can be turned by dragging. Where
-// WebGPU is missing (or while it is checked) the 2D sprite stands in.
+// the device can draw no 3D at all (or while that is checked) the 2D sprite stands in.
 export function CharacterPreview3D({ character }: { character: CharacterOption }) {
-  const support = useWebGPUSupport();
+  const backend = useRenderBackend();
   const fallback = <img src={character.imagePath} alt={character.name} className="h-full w-full object-contain drop-shadow-xl" />;
-  if (support !== 'ok') return fallback;
+  if (backend === 'checking' || backend === 'none') return fallback;
 
   const h = character.height;
   // Distance at which the whole figure (plus a margin) fits the vertical field of view.
