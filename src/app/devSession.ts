@@ -98,6 +98,8 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
   '1': { spawn: PLAYER_START },
   villa: { spawn: PLAYER_START },
   desafio1: { spawn: PLAYER_START },
+  // First visit to the world: the introduction video plays and then the world loads at the gate.
+  intro: { spawn: PLAYER_START, progress: { introVista: false } },
 
   // A few steps from the notice board by the gate, announcement not read yet: walking up to it opens it.
   carta: { spawn: { x: -45, y: 12.2, z: 19.9, yaw: -Math.PI / 2 } },
@@ -264,22 +266,35 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
     progress: { ...DESAFIO2_DONE },
   },
 
+  // Bonus 2 (stage 1, playable) — By the first bramble knot, sword in the backpack: E starts cutting the three stalks.
+  claroZarzas: {
+    spawn: { x: 42.9, y: 15.6, z: -228.2, yaw: -Math.PI / 2 },
+    progress: { ...DESAFIO2_DONE },
+  },
+
   // Bonus 2 without the elven sword — To test the warning toast when trying to cut the iron-hard brambles without the sword.
   claroSinEspada: {
     spawn: CLARO,
     progress: { ...DESAFIO1_DONE, interactedWithElfo: true, elfoHelp: 'accepted' },
   },
 
-  // Bonus 2 (stage 2) — Fairy freed from the brambles, dialog open and amulet ready to pick up on the root lectern.
+  // Bonus 2 (stage 2, playable) — The three stalks already cut (set in memory by rescate.ts): the fairy lies on the
+  // ground; E kneels by her to hold her hand until she can fly.
+  claroManos: {
+    spawn: { x: 37.6, y: 15.6, z: -225.6, yaw: 2.6 },
+    progress: { ...DESAFIO2_DONE },
+  },
+
+  // Bonus 2 (stage 3, playable) — Fairy freed and clearing awake: she waits by the root lectern with her amulet; E
+  // kneels to have it hung on the avatar's neck.
   hadaLibre: {
-    spawn: { x: 40, y: 16.5, z: -227, yaw: Math.PI },
+    spawn: { x: 40.5, y: 15.6, z: -224.4, yaw: Math.PI },
     progress: { ...DESAFIO2_DONE, hadaLiberada: true },
-    dialog: 'desafio2.hada',
   },
 
   // Bonus 2 completed — Fairy's amulet in backpack, dialog open and +1 extra star.
   bono2: {
-    spawn: { x: 40, y: 16.5, z: -227, yaw: Math.PI },
+    spawn: { x: 40.5, y: 15.6, z: -224.4, yaw: Math.PI },
     progress: {
       ...DESAFIO2_DONE,
       ...BONO2,
@@ -688,7 +703,8 @@ export function applyDevSession() {
   const spawn = parseSpawnParam(params.get('spawn')) ?? preset.spawn ?? null;
   const progress = applyProgressModifiers(preset.progress, params);
 
-  useProgressStore.getState().loadProgress(progress);
+  // The presets go straight to the game: only those that say so start with the introduction video still to be seen.
+  useProgressStore.getState().loadProgress({ introVista: true, ...progress });
   usePlayerStore.getState().setInitialSpawn(spawn);
   installDevInspector();
   useAuthStore.getState().setSession(buildDevUser(params.get('avatar'), params.get('perdidos'), preset.user));

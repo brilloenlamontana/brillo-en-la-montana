@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import type { SfxId } from '@/game/engine/audio/catalog';
-import type { GestureName } from '@/game/player/gestureStore';
+import type { GestureAim, GestureName } from '@/game/player/gestureStore';
 import type { Point, Spawn } from '@/game/player/playerStore';
 import type { Region } from '@/game/world/regions';
 import type { GameProgress } from '@/store/progressStore';
@@ -24,6 +24,8 @@ export interface BackpackItem {
   gesture: GestureName;
   // What taking it out sounds like, when it has a sound of its own (a sword leaving its sheath).
   drawSound?: SfxId;
+  // Whom it is for, if anyone is near: the avatar turns to face that point while it uses the item.
+  aim?: GestureAim;
 }
 
 // The backpack of a challenge: which items it holds and what using each one does.

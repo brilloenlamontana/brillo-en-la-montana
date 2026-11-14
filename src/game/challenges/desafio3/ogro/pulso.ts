@@ -137,11 +137,13 @@ export function empujarPulso() {
   if (pulsoVivo.fuerza >= 1) setPulso({ ...pulso, fase: 'gana', desde: performance.now() });
 }
 
-// How far the arms are from level: -1 the Ogre's arm is down (the player won) ... +1 he pins the player's.
+// How far the arms are from level: -1 the Ogre's arm is down on his right (the player won) ... +1 he pins the
+// player's on the player's right. While they wrestle the arms show the strength bar all the way: whoever is ahead is
+// seen bending the other's arm to that side, flat on the table when the bar is full or empty.
 export function inclinacionPulso(pulso: Pulso) {
   if (pulso.fase === 'gana') return -1;
   if (pulso.fase === 'pierde') return 1;
-  return pulso.fase === 'juego' ? 0.5 - pulsoVivo.fuerza : 0;
+  return pulso.fase === 'juego' ? Math.min(1, Math.max(-1, 1 - 2 * pulsoVivo.fuerza)) : 0;
 }
 
 // The avatar takes its place: drawn at the edge of the table (on a bench if it is short) with its right elbow on it,

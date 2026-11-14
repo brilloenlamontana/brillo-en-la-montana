@@ -12,7 +12,8 @@ import { playOnceAndHold } from '@/game/engine/models/animation'
 import { usePlayerStore } from '@/game/player/playerStore'
 import { DESAFIO1_MODELS } from '../assets'
 import { usePantanoStore } from '../pantanoStore'
-import { pickWell, usePantanoWells, type Well } from '../pantanoTristeza/wells'
+import { usePantanoWells, type Well } from '../pantanoTristeza/wells'
+import { guaridaDelPantano } from './guarida'
 
 type GolemState = 'hidden' | 'emerging' | 'chasing' | 'idle' | 'defeated'
 type GolemAction = 'Walking' | 'Attack' | 'Knock' | "Idle"
@@ -28,8 +29,6 @@ const ATTACK_DAMAGE = 5 // 20 punches empty the 100 health points
 const ATTACK_ANIMATION_SPEED = 1.4 // the Attack clip lasts 2.88 s; this way each punch takes ~2 s
 const ATTACK_HIT_MOMENT = 0.5 // fraction of the punch at which the fist reaches the player
 const FADE_SECONDS = 0.3
-const EMERGE_MIN_DISTANCE = 12
-const MIN_WELL_RADIUS = 1.6 // the golem is ~2.9 m wide at scale 2
 const UP = new THREE.Vector3(0, 1, 0)
 // One heavy step every STRIDE meters, and a roar when it sets off after the player; both heard from afar.
 const STRIDE = 2.1
@@ -39,12 +38,13 @@ const EARSHOT = 34
 // When the player leaves the swamp it stays still where it is (Idle) and resumes the chase if they come back.
 // The backpack gem deactivates it: it falls with the Knock animation and stays down. If it was already deactivated in
 // a previous session (saved progress), it never leaves its well again.
-export function Golem() {
+export function Golem({ activo }: { activo: boolean }) {
   const group = useRef<THREE.Group>(null)
   const rb = useRef<RapierRigidBody>(null)
   const { nodes, materials, animations } = useGLTF(GOLEM_URL)
   const { actions } = useAnimations(animations, group)
   const wells = usePantanoWells()
+  const home = useMemo(() => guaridaDelPantano(wells), [wells])
   const terrainHeight = useTerrainHeight()
 
   const brain = useRef<{ state: GolemState; well: Well | null; swingStart: number | null; swingHit: boolean }>({
@@ -104,6 +104,19 @@ export function Golem() {
     const playerInPantano = usePantanoStore.getState().playerOnMud
     let action: GolemAction | null = 'Walking'
     const enemies = usePantanoStore.getState()
+    // Far from the swamp it waits under the map: mounted and ready, doing nothing.
+    if (!activo) {
+      if (brainState.state !== 'hidden') {
+        brainState.state = 'hidden'
+        brainState.swingStart = null
+        p.set(0, HIDDEN_Y, 0)
+        rb.current.setNextKinematicTranslation(p)
+        playAction(null)
+      }
+      group.current.visible = useWorldStore.getState().warming
+      enemies.golem.active = false
+      return
+    }
     const golemDefeated = useProgressStore.getState().progress.golemDefeated
     if (golemDefeated && brainState.state !== 'hidden') brainState.state = 'defeated'
     // If progress is reset (another player, mission restarted), it hides in its well again.
@@ -119,10 +132,14 @@ export function Golem() {
 
       case 'hidden':
         action = 'Idle'
-        if (playerInPantano && !golemDefeated) {
-          brainState.well = pickWell(wells, player.x, player.z, { minDistance: EMERGE_MIN_DISTANCE, minInnerRadius: MIN_WELL_RADIUS })
-          p.set(brainState.well.x, brainState.well.bottomY, brainState.well.z)
-          brainState.state = 'emerging'
+        if (!golemDefeated) {
+          // Already out, standing in the middle of the mud: the player sees it from the shore and it only comes for
+          // them once they tread on the mud.
+          const ground = terrainHeight(home.x, home.z, 60, 80)
+          if (ground !== null) {
+            p.set(home.x, ground, home.z)
+            brainState.state = 'idle'
+          }
         }
         break
 

@@ -4,17 +4,8 @@ import { useProgressStore } from '@/store/progressStore';
 import { DUENDE_COUNT } from '../mission';
 import { VISIBLE_FROM } from '../visibility';
 import { Duende } from './Duende';
+import { HOMES } from './manadas';
 import { SwordSlash } from './SwordSlash';
-
-// Where each goblin waits, spread over the Dark Forest on flat ground (measured on Terreno.glb).
-const HOMES: readonly (readonly [number, number])[] = [
-  [-80, -225],
-  [-50, -195],
-  [-30, -235],
-  [8, -226],
-  [20, -195],
-  [40, -205],
-];
 
 // Goblins still alive when the pack mounts; those that fall now finish their fall and are left out next time.
 function Pack() {

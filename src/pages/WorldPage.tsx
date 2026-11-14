@@ -10,6 +10,7 @@ import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { GameCanvas } from '@/game/GameCanvas';
 import { BackpackButton } from '@/game/hud/backpack/BackpackButton';
 import { BajoDialog } from '@/game/hud/BajoDialog';
+import { IntroVideo } from '@/game/hud/IntroVideo';
 import { QuickItemBar } from '@/game/hud/backpack/QuickItemBar';
 import { Minimap } from '@/game/hud/Minimap';
 import { MobileControls } from '@/game/hud/MobileControls';
@@ -21,6 +22,8 @@ import { WorldLoadingScreen } from '@/game/hud/WorldLoadingScreen';
 import { GameSound } from '@/game/sound/GameSound';
 import { StoryFlags } from '@/game/challenges/StoryFlags';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { saveProgress } from '@/services/progressService';
+import { useProgressStore } from '@/store/progressStore';
 
 // The game: the 3D world with its HUD and the dialogs of every challenge drawn over it.
 export default function WorldPage() {
@@ -29,6 +32,7 @@ export default function WorldPage() {
   const backend = useRenderBackend();
   const rendererError = useWorldStore((state) => state.rendererError);
   const ready = useWorldStore((state) => state.ready);
+  const introVista = useProgressStore((state) => state.progress.introVista);
   const isMobile = useIsMobile();
   // On touch devices the joystick shows unless the player hides it.
   const [touchControls, setTouchControls] = useState<boolean | null>(null);
@@ -37,6 +41,8 @@ export default function WorldPage() {
   if (step !== 'mundo') return null;
   if (backend === 'none') return <RendererErrorScreen error="unsupported" />;
   if (rendererError) return <RendererErrorScreen error={rendererError} />;
+  // First visit: the introduction plays before anything of the world is mounted; the world loads when it ends.
+  if (!introVista) return <IntroVideo onDone={() => void saveProgress({ introVista: true })} />;
 
   return (
     <main className="w-screen h-screen relative overflow-hidden select-none">

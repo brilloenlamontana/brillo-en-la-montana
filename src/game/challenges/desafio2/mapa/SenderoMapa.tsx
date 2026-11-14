@@ -18,6 +18,7 @@ import { useProgressStore } from '@/store/progressStore';
 import { useBosqueStore } from '../bosqueStore';
 import { isMapaActivado } from '../mission';
 import { VISIBLE_FROM } from '../visibility';
+import { rutaALaSalida } from './rutaBosque';
 import { SENDERO_BOSQUE } from './senderoBosque';
 
 // Distance (m) between two arrows of the trail.
@@ -33,6 +34,13 @@ const WAVE_LENGTH = 9;
 const REVEAL_SPEED = 45;
 // The trail counts as revealed by the map if it appears this soon after the map was used.
 const JUST_USED_MS = 1500;
+// The route is found again when the player is this far from it (m), at most once every RETHINK_SECONDS.
+const STRAY = 4;
+const RETHINK_SECONDS = 0.6;
+// One point of the found route out of this many shapes the trail (the grid's zigzag is smoothed away).
+const THIN = 2;
+// Most arrows the trail can hold (the longest way across the forest is well under this).
+const CAPACITY = 400;
 
 type Marker = { position: Vector3; along: number; ground: number | null };
 
@@ -49,15 +57,27 @@ function chevronGeometry() {
   return new ShapeGeometry(shape).rotateX(Math.PI / 2);
 }
 
-// Arrows evenly spaced along the route, smoothed through its points.
-function buildMarkers(): Marker[] {
+type Route = readonly (readonly [number, number, number])[];
+
+// Arrows evenly spaced along a route, smoothed through its points.
+function buildMarkers(route: Route): Marker[] {
   const curve = new CatmullRomCurve3(
-    SENDERO_BOSQUE.map(([x, y, z]) => new Vector3(x, y, z)),
+    route.map(([x, y, z]) => new Vector3(x, y, z)),
     false,
     'centripetal',
   );
-  const count = Math.ceil(curve.getLength() / SPACING);
+  const count = Math.min(CAPACITY - 1, Math.ceil(curve.getLength() / SPACING));
   return curve.getSpacedPoints(count).map((position, i) => ({ position, along: i * SPACING, ground: null }));
+}
+
+// The way out from where the player stands (A* over the forest floor, see rutaBosque.ts), as arrows; null when no way
+// is found (the terrain is not there yet, or the player is already past the forest).
+function findMarkers(player: Vector3, terrainHeight: TerrainHeight): Marker[] | null {
+  const route = rutaALaSalida(player.x, player.z, terrainHeight);
+  if (!route || route.length < 2) return null;
+  const last = route.length - 1;
+  const thinned = route.filter((_, i) => i % THIN === 0 || i === last);
+  return thinned.length < 2 ? null : buildMarkers(thinned);
 }
 
 const FORWARD = new Vector3(0, 0, 1);
@@ -70,11 +90,15 @@ type Trail = {
   mesh: InstancedMesh;
   // Revealed length ahead of the player (Infinity = all of it).
   revealed: number;
+  // Whether the arrows come from a route found from the player (otherwise, the hand-laid trail) and when it was last
+  // looked for (s).
+  found: boolean;
+  thoughtAt: number;
   work: { matrix: Matrix4; rotation: Quaternion; direction: Vector3; scale: Vector3; at: Vector3 };
 };
 
 function createTrail(revealFromPlayer: boolean): Trail {
-  const markers = buildMarkers();
+  const markers = buildMarkers(SENDERO_BOSQUE);
   const material = new MeshBasicMaterial({
     color: '#ffd75e',
     transparent: true,
@@ -85,13 +109,15 @@ function createTrail(revealFromPlayer: boolean): Trail {
     polygonOffset: true,
     polygonOffsetFactor: -2,
   });
-  const mesh = new InstancedMesh(chevronGeometry(), material, markers.length);
+  const mesh = new InstancedMesh(chevronGeometry(), material, CAPACITY);
   mesh.count = 0;
   mesh.frustumCulled = false; // only the stretch ahead of the player is filled in
   return {
     markers,
     mesh,
     revealed: revealFromPlayer ? 0 : Infinity,
+    found: false,
+    thoughtAt: -Infinity,
     work: { matrix: new Matrix4(), rotation: new Quaternion(), direction: new Vector3(), scale: new Vector3(), at: new Vector3() },
   };
 }
@@ -104,7 +130,21 @@ function disposeTrail({ mesh }: Trail) {
 
 // One frame: lays the arrows on the ground, finds the player along the route and fills the arrows ahead of them.
 function updateTrail(trail: Trail, player: Vector3, time: number, delta: number, terrainHeight: TerrainHeight) {
-  const { markers, mesh, work } = trail;
+  const { mesh, work } = trail;
+
+  // The route starts where the player is: it is found when the trail appears and again whenever they leave it.
+  if (time - trail.thoughtAt > RETHINK_SECONDS) {
+    const strayed = trail.markers.every((marker) => Math.hypot(marker.position.x - player.x, marker.position.z - player.z) > STRAY);
+    if (!trail.found || strayed) {
+      trail.thoughtAt = time;
+      const found = findMarkers(player, terrainHeight);
+      if (found) {
+        trail.markers = found;
+        trail.found = true;
+      }
+    }
+  }
+  const { markers } = trail;
 
   // Each arrow sits on the ground once its terrain collider exists.
   for (const marker of markers) {
@@ -148,7 +188,8 @@ function updateTrail(trail: Trail, player: Vector3, time: number, delta: number,
 }
 
 // The trail the elf's map reveals: once the map is used, golden arrows on the ground lead from wherever the player is
-// to the forest exit, past the lowered rock wall. Only the stretch ahead of the player is drawn, so it always starts at
+// to the forest exit, past the lowered rock wall. The way is found with A* from the player's feet (rutaBosque.ts) and
+// found again if they wander off it; while none is found, the hand-laid trail (senderoBosque.ts) shows. Only the stretch ahead of the player is drawn, so it always starts at
 // their feet, and a glow flows along it toward the exit.
 export function SenderoMapa() {
   const visible = useVisibleFrom(VISIBLE_FROM.sendero);

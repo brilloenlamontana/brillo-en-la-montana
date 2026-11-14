@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { playSfx } from '@/game/engine/audio/audio';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
-import { LANDMARKS, MAP_PICTURE, nextLandmark, onMapPicture, REGION_NAMES, type LandmarkKind } from '@/game/world/landmarks';
+import { LANDMARKS, MAP_PICTURE, MAP_STAGES, mapStage, nextLandmark, onMapPicture, REGION_NAMES, uncoveredAreas, type LandmarkKind } from '@/game/world/landmarks';
 import { useZoneStore } from '@/game/world/zoneStore';
 import { useProgressStore } from '@/store/progressStore';
 import { useUIStore } from '@/store/uiStore';
@@ -26,6 +26,11 @@ const KINDS: Record<LandmarkKind, { dot: string; label: string }> = {
   meta: { dot: 'bg-[#4f6b22]', label: 'Meta' },
 };
 
+// The part of the map the story has not reached yet: nothing of it shows through.
+const FOG = '#17100a';
+// How soft the edge of the uncovered part is (m).
+const FOG_EDGE = 5;
+
 const percent = (fraction: number) => `${(fraction * 100).toFixed(2)}%`;
 
 // The avatar on a map: an arrow pointing where it walks.
@@ -37,12 +42,46 @@ function Arrow({ className }: { className: string }) {
   );
 }
 
-// The places that matter, as dots over the map picture (they fill the same box as the picture); `names` writes what
-// each one is called. Where the story sends the player next pulses in gold.
-function Places({ next, names }: { next: string | null; names: boolean }) {
+// The dark over the map (it fills the same box as the picture): everything but what the story has uncovered so far
+// (see mapStage) is hidden under it, with a soft edge. Once the chalice is back the whole map shows.
+function Fog({ stage }: { stage: number }) {
+  const id = useId();
+  if (stage >= MAP_STAGES) return null;
+  const { x, z } = MAP_PICTURE;
+  const width = x[1] - x[0];
+  const height = z[1] - z[0];
+  return (
+    <svg className="absolute inset-0 h-full w-full pointer-events-none" viewBox={`${x[0]} ${z[0]} ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <filter id={`${id}-edge`} filterUnits="userSpaceOnUse" x={x[0]} y={z[0]} width={width} height={height}>
+          <feGaussianBlur stdDeviation={FOG_EDGE} />
+        </filter>
+        <mask id={`${id}-fog`} maskUnits="userSpaceOnUse" x={x[0]} y={z[0]} width={width} height={height}>
+          <rect x={x[0]} y={z[0]} width={width} height={height} fill="#fff" />
+          <g filter={`url(#${id}-edge)`} fill="#000" stroke="#000" strokeLinejoin="round" strokeLinecap="round">
+            {uncoveredAreas(stage).map((area, i) =>
+              area.shape === 'circle' ? (
+                <ellipse key={i} cx={area.x} cy={area.z} rx={area.rx} ry={area.rz} stroke="none" />
+              ) : area.shape === 'road' ? (
+                <line key={i} x1={area.from[0]} y1={area.from[1]} x2={area.to[0]} y2={area.to[1]} strokeWidth={area.margin * 2} />
+              ) : (
+                <polygon key={i} points={area.points.map(([px, pz]) => `${px},${pz}`).join(' ')} strokeWidth={area.margin * 2} />
+              ),
+            )}
+          </g>
+        </mask>
+      </defs>
+      <rect x={x[0]} y={z[0]} width={width} height={height} fill={FOG} mask={`url(#${id}-fog)`} />
+    </svg>
+  );
+}
+
+// The places the story has uncovered so far, as dots over the map picture (they fill the same box as the picture);
+// `names` writes what each one is called. Where the story sends the player next pulses in gold.
+function Places({ next, names, stage }: { next: string | null; names: boolean; stage: number }) {
   return (
     <>
-      {LANDMARKS.map((landmark) => {
+      {LANDMARKS.filter((landmark) => landmark.stage <= stage).map((landmark) => {
         const at = onMapPicture(landmark.x, landmark.z);
         const isNext = landmark.id === next;
         // The name hangs under the dot, turned inward near the sides of the map so it is never cut off.
@@ -82,7 +121,8 @@ function Places({ next, names }: { next: string | null; names: boolean }) {
   );
 }
 
-// The map of the journey. At the bottom left, a small round-cornered panel like the rest of the HUD shows what is
+// The map of the journey. It starts dark and the story uncovers it step by step (Fog, mapStage): the player only sees
+// the parts they have been sent to. At the bottom left, a small round-cornered panel like the rest of the HUD shows what is
 // around the avatar: the map slides under an arrow that stays in the middle and turns to where the avatar walks, and
 // a gold pointer on its edge tells which way the next place of the story is when it is out of sight. A click (or the M
 // key) opens the whole map over the screen, with the name of every place, a legend and where the avatar is; its ×, a
@@ -93,6 +133,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
   const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen);
   const region = useZoneStore((state) => state.region);
   const next = useProgressStore((state) => nextLandmark(state.progress));
+  const stage = useProgressStore((state) => mapStage(state.progress));
   const [open, setOpen] = useState(false);
   const ground = useRef<HTMLDivElement>(null);
   const arrow = useRef<HTMLDivElement>(null);
@@ -189,7 +230,8 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
           {/* The ground: the whole picture, much bigger than the panel, hung from the panel's middle. */}
           <div ref={ground} className="absolute left-1/2 top-1/2 will-change-transform" style={{ width: percent(ZOOM), aspectRatio: ASPECT }}>
             <img src={MAP_PICTURE.url} alt="" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
-            <Places next={next} names={false} />
+            <Fog stage={stage} />
+            <Places next={next} names={false} stage={stage} />
           </div>
           <div ref={pointer} className="absolute h-3.5 w-3.5 transition-opacity duration-200" style={{ opacity: 0 }}>
             <svg viewBox="0 0 16 16" className="h-full w-full drop-shadow-[0_0_2px_rgba(0,0,0,0.9)]" aria-hidden="true">
@@ -234,7 +276,8 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
                 style={{ aspectRatio: ASPECT, height: 'min(68dvh, calc((100vw - 4rem) / ' + ASPECT.toFixed(4) + '))' }}
               >
                 <img src={MAP_PICTURE.url} alt="El mundo visto desde arriba" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
-                <Places next={next} names />
+                <Fog stage={stage} />
+                <Places next={next} names stage={stage} />
                 <div ref={whole} className="absolute h-5 w-5">
                   <Arrow className="h-full w-full" />
                 </div>

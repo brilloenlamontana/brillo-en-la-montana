@@ -10,7 +10,8 @@ const URL = MAPA_MODELS.pinares;
 // Drawn up to the fog outdoors; indoors only what shows through the windows.
 const MAX_DISTANCE = { outdoors: 170, indoors: 60 };
 
-// Pines across the whole map, drawn instanced (only those in view). One cuboid per trunk is their collision.
+// Pines across the whole map, drawn instanced (only those in view). One cuboid per pine is their collision: its
+// trunk alone (the boughs do not stop the avatar).
 export function Pinares() {
   const indoors = useInterior() !== null;
   const { scene } = useGLTF(URL);

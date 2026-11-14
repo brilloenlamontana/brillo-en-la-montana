@@ -23,6 +23,8 @@ export interface GameProgress {
   derrotas: Record<string, number>;
   // Times the story started over: 'segundoBajo' (back to Villa Boj from scratch) and 'tercerBajo' (new character).
   reinicios: Record<string, number>;
+  // The introduction video was already shown: it plays once, before the world opens for the first time.
+  introVista: boolean;
 
   // --- Story ---
   // Items picked up in any house.
@@ -128,7 +130,7 @@ export const STORY_START = {
   calizTomado: false,
   juegoCompletado: false,
   juegoCompletadoEn: undefined,
-} as const satisfies Omit<GameProgress, 'estrellas' | 'vidasExtra' | 'vidasExtraPerdidas' | 'derrotas' | 'reinicios'>;
+} as const satisfies Omit<GameProgress, 'estrellas' | 'vidasExtra' | 'vidasExtraPerdidas' | 'derrotas' | 'reinicios' | 'introVista'>;
 
 const DEFAULT_PROGRESS: GameProgress = {
   estrellas: STARS,
@@ -136,6 +138,7 @@ const DEFAULT_PROGRESS: GameProgress = {
   vidasExtraPerdidas: 0,
   derrotas: {},
   reinicios: {},
+  introVista: false,
   ...STORY_START,
   collectedItems: [],
   historiasContadas: [],
@@ -179,6 +182,8 @@ export function normalizeProgress(saved: Partial<GameProgress> | undefined): Gam
   progress.vidasExtraPerdidas = Number.isFinite(perdidas) ? Math.max(0, Math.round(perdidas)) : 0;
   progress.derrotas = isRecord(progress.derrotas) ? progress.derrotas : {};
   progress.reinicios = isRecord(progress.reinicios) ? progress.reinicios : {};
+  // Whoever was already playing before the introduction existed is not sent back to watch it.
+  progress.introVista = progress.introVista === true || (saved?.introVista === undefined && progress.openedMayorLetter === true);
   progress.collectedItems = list(progress.collectedItems);
   progress.historiasContadas = list(progress.historiasContadas);
   progress.zumbadoresDefeated = list(progress.zumbadoresDefeated);
