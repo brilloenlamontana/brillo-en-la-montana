@@ -1,14 +1,13 @@
 import { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { Group, Mesh } from 'three';
-import { CameraColliderBoxes } from '@/game/engine/camera/CameraColliderBoxes';
 import { useCameraCollider } from '@/game/engine/camera/useCameraCollider';
 import { StaticModel, TrimeshColliders } from '@/game/engine/models/StaticModel';
 import { CuboidColliders } from '@/game/engine/physics/CuboidColliders';
 import { useVisibleFrom } from '@/game/world/visibility';
 import { DESAFIO3_MODELS } from '../assets';
 import { CAMERA_BLOCKS_IN, VISIBLE_FROM } from '../visibility';
-import { TUNEL_CEILING_HEIGHT, TUNEL_FLOOR_NODE, TUNEL_WALLS } from './tunelColliders';
+import { TUNEL_BOXES, TUNEL_CEILING_HEIGHT, TUNEL_FLOOR_NODE } from './tunelColliders';
 
 const { estructura: ESTRUCTURA_URL, objetos: OBJETOS_URL, colision: COLISION_URL } = DESAFIO3_MODELS.tunelesCumbre;
 // Module constant: a new array per render would rebuild the trimesh collider every time.
@@ -16,9 +15,9 @@ const FLOOR_NODES = [TUNEL_FLOOR_NODE] as const;
 
 // "TunelesCumbre" collection of Map.blend: the maze of galleries inside the Summit of Desolation, from the mine mouth in
 // Hedrig's town to the exit pit on the summit (true route, two loops and four dead ends; network in
-// world/tunelesRed.ts). The models are only drawn; the avatar walks on a smooth floor mesh and bumps into wall boxes,
-// both measured on the real galleries (tunelColliders.ts), and the camera stays between those walls and under a
-// ceiling that is the same floor lifted.
+// world/tunelesRed.ts). The models are only drawn; the avatar walks on a smooth floor mesh and bumps into boxes built
+// from the outline of that floor (tunelColliders.ts). The camera stops at those same boxes, like at any other physics
+// (PlayerController), and under a ceiling of its own that is the floor lifted.
 export function TunelesCumbre() {
   const estructuraVisible = useVisibleFrom(VISIBLE_FROM.tuneles);
   const objetosVisibles = useVisibleFrom(VISIBLE_FROM.tunelesObjetos);
@@ -45,8 +44,7 @@ export function TunelesCumbre() {
       <StaticModel url={ESTRUCTURA_URL} visible={estructuraVisible} />
       <StaticModel url={OBJETOS_URL} visible={objetosVisibles} merge />
       <TrimeshColliders scene={colision} names={FLOOR_NODES} />
-      <CuboidColliders boxes={TUNEL_WALLS} />
-      <CameraColliderBoxes boxes={TUNEL_WALLS} active={cameraActive} />
+      <CuboidColliders boxes={TUNEL_BOXES} />
     </group>
   );
 }

@@ -195,8 +195,12 @@ derrotas por desafío y cuántos segundos y terceros bajos tuvo cada estudiante.
 
 - **Modelos:** todos salen de `Map.blend` (una carpeta por colección en `public/models-3d/map`), ya ubicados en
   coordenadas de mundo. glTF (x, y, z) = Blender (x, z, −y).
-- **Colisiones:** solo cuboides y solo donde el avatar camina o choca (`CuboidColliders`). El único GLB de colisión es
-  `LimiteMapa`. El terreno es una sola malla trimesh.
+- **Colisiones:** solo cuboides y solo donde el avatar camina o choca (`CuboidColliders`). Los GLB de colisión son
+  `LimiteMapa` y `TunelesColision` (el suelo de los túneles). El terreno es una sola malla trimesh.
+- **Física de los túneles:** solo se modela el suelo (malla `TunelSueloColision`, lo que se puede caminar). Los muros,
+  los bloques y los parches de las ranuras del puente salen del borde de esa malla con `npm run tuneles:fisica`
+  (`scripts/tuneles-fisica.mjs`), que escribe `tunelColliderData.ts` y falla si algún borde quedaría abierto. Tras
+  cambiar los túneles en `Map.blend`: exportar el suelo y volver a correr el comando; no editar las cajas a mano.
 - **Puertas** (`PhysicsDoor`): cuerpos cinemáticos. Nada las mueve salvo el avatar al chocar con la hoja; giran hacia el
   lado contrario a él y se quedan donde las dejó. Bloqueadas (`locked`) quedan cerradas y no ceden. La caja de cada hoja
   se mide con sus vértices en su dirección real (`doorLeaf.ts`), aunque el nodo esté modelado en diagonal.

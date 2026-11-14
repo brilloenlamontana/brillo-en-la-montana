@@ -41,6 +41,7 @@ Cuando el usuario escriba `/graphify`, usa la skill `graphify` instalada antes d
 npm run dev           # Servidor de desarrollo Vite
 npm run build         # tsc -b (TypeScript estricto) + vite build
 npm run lint          # oxlint
+npm run tuneles:fisica  # Regenera muros/bloques/parches de los túneles desde el suelo de TunelesColision.glb
 npm run docker:dev    # Contenedor Docker dev en http://localhost:5174 (alterna desde prod)
 npm run docker:prod   # Contenedor Docker prod (Nginx) en http://localhost:8081 (alterna desde dev)
 ```
@@ -49,6 +50,7 @@ npm run docker:prod   # Contenedor Docker prod (Nginx) en http://localhost:8081 
 - **WebGPU con respaldo a WebGL 2:** Renderizado con `three` + `@react-three/fiber` sobre el `WebGPURenderer`. Si el equipo no ofrece WebGPU, el mismo renderer dibuja con WebGL 2 (`rendering/backend.ts` decide una vez por visita; `window.__DEV_GAME__.status().backend` dice cuál). Los shaders están en TSL y three los compila a WGSL o GLSL: **no escribir GLSL ni WGSL a mano**. en WebGL se ve igual (resolución de la pantalla y MSAA: `rendering/resolution.ts`), solo sin supermuestreo ni grano de detalle en el terreno, y, si WebGPU pierde la tarjeta gráfica, el juego lo recuerda 7 días (`localStorage` `brillo.webgpuFallo`) y recarga solo en WebGL; `?render=webgpu` olvida ese fallo y `?render=webgl` fuerza WebGL para probar (combinable: `/mundo?dev=villa&render=webgl`). Plan y fases pendientes en `docs/Plan_Respaldo_WebGL.md`.
 - **Firebase encapsulado:** Solo `src/services/` interactúa con Firebase; ningún componente o módulo del motor importa `firebase/*`.
 - **Desafíos modulares:** Cada carpeta en `src/game/challenges/` (`desafio1`, `desafio2`, `desafio3`, `relatoCierre`) implementa el contrato `Challenge` (`types.ts`) y se conecta en `registry.ts`.
+- **Física de los túneles (Desafío 3):** solo se modela el suelo (`TunelSueloColision` en `TunelesColision.glb`, trimesh). Los muros salen del borde de esa malla con `npm run tuneles:fisica` (`scripts/tuneles-fisica.mjs` → `tunelColliderData.ts`, **generado, no editar a mano**); el script falla si un borde queda sin muro o si aparece una abertura fuera de la boca de la mina y del pozo de salida.
 - **Física y rendimiento:** Colisiones por cuboides (`CuboidColliders`, salvo `Terreno` y `LimiteMapa`), visibilidad por región (`visibility.ts`), `InstancedField` para objetos repetidos, mallas estáticas fusionadas (`merge`), selectores en Zustand y sin `backdrop-blur` sobre el canvas.
 
 ---
