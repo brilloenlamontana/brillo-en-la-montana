@@ -2,8 +2,8 @@ import type { RendererError } from '@/game/engine/rendering/worldStore';
 
 const MESSAGES: Record<RendererError, { title: string; detail: string }> = {
   unsupported: {
-    title: 'Tu navegador no soporta WebGPU',
-    detail: 'Brillo en la montaña necesita WebGPU. Usa una versión reciente de Chrome, Edge o Safari, con la aceleración por hardware activada.',
+    title: 'Tu navegador no puede dibujar el mundo en 3D',
+    detail: 'Brillo en la montaña necesita gráficos 3D (WebGPU o WebGL 2). Usa una versión reciente de Chrome, Edge, Firefox o Safari, con la aceleración por hardware activada.',
   },
   lost: {
     title: 'Se perdió la conexión con la tarjeta gráfica',

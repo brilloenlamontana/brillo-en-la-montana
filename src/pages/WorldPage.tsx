@@ -5,12 +5,13 @@ import { useOnboardingRedirect } from '@/app/onboarding';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { Toast } from '@/components/Toast';
 import { CHALLENGES } from '@/game/challenges/registry';
-import { useWebGPUSupport } from '@/game/engine/rendering/useWebGPUSupport';
+import { useRenderBackend } from '@/game/engine/rendering/useRenderBackend';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { GameCanvas } from '@/game/GameCanvas';
 import { BackpackButton } from '@/game/hud/backpack/BackpackButton';
 import { BajoDialog } from '@/game/hud/BajoDialog';
 import { QuickItemBar } from '@/game/hud/backpack/QuickItemBar';
+import { Minimap } from '@/game/hud/Minimap';
 import { MobileControls } from '@/game/hud/MobileControls';
 import { MobileControlsToggle } from '@/game/hud/MobileControlsToggle';
 import { PlayerStatus } from '@/game/hud/PlayerStatus';
@@ -24,7 +25,8 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 // The game: the 3D world with its HUD and the dialogs of every challenge drawn over it.
 export default function WorldPage() {
   const step = useOnboardingRedirect('/mundo');
-  const webgpu = useWebGPUSupport();
+  // WebGPU, or WebGL 2 where the device has none (see rendering/backend.ts).
+  const backend = useRenderBackend();
   const rendererError = useWorldStore((state) => state.rendererError);
   const ready = useWorldStore((state) => state.ready);
   const isMobile = useIsMobile();
@@ -33,12 +35,12 @@ export default function WorldPage() {
   const showTouchControls = isMobile && (touchControls ?? true);
 
   if (step !== 'mundo') return null;
-  if (webgpu === 'unsupported') return <RendererErrorScreen error="unsupported" />;
+  if (backend === 'none') return <RendererErrorScreen error="unsupported" />;
   if (rendererError) return <RendererErrorScreen error={rendererError} />;
 
   return (
     <main className="w-screen h-screen relative overflow-hidden select-none">
-      {webgpu === 'ok' && <GameCanvas />}
+      {backend !== 'checking' && <GameCanvas />}
       <GameSound />
       <StoryFlags />
       {CHALLENGES.map(({ id, Hud }) => Hud && <Hud key={id} />)}
@@ -56,6 +58,7 @@ export default function WorldPage() {
       <MobileControls show={showTouchControls} />
       <QuickItemBar raised={showTouchControls} />
       <PlayerStatus />
+      <Minimap touch={showTouchControls} />
       <Toast />
       {CHALLENGES.map(({ id, Dialogs }) => Dialogs && <Dialogs key={id} />)}
       <BajoDialog />

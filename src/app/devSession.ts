@@ -655,6 +655,7 @@ function installDevInspector() {
         loadStage: world.loadStage,
         loadPercent: world.loadPercent,
         rendererError: world.rendererError,
+        backend: world.backend,
         region: zone.region,
         interior: zone.interior,
         position: { x: round(player.position.x), y: round(player.position.y), z: round(player.position.z) },
