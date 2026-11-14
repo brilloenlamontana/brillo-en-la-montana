@@ -11,6 +11,7 @@ import { usePlayerStore } from '@/game/player/playerStore';
 import { useZoneStore } from '@/game/world/zoneStore';
 import { useProgressStore } from '@/store/progressStore';
 import { DESAFIO2_MODELS } from '../assets';
+import { fueraDeLosArboles } from '../bosqueOscuridad/obstaculos';
 import { useBosqueStore } from '../bosqueStore';
 
 const URL = DESAFIO2_MODELS.duende;
@@ -111,6 +112,8 @@ export function Duende({ index, home }: { index: number; home: readonly [number,
     });
     p.x += step.x;
     p.z += step.z;
+    // Trunks and thick roots are in the way: it goes around them.
+    fueraDeLosArboles(p, BODY_CAPSULE[1]);
     const ground = terrainHeight(p.x, p.z, p.y + 3, 8);
     if (ground !== null) p.y = MathUtils.damp(p.y, ground, 10, delta);
     face(step.x, step.z, delta);
@@ -130,6 +133,8 @@ export function Duende({ index, home }: { index: number; home: readonly [number,
       const ground = terrainHeight(home[0], home[1], 150, 250);
       if (ground === null) return;
       p.set(home[0], ground, home[1]);
+      // Never under a tree: out of its trunk and roots.
+      fueraDeLosArboles(p, BODY_CAPSULE[1] + 0.4);
       b.speed = between(CHASE_SPEED);
       b.placed = true;
     }

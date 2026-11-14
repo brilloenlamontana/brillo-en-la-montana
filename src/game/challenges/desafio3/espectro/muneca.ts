@@ -11,6 +11,15 @@ const toast = (message: string) => useToastStore.getState().showToast(message);
 // The doll can be handed over when the spectre is this close (m).
 export const ENTREGA_RANGE = 6;
 
+// Whom the doll is held out to: the spectre while it is within reach, then the girl it turns into. The avatar faces
+// her from the moment it takes the doll out, wherever it was looking.
+export function quienRecibeMuneca() {
+  const { espectro, despedida } = useTunelStore.getState();
+  if (despedida) return despedida;
+  if (isEspectroCalmado(useProgressStore.getState().progress)) return null;
+  return espectro.active && espectro.position.distanceTo(usePlayerStore.getState().position) <= ENTREGA_RANGE ? espectro.position : null;
+}
+
 // Using the doll: near the spectre it stops attacking, turns into the clear figure of the dwarf girl it was, receives
 // Simona and leaves in peace (the Espectro component plays the farewell).
 export function entregarMuneca() {

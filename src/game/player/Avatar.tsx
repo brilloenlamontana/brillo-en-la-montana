@@ -7,7 +7,7 @@ import { playOnceAndHold, setPace } from '@/game/engine/models/animation';
 import { useAuthStore, type AvatarGender } from '@/store/authStore';
 import { AvatarGestures, HeldItemModel } from './AvatarGestures';
 import { GESTURES, HAND_AXES } from './gestureTable';
-import { GESTURE_NAMES, keepGestureTracks, type GestureName } from './gestureStore';
+import { GESTURE_NAMES, gestureAim, keepGestureTracks, type GestureName } from './gestureStore';
 import { usePlayerStore, type ScenePose } from './playerStore';
 
 const FADE_SECONDS = 0.25;
@@ -27,7 +27,9 @@ const CLIP_SPEED: Record<AvatarGender, { Walking: number; Running: number }> = {
   female: { Walking: 0.84, Running: 3.0 },
   male: { Walking: 0.92, Running: 2.95 },
 };
-const TIME_SCALE_RANGE: [number, number] = [0.65, 1.6];
+// The short characters would have to spin their legs to keep up: past this the clip is not sped up any more (their
+// feet slide a little instead).
+const TIME_SCALE_RANGE: [number, number] = [0.65, 1.35];
 // The flinch of a blow (shared/Hit.glb, hand-made in tools/blender/golpe.py) is added on top of whatever the avatar
 // is doing, a little exaggerated so it reads from the third-person camera. Damage smaller than HIT_MIN_DAMAGE (the
 // slow drain of hunger) does not flinch, and a flinch is not restarted before HIT_AGAIN_SECONDS.
@@ -43,6 +45,8 @@ const RUN_UNTIL_SPEED = 2.8;
 // shoulders are (per metre of height: the lean pivots on the feet).
 const POSE_GLIDE = 7;
 const SHOULDER_HEIGHT = 0.79;
+// A gesture meant for someone (gestureStore.gestureAim): how fast the avatar turns to face them and back (1/s).
+const AIM_TURN = 9;
 const UP = new Vector3(0, 1, 0);
 
 // Turns `bone` by a rotation given in world space (the animation has just posed it).
@@ -133,6 +137,22 @@ function reachFor(arm: Arm, goal: Vector3, pole: Vector3, weight: number, work: 
   turnInWorld(fore, work.parent.identity().slerp(work.turn, weight));
 }
 
+// A gesture meant for someone: the drawn avatar turns to face them, whichever way its capsule is turned, and goes
+// back to it when the gesture ends. A scene's pose decides the facing by itself.
+function faceGestureAim(avatar: Group, position: Vector3, delta: number, aimed: { amount: number; yaw: number }, work: SceneWork) {
+  const aim = gestureAim.current?.() ?? null;
+  if (aim) {
+    const dx = aim.x - position.x;
+    const dz = aim.z - position.z;
+    if (Math.hypot(dx, dz) > 0.05) aimed.yaw = Math.atan2(dx, dz);
+  }
+  aimed.amount = MathUtils.damp(aimed.amount, aim ? 1 : 0, AIM_TURN, Math.min(delta, 0.1));
+  if (aimed.amount < 0.002) return;
+  avatar.parent!.getWorldQuaternion(work.parent);
+  work.lean.setFromAxisAngle(UP, aimed.yaw).premultiply(work.turn.copy(work.parent).invert());
+  avatar.quaternion.slerp(work.lean, aimed.amount);
+}
+
 // A scene's pose: the avatar is drawn standing at pose.feet, facing pose.yaw and leaning with pose.sway, and its right
 // arm (already posed by the clip) is put in place: the upper arm points at pose.elbow, where the elbow rests, and the
 // forearm rises from there toward pose.hand. A pose that touches something reaches for it instead (reachFor), with
@@ -207,6 +227,7 @@ export function Avatar() {
   const motion = useRef({ previous: new Vector3(), placed: false, speed: 0, atRunSpeed: false });
   // How much of the scene's pose shows (0..1), and scratch values for placing it.
   const posed = useRef(0);
+  const aimed = useRef({ amount: 0, yaw: 0 });
   const work = useMemo(() => sceneWork(), []);
 
   const character = findCharacter(avatarName);
@@ -294,6 +315,7 @@ export function Avatar() {
     // Where the capsule stands, whatever a scene does with the drawn avatar.
     avatar.parent!.getWorldPosition(position);
     placeForScene(avatar, pose, delta, posed, work, arm, character.height);
+    if (!pose) faceGestureAim(avatar, position, delta, aimed.current, work);
 
     const m = motion.current;
     if (m.placed && delta > 0) {

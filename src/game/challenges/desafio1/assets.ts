@@ -14,6 +14,8 @@ export const DESAFIO1_MODELS = {
   pantanoTristeza: {
     pozos: `${DIR}/PantanoTristeza/PantanoPozos.glb`,
     tapas: `${DIR}/PantanoTristeza/PantanoTapas.glb`,
+    // Reeds, cattails and dry branches growing in the mud.
+    vegetacion: `${DIR}/PantanoTristeza/PantanoVegetacion.glb`,
   },
   casaDeImeri: {
     exterior: `${DIR}/CasaDeImeri/ImeriExterior.glb`,

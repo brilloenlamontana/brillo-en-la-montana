@@ -1,4 +1,4 @@
-import { DoubleSide, type Material, type MeshStandardMaterial } from 'three';
+import { AdditiveBlending, Color, DoubleSide, Vector2, type ColorRepresentation, type Material, type MeshStandardMaterial } from 'three';
 import {
   float,
   hash,
@@ -15,11 +15,13 @@ import {
   smoothstep,
   texture,
   time,
+  uniform,
   uv,
   vec3,
   vec4,
 } from 'three/tsl';
 import { MeshBasicNodeMaterial, MeshStandardNodeMaterial } from 'three/webgpu';
+import { swayingMaterialFor } from './vegetation';
 
 // Everything that shines in the map (fires, lanterns, light beams, glows, gems and runes) comes from Map.blend as a
 // plain emissive material: a flat colour. Here each one gets a TSL shader (WebGPU) by the name of its material, so
@@ -31,6 +33,14 @@ const FIRE = /Fuego|Llama/;
 const LANTERN = /Luz|Vidrio|Farol|Brasa/;
 // Whatever else glows by itself: gems, runes, potions, glowing mushrooms and plants, magic.
 const GEM = /Gema|Runa|Pocion|Liquido|Brillo|Magico|Hongo|Grabado|Helecho|FlorNoche/;
+
+// Lights that sleep until the story wakes them (the flowers, mushrooms and runes of the fairy's clearing): the ones whose
+// material name matches glow at SLEEPING of their light, and wake as a ring that spreads from `center` (world x, z) to
+// `radius` meters. Whoever tells that part of the story moves the ring (a huge radius leaves them all awake).
+const SLEEPER = /^Claro/;
+const SLEEPING = 0.1;
+export const sleepingGlow = { center: uniform(new Vector2(0, 0)), radius: uniform(1e6) };
+const awake = mix(float(SLEEPING), float(1), float(1).sub(smoothstep(sleepingGlow.radius.sub(2), sleepingGlow.radius, positionWorld.xz.sub(sleepingGlow.center).length())));
 
 // 1 where the surface faces the camera, 0 on its silhouette.
 const facing = normalView.dot(positionViewDirection).abs();
@@ -102,7 +112,30 @@ function pulsing(old: MeshStandardMaterial, { speed, amount, rim }: { speed: num
   material.flatShading = old.flatShading;
   const pulse = float(1).add(sin(time.mul(speed).add(phase)).mul(amount)).add(sin(time.mul(speed * 2.7).add(phase.mul(1.7))).mul(amount * 0.4));
   const halo = float(1).sub(facing).pow(2).mul(rim);
-  material.emissiveNode = materialEmissive.mul(pulse.add(halo));
+  const light = materialEmissive.mul(pulse.add(halo));
+  material.emissiveNode = SLEEPER.test(old.name) ? light.mul(awake) : light;
+  return material;
+}
+
+// A ball of light with no surface (a fairy's glow, a will-o'-the-wisp), for a sphere: white-hot at its heart, its
+// colour around it and fading to nothing toward its silhouette, so it has no edge from wherever it is seen. It
+// breathes and twinkles by itself, and adds its light to what is behind it. Scale its mesh to make it brighter or
+// dimmer.
+export function lightOrb(color: ColorRepresentation, heart: ColorRepresentation = '#ffffff') {
+  const material = new MeshBasicNodeMaterial();
+  material.transparent = true;
+  material.depthWrite = false;
+  material.blending = AdditiveBlending;
+  material.toneMapped = false;
+  // Colours in linear space, as the shader works.
+  const halo = new Color(color);
+  const core = new Color(heart);
+  const breathe = float(1).add(sin(time.mul(2.3)).mul(0.1)).add(sin(time.mul(7.9)).mul(0.05));
+  const twinkle = float(1).add(sin(time.mul(23)).mul(sin(time.mul(3.1))).mul(0.08));
+  // 1 at the middle of the ball, 0 at its silhouette: a small bright heart inside a wide soft halo.
+  const heartAt = smoothstep(0.82, 1, facing);
+  material.colorNode = mix(vec3(halo.r, halo.g, halo.b), vec3(core.r, core.g, core.b), heartAt).mul(breathe);
+  material.opacityNode = facing.pow(3).mul(0.55).add(heartAt.mul(0.45)).mul(breathe).mul(twinkle);
   return material;
 }
 
@@ -117,7 +150,10 @@ export function glowMaterialFor(material: Material): Material | null {
   const old = material as MeshStandardMaterial;
   if (old.isMeshStandardMaterial && !(material as { isNodeMaterial?: boolean }).isNodeMaterial) {
     const lit = old.emissive.r + old.emissive.g + old.emissive.b > 0.01;
-    if (FIRE.test(old.name)) next = fire();
+    // Plants that sway in the wind get their own shader (vegetation.ts).
+    const plant = swayingMaterialFor(old);
+    if (plant) next = plant;
+    else if (FIRE.test(old.name)) next = fire();
     else if (!lit) next = null;
     else if (old.transparent && (LANTERN.test(old.name) || GEM.test(old.name))) next = beam(old);
     else if (LANTERN.test(old.name)) next = pulsing(old, { speed: 3.1, amount: 0.16, rim: 0.7 });

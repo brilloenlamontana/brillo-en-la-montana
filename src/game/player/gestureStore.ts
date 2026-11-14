@@ -1,6 +1,7 @@
 import type { AnimationClip } from 'three';
 import { create } from 'zustand';
 import { GESTURES } from './gestureTable';
+import type { Point } from './playerStore';
 
 // Gestures with which the avatar takes an item out of the backpack and uses it: one per item. Each is a hand-made
 // clip shared by every character (public/models-3d/animations/shared/<name>.glb), described pose by pose in
@@ -23,11 +24,17 @@ interface GestureState {
   // model of the item it handles (a GLB placed anywhere in the world: it is re-centered in the hand).
   // `onEffect` is what the item does: it runs at the instant of the gesture that GESTURES[name].effectAt marks (the
   // throw, the squeeze), not when the key is pressed. A defeat before that instant cancels it.
-  request: { id: number; name: GestureName; itemUrl: string | null; onEffect: (() => void) | null } | null;
-  play: (name: GestureName, itemUrl?: string | null, onEffect?: (() => void) | null) => void;
+  // `aim` says, frame by frame, whom the gesture is for (the girl the doll is offered to): the avatar turns to face
+  // that point while the gesture lasts, whichever way it was walking; null leaves it as it is.
+  request: { id: number; name: GestureName; itemUrl: string | null; onEffect: (() => void) | null; aim: GestureAim | null } | null;
+  play: (name: GestureName, itemUrl?: string | null, onEffect?: (() => void) | null, aim?: GestureAim | null) => void;
 }
+
+export type GestureAim = () => Point | null;
+// The aim of the gesture being played, if it has one (AvatarGestures sets it, Avatar turns the body).
+export const gestureAim: { current: GestureAim | null } = { current: null };
 
 export const useGestureStore = create<GestureState>((set, get) => ({
   request: null,
-  play: (name, itemUrl = null, onEffect = null) => set({ request: { id: (get().request?.id ?? 0) + 1, name, itemUrl, onEffect } }),
+  play: (name, itemUrl = null, onEffect = null, aim = null) => set({ request: { id: (get().request?.id ?? 0) + 1, name, itemUrl, onEffect, aim } }),
 }));

@@ -1,45 +1,28 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { Vector3, type BufferGeometry } from 'three';
+import type { BufferGeometry } from 'three';
 import { InstancedField } from '@/game/engine/models/InstancedField';
 import { CuboidColliders } from '@/game/engine/physics/CuboidColliders';
-import { trunkColliders, type TrunkCore } from '@/game/engine/physics/trunkColliders';
+import { lowBarkBoxes, trunkColliders } from '@/game/engine/physics/trunkColliders';
 import { useInterior, useRegion } from '@/game/world/visibility';
 import { DESAFIO2_MODELS } from '../assets';
 import { FrutosBosque } from '../frutos/FrutosBosque';
 import { BOSQUE_MAX_DISTANCE, BOSQUE_MAX_DISTANCE_INDOORS } from '../visibility';
 import { BosqueMuroOculto } from './BosqueMuroOculto';
+import { setBosqueObstaculos } from './obstaculos';
 
 const { arboles: ARBOLES_URL, hongos: HONGOS_URL } = DESAFIO2_MODELS.bosqueOscuridad;
-// The roots of these trees start ~1 m under the ground and spread wide, so the trunk is measured between these heights
-// above the lowest point of each model, where there are neither roots nor branches. The box then goes from that
-// lowest point up to TRUNK_HEIGHT.
-const MEASURE_FROM = 2.5;
-const MEASURE_TO = 4;
-const TRUNK_HEIGHT = 5;
+// These trees lean, flare at the foot and spread their roots wide (they start ~1 m under the ground): what the avatar
+// bumps into is their bark from the ground up to the height of a head, as a handful of boxes per tree (lowBarkBoxes).
+// Thin roots lying on the earth are stepped over and the branches are over every head.
+const barkBoxes = (geometry: BufferGeometry) => lowBarkBoxes(geometry);
 
-// Trunk from the bark vertices of the measured band: centered on them, with their median radius.
-function measuredTrunk(geometry: BufferGeometry): TrunkCore {
-  const position = geometry.attributes.position;
-  let minY = Infinity;
-  for (let i = 0; i < position.count; i++) minY = Math.min(minY, position.getY(i));
-  const ring: [number, number][] = [];
-  for (let i = 0; i < position.count; i++) {
-    const y = position.getY(i) - minY;
-    if (y > MEASURE_FROM && y < MEASURE_TO) ring.push([position.getX(i), position.getZ(i)]);
-  }
-  const cx = ring.reduce((sum, [x]) => sum + x, 0) / ring.length;
-  const cz = ring.reduce((sum, [, z]) => sum + z, 0) / ring.length;
-  const distances = ring.map(([x, z]) => Math.hypot(x - cx, z - cz)).sort((a, b) => a - b);
-  const radius = distances[Math.floor(distances.length / 2)] * 0.9;
-  return { center: new Vector3(cx, minY + TRUNK_HEIGHT / 2, cz), half: new Vector3(radius, TRUNK_HEIGHT / 2, radius) };
-}
-
-// "BosqueOscuridad" collection of Map.blend: trees, mushrooms and the edible fruit (see frutos/). The trunks are its
-// only colliders. Far from the forest nothing is drawn; from the swamp and the valley only the trees.
+// "BosqueOscuridad" collection of Map.blend: trees, mushrooms and the edible fruit (see frutos/). The trunks and thick
+// roots are its only colliders; the goblins, who walk by code, go around the same boxes (obstaculos.ts). Far from the forest nothing is drawn; from the swamp and the valley only the trees.
 export function BosqueOscuridad() {
   const { scene: arbolesScene } = useGLTF(ARBOLES_URL);
-  const trunks = useMemo(() => trunkColliders(arbolesScene, 'BosqueCorteza', measuredTrunk), [arbolesScene]);
+  const trunks = useMemo(() => trunkColliders(arbolesScene, 'BosqueCorteza', barkBoxes), [arbolesScene]);
+  useEffect(() => setBosqueObstaculos(trunks), [trunks]);
   const region = useRegion();
   const interior = useInterior();
   const distance = (part: keyof typeof BOSQUE_MAX_DISTANCE) =>

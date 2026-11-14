@@ -45,6 +45,7 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
 2. **URLs completas y casos de prueba disponibles (`http://localhost:5174`):**
    - **Desafío 1 — Villa de Boj, Casa de Imeri y Pantano de la Tristeza:**
      - `http://localhost:5174/mundo?dev=1` (alias: `http://localhost:5174/mundo?dev=villa`, `http://localhost:5174/mundo?dev=desafio1`) — Puerta de Villa de Boj desde cero (`x: -39, y: 12.4, z: 18`).
+     - `http://localhost:5174/mundo?dev=intro` — **Primera visita al mundo:** se reproduce el **video introductorio** a pantalla completa (`public/video/video-introductorio.mp4`, `src/game/hud/IntroVideo.tsx`) antes de montar el mundo; no se puede saltar. Al terminar se guarda `introVista: true` y el mundo carga en la puerta de Villa de Boj. Todos los demás presets entran con `introVista: true` (sin video).
      - `http://localhost:5174/mundo?dev=carta` — A unos pasos del tablón de anuncios junto al portón (`x: -45, y: 12.2, z: 19.9`), anuncio sin leer: acércate y presiona `E` para leerlo (nunca se abre solo).
      - `http://localhost:5174/mundo?dev=aldeana` — Junto al pozo de la plaza frente a la aldeana (`x: -74.8, y: 12.2, z: 20.4`, carta leída): cuenta lo ocurrido y pregunta si necesitas ayuda (Sí/No).
      - `http://localhost:5174/mundo?dev=aldeanaPistas` — Frente a la aldeana con su ayuda ya aceptada: cuenta las habladurías del pozo (pistas de los bonos).
@@ -81,20 +82,35 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
      - `http://localhost:5174/mundo?dev=bosqueMuro` — Frente al muro oculto de roca (`x: 11, y: 15.2, z: -193`) con duendes derrotados y hambre saciada: presiona `3` (mapa) para bajar el muro, activar el sendero dorado y completar el Desafío 2.
      - `http://localhost:5174/mundo?dev=bosqueSuperado` — Pergamino y narración de **Bosque de la Oscuridad superado** abiertos (`desafio2.bosqueSuperado`).
    - **Bono 2 — El Claro del Hada (salida del bosque):**
-     - `http://localhost:5174/mundo?dev=claro` — Etapa 1: borde del Claro del Hada (`x: 40, y: 16, z: -221.5`) con la espada élfica lista para cortar la trampa de zarzas.
-     - `http://localhost:5174/mundo?dev=claroSinEspada` — Claro del Hada **sin la espada élfica**, para probar el aviso cuando intentas cortar las zarzas sin espada.
-     - `http://localhost:5174/mundo?dev=hadaLibre` — Etapa 2: zarzas cortadas (`hadaLiberada: true`), diálogo del hada abierto y **Amuleto del hada** listo para recoger en el atril de raíces.
-     - `http://localhost:5174/mundo?dev=bono2` — Bono 2 completado (`amuletoHada` en mochila, diálogo `desafio2.hadaAmuleto` abierto + `1 estrella extra`).
+     - `http://localhost:5174/mundo?dev=claro` — Llegada: borde del Claro del Hada (`x: 40, y: 16, z: -221.5`) con la espada élfica. La lucecita llama con tres destellos y una campanita, y unas luciérnagas guían hasta el claro. El hada se encoge de miedo si llegas corriendo y se calma si caminas; ya calma, pide ayuda.
+     - `http://localhost:5174/mundo?dev=claroSinEspada` — Claro del Hada **sin la espada élfica**: al intentar cortar, el hada misma te dice que se la pidas al elfo.
+     - `http://localhost:5174/mundo?dev=claroZarzas` — Etapa 1 jugable: junto al primer nudo de la trampa de zarzas, con la espada élfica: `E` hace que el avatar saque la espada y camine a cada uno de los **tres tallos**; la luz del hada baja por el tallo como un pulso y hay que dar el tajo (clic, toque o `E`) **justo cuando el nudo brilla**. Un tajo a destiempo rebota, las zarzas se aprietan, el hada se queja y se repite ese nudo (tras dos fallos el brillo dura más).
+     - `http://localhost:5174/mundo?dev=claroManos` — Etapa 2 jugable: los tres tallos ya cortados (solo en memoria) y el hada caída en el suelo: `E` («ayudar al hada») hace que el avatar se arrodille y le tienda la mano; **mantén presionado** el clic o `E` hasta que sus alas brillen y **suelta** para que despegue. El claro despierta: sus luces se encienden en anillo desde el pedestal.
+     - `http://localhost:5174/mundo?dev=hadaLibre` — Etapa 3 jugable: hada libre (`hadaLiberada: true`) y claro despierto; las raíces del atril se abren y ella espera junto a él con su amuleto. `E` («recibir el amuleto del hada»): el avatar pone una rodilla en tierra, ella se lo cuelga al cuello y celebra; al terminar recibe la **2.ª estrella extra**.
+     - `http://localhost:5174/mundo?dev=bono2` — Bono 2 completado (`amuletoHada` en mochila + `1 estrella extra`): el hada vuela sobre el claro y se le puede hablar.
+     - **Estados del claro (Bono 2)** — código en `src/game/challenges/desafio2/claroDelHada/`; plan y avance en `docs/Plan_Bono2_Hada.md`:
+
+       | Estado | Aviso con `E` | Qué se ve | Preset |
+       |---|---|---|---|
+       | Nada hecho | «cortar las zarzas con la espada» | Hada en el pedestal bajo la jaula (`Asustada` / `Atrapada`); tres tallos `ZarzaTallo/Nudo/Tocon A, B, C`; luces del claro dormidas; raíces del atril cerradas sobre el amuleto | `?dev=claro`, `?dev=claroZarzas` |
+       | Tres tallos cortados en esta sesión (`rescateVivo.cortados`, no se guarda) | «ayudar al hada» | Solo quedan los tocones; hada de rodillas en el suelo (`Herida`) | `?dev=claroManos` |
+       | `hadaLiberada: true` | «recibir el amuleto del hada» | Claro despierto; raíces abiertas; hada junto al atril con el amuleto (`Entregar`) | `?dev=hadaLibre` |
+       | `bono2Completado: true` (+ `amuletoHada` en `collectedItems`, `vidasExtra` +1) | «hablar con el hada» | Hada volando sobre el claro (`Volar`) | `?dev=bono2` |
+
+       Escenas en curso (solo en memoria, `useClaroStore`; mientras duran, la cámara es fija, el avatar lo mueve la escena y salir o abrir un diálogo las cancela sin guardar):
+       - `rescate` (`rescate.ts`, `RescateEscena`, `RescateHud`): `camino` (rodea el pedestal hasta el nudo) → `acecho` (el pulso de savia baja; `rescateVivo.falta` segundos para que llegue) → `tajo` → `seca` (acierto: el tallo se recoge hacia el nudo) o `aprieta` (fallo) → al tercer tallo, `fin` y empieza el auxilio.
+       - `auxilio` (`auxilio.ts`, `ClaroEscena`, `ClaroHud`): `cae` (revolotea y cae al suelo) → `camino` → `arrodilla` (clip `Arrodillarse`, mano tendida) → `sostiene` (mantener; `auxilioVivo.fuerza` de 0 a 1) → `lista` (soltar) → `despega` (guarda `hadaLiberada`) → `despierta` (anillo de luz `sleepingGlow`, `auxilioVivo.onda` de 0 a 1).
+       - `entrega` (`entrega.ts`, `ClaroEscena`, `ClaroHud`): `camino` → `arrodilla` → `acerca` (ella trae el amuleto) → `cuelga` (del hada al pecho del avatar) → `celebra` (el avatar se pone de pie; ella gira) → `guarda` → guarda `bono2Completado`, la estrella extra y el amuleto, y abre el pergamino final.
    - **Desafío 3 — Pueblo de Hedrig, Túneles de la Cumbre, Espectro Simona y Ogro:**
      - `http://localhost:5174/mundo?dev=llegadaPueblo` — Saliendo del sendero del bosque al pueblo minero (`x: 78, y: 24.5, z: -205`, `llegoAlPueblo: false`) para disparar en vivo el aviso de llegada.
      - `http://localhost:5174/mundo?dev=desafio3` (alias: `http://localhost:5174/mundo?dev=pueblo`) — Frente a la casa de Hedrig (`x: 82, y: 25.3, z: -211.6`) tras superar el Desafío 2.
      - `http://localhost:5174/mundo?dev=hedrigCasa` — Ayuda de Hedrig aceptada y puerta abierta para entrar a recoger **guante de minero, brújula y muñeca Simona**.
-     - `http://localhost:5174/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con **guante, brújula y muñeca** en la mochila.
-     - `http://localhost:5174/mundo?dev=espectro` — Cámara del Espectro Simona en los túneles (`x: 126, y: 30.5, z: -178.5`) con la muñeca (`3`) lista para calmarla y ver su transformación en `NinaClara`.
+     - `http://localhost:5174/mundo?dev=tuneles` — Boca de la mina hacia los túneles (`x: 97, y: 25.4, z: -196`) con **guante, brújula y muñeca** en la mochila. Las galerías están cerradas por muros en todo el borde del suelo (`npm run tuneles:fisica`): sirve para recorrerlas pegado a las paredes.
+     - `http://localhost:5174/mundo?dev=espectro` — Cámara del Espectro Simona en los túneles (`x: 126, y: 30.5, z: -178.5`) con la muñeca (`3`) lista para calmarla: al usarla, el avatar **gira solo hasta quedar de frente a la niña fantasma** y le ofrece la muñeca (esté mirando hacia donde esté), y ella se transforma en `NinaClara`.
      - `http://localhost:5174/mundo?dev=espectroSinMuneca` — Cámara del Espectro **sin la muñeca**, para probar la persecución, daño por frío/escarcha y el mensaje al intentar calmarla sin muñeca.
-     - `http://localhost:5174/mundo?dev=puente` — Antes del puente de madera sobre la grieta (`x: 138, y: 35.8, z: -165`), espectro ya calmado.
-     - `http://localhost:5174/mundo?dev=ogro` — Sala del Ogro y mesa de pulso (`x: 111.5, y: 44, z: -166`), espectro calmado y **guante de minero (`1`)** listo para ganarle el pulso.
-     - `http://localhost:5174/mundo?dev=ogroSinGuante` — Sala del Ogro **sin el guante de minero**, para probar cómo el Ogro te repele y quita 20 PV al intentar pasar o retarlo sin guante.
+     - `http://localhost:5174/mundo?dev=puente` — Antes del puente de madera sobre la grieta (`x: 138, y: 35.8, z: -165`), espectro ya calmado. El puente es **una sola rampa lisa con una baranda a cada lado** (generadas desde el modelo `TunelPuente`): se cruza por todo el ancho del tablero sin tropezar en las ranuras.
+     - `http://localhost:5174/mundo?dev=ogro` — Sala del Ogro y mesa de pulso (`x: 111.5, y: 44, z: -166`), espectro calmado y **guante de minero (`1`)** en la mochila: presiona `E` junto a la mesa: el avatar se pone el guante, apoya el codo en la mesa y juega a las vencidas (cámara fija, cercana y alta); gana haciendo clic muchas veces. **Los brazos se inclinan según la barra:** si vas ganando, el brazo del ogro baja hacia su lado derecho; si él va ganando, el tuyo baja hacia tu lado derecho; con la barra llena o vacía quedan tumbados sobre la mesa.
+     - `http://localhost:5174/mundo?dev=ogroSinGuante` — Sala del Ogro **sin el guante de minero**, para probar cómo el Ogro te golpea (20 PV por golpe, sin teletransporte ni aviso) al acercarte a la escalera, y cómo te gana las vencidas (te dobla el brazo hacia tu derecha y pierdes una estrella) si lo retas sin guante.
      - `http://localhost:5174/mundo?dev=ogroVencido` — Ogro vencido en el pulso (`ogroVencido: true`), diálogo `desafio3.ogroVencido` abierto y escalera en espiral despejada.
      - `http://localhost:5174/mundo?dev=escaleraCumbre` — Últimos peldaños antes de salir a la Cumbre (`x: 106.75, y: 53.0, z: -164.7`, `mision3Completada: false`), para subir y disparar en vivo la llegada a la Cumbre.
    - **Relato de Cierre — Cumbre de la Desolación, Santuario, Dríada, Cáliz y Cinemática Final:**
@@ -137,9 +153,9 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
    - Espera a que `window.__DEV_GAME__.status().ready === true` antes de interactuar con el mundo 3D.
    - **Medidor de rendimiento (solo en desarrollo):** al cargar el mundo aparece a la izquierda, bajo la barra de vida, un panel con FPS, milisegundos de CPU y de GPU por cuadro (`stats-gl` vía `<StatsGl>` de drei: mide WebGPU y WebGL 2; **no usar `r3f-perf`**, que lee el contexto WebGL y no funciona con el `WebGPURenderer`) y, debajo, motor, resolución (`dpr`), dibujos, triángulos, geometrías y texturas (`rendering/DevStats.tsx`). `&perf=0` lo oculta (p. ej. para capturas). No existe en el juego publicado.
    - **Minimapa:** abajo a la izquierda (`src/game/hud/Minimap.tsx`; con controles táctiles pasa bajo la barra de vida), con el mismo panel de pergamino del HUD, muestra de cerca (~85 m) lo que rodea al avatar: el mapa (`public/sprites-2d/minimapa.jpg`, render de `Map.blend`) se desliza bajo una flecha roja fija en el centro que gira hacia donde camina, con los lugares de la historia (`src/game/world/landmarks.ts`; los dos bonos no se marcan: son extras opcionales), el siguiente destino latiendo en dorado y, si queda fuera de la vista, un puntero dorado en el borde hacia él. Clic o tecla `M` abre el mapa completo sobre la pantalla, con leyenda y la posición del avatar (el nombre de cada lugar sale solo al pasar el mouse por su punto); se cierra con la ×, clic afuera, `M` o `Esc`. Se oculta durante narraciones, cinemáticas y con la mochila abierta. Si cambia el mapa en Blender hay que volver a renderizar la imagen con los mismos límites (`MAP_PICTURE`).
-   - `window.__DEV_GAME__.status()` devuelve `{ ready, warming, loadStage, loadPercent, rendererError, region, interior, position, action, health, dialog, backpackOpen, progress }`.
+   - `window.__DEV_GAME__.status()` devuelve `{ ready, warming, loadStage, loadPercent, rendererError, backend, region, interior, position, action, health, dialog, backpackOpen, progress }`.
    - Helpers en memoria: `window.__DEV_GAME__.teleport(x, y, z)`, `setProgress({...})`, `heal()`, `hurt()` (derrota al jugador: para probar bajos y estrellas extra), `openBackpack(true)`, `closeDialog()`.
-   - Teclado en el canvas: `W A S D` / flechas (mover), `Shift` (correr), `Space` (saltar), `E` (interactuar / recoger), `1`–`3` (usar ítems rápidos de la mochila).
+   - Teclado en el canvas: `W A S D` / flechas (mover), `Shift` (correr), `Space` (saltar), `E` (interactuar / recoger), `1`–`3` (usar ítems rápidos de la mochila), `M` (abrir/cerrar el mapa).
 
 ---
 
@@ -149,6 +165,7 @@ El juego exige **Google Chrome real con aceleración WebGPU** sobre contexto seg
 npm run dev           # Servidor de desarrollo (Vite)
 npm run build         # Verificación TypeScript estricta (tsc -b) + build de producción
 npm run lint          # Linter rápido con oxlint
+npm run tuneles:fisica  # Regenera muros/bloques/parches/puente de los túneles desde los GLB (escribe tunelColliderData.ts)
 npm run preview       # Vista previa del build en dist/
 npm run docker:dev    # Levantar contenedor de desarrollo (puerto 5174, alterna desde prod)
 npm run docker:prod   # Levantar contenedor de producción con Nginx (puerto 8081, alterna desde dev)
@@ -168,8 +185,12 @@ pages ──► game (challenges ──► player / world ──► engine) ─�
 - **Desafíos autocontenidos (`src/game/challenges/`):** Cada desafío (`desafio1`, `desafio2`, `desafio3`, `relatoCierre`) encapsula sus `assets.ts`, `visibility.ts`, `mission.ts` (funciones puras compartidas con `adminService.ts`), `items.ts`, `backpack.ts`, mundo 3D y diálogos, y se registra únicamente en `src/game/challenges/registry.ts`.
 - **Rendimiento 3D y colisiones:**
   - Modelos exportados desde `Map.blend` en `public/models-3d/map/` en coordenadas de mundo (`glTF (x, y, z) = Blender (x, z, -y)`).
-  - Colisiones únicamente con cuboides (`CuboidColliders`), salvo `Terreno` (trimesh) y `LimiteMapa`.
+  - Colisiones únicamente con cuboides (`CuboidColliders`), salvo `Terreno` (trimesh), `LimiteMapa` y el suelo de los túneles (`TunelSueloColision`, trimesh).
   - Visibilidad por región (`visibility.ts`), geometría repetida con `InstancedField`, mallas estáticas fusionadas (`merge`), selectores en stores de Zustand para no re-renderizar en movimiento, y cero `backdrop-blur` sobre el `<Canvas>`.
+
+- **Física de los túneles (Desafío 3):** solo se modela el suelo (`TunelSueloColision` en `TunelesColision.glb`, trimesh). Todo lo demás lo genera `npm run tuneles:fisica` (`scripts/tuneles-fisica.mjs` → `tunelColliderData.ts`, **generado, no editar a mano**) desde los modelos: muros sobre todo el borde del suelo, un bloque por cada cosa de pie en medio de una galería, parches de suelo sobre las ranuras y, para el puente (`DECKS`: nodo `TunelPuente`), una rampa lisa con dos barandas. El script falla sin escribir nada si un borde queda sin muro o si aparece una abertura fuera de la boca de la mina y del pozo de salida. Tras cambiar los túneles en `Map.blend`: exportar los GLB y volver a correr el comando.
+- **Video introductorio:** `WorldPage` muestra `IntroVideo` (`src/game/hud/IntroVideo.tsx`) en lugar del mundo mientras `progress.introVista` sea falso; al terminar guarda `introVista: true` y el mundo carga. Se ve una sola vez por jugador (no vuelve tras un bajo; quien ya había leído el anuncio del alcalde no lo ve) y no se puede saltar. El archivo es `public/video/video-introductorio.mp4` (H.264 + AAC, 720×720; el original sin comprimir está en `docs/`, fuera de git).
+- **Gestos con destinatario:** un objeto de la mochila puede declarar `aim` (`BackpackItem` en `challenges/types.ts`): mientras dura su gesto el avatar gira hacia ese punto (`gestureAim` en `player/gestureStore.ts`, `faceGestureAim` en `Avatar.tsx`). Lo usa la muñeca (`quienRecibeMuneca` en `desafio3/espectro/muneca.ts`).
 
 ---
 

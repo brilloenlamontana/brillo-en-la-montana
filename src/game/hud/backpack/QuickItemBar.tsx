@@ -17,7 +17,7 @@ function activateItem(backpack: Backpack, id: string) {
   const owned = backpack.stateOf(id, useProgressStore.getState().progress) === 'owned';
   if (item && owned && usePlayerStore.getState().health > 0 && !isGameplayPaused()) {
     playSfx(item.drawSound ?? 'ui_item_seleccion', { volume: 0.8 });
-    useGestureStore.getState().play(item.gesture, item.model, () => backpack.use(id));
+    useGestureStore.getState().play(item.gesture, item.model, () => backpack.use(id), item.aim);
   } else {
     backpack.use(id);
   }

@@ -2,7 +2,7 @@ import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type R
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Box3, Group, LoopOnce, Matrix4, Vector3, type AnimationAction, type Object3D } from 'three';
-import { useGestureStore, type GestureName } from './gestureStore';
+import { gestureAim, useGestureStore, type GestureName } from './gestureStore';
 import { GESTURES, HAND_AXES, type GestureItem } from './gestureTable';
 import { usePlayerStore } from './playerStore';
 
@@ -128,6 +128,7 @@ export function AvatarGestures({ actions, scene, height }: AvatarGesturesProps) 
   const finish = () => {
     const current = playing.current;
     playing.current = null;
+    gestureAim.current = null;
     current?.action.stop();
     if (usePlayerStore.getState().health > 0) current?.effect?.();
   };
@@ -140,6 +141,7 @@ export function AvatarGestures({ actions, scene, height }: AvatarGesturesProps) 
     if (!action) return void pending.onEffect?.();
     startGesture(action);
     playing.current = { action, name: pending.name, id: pending.id, effect: pending.onEffect };
+    gestureAim.current = pending.aim;
     itemVisible.current = false;
   }, [pending, actions]);
 

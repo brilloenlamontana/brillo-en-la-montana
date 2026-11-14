@@ -5,7 +5,7 @@ import { useZoneStore } from '@/game/world/zoneStore';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
-import { entregarMuneca } from './espectro/muneca';
+import { entregarMuneca, quienRecibeMuneca } from './espectro/muneca';
 import { BrujulaIcon, GuanteIcon, MunecaIcon } from './ItemIcons';
 import { HEDRIG_COLLECTIBLES, type HedrigItemId } from './items';
 import { getGoal, getItemState, isBackpackActive, isHedrigHouseUnlocked } from './mission';
@@ -44,7 +44,7 @@ export const DESAFIO3_BACKPACK: Backpack = {
   items: [
     { id: 'guante', name: 'Guante de minero', model: MODEL.guante, Icon: GuanteIcon, hotkey: '1', gesture: 'UseGlove' },
     { id: 'brujula', name: 'Brújula', model: MODEL.brujula, Icon: BrujulaIcon, hotkey: '2', gesture: 'UseCompass' },
-    { id: 'muneca', name: 'Muñeca de trapo', model: MODEL.muneca, Icon: MunecaIcon, hotkey: '3', gesture: 'UseOffer' },
+    { id: 'muneca', name: 'Muñeca de trapo', model: MODEL.muneca, Icon: MunecaIcon, hotkey: '3', gesture: 'UseOffer', aim: quienRecibeMuneca },
   ],
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as HedrigItemId, progress),

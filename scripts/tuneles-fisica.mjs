@@ -44,6 +44,13 @@ const STANDING = [0.35, 1.6];
 // The floor meets the terrain (an opening) when the ground just outside the edge is within this band of its height.
 const TERRAIN_BAND = [-0.8, 0.6];
 const TERRAIN_REACH = [0.3, 0.6, 1, 1.5];
+// Decks: structures walked over (the bridge across the crevasse), each a node of the drawn models. Its planks become
+// one smooth ramp between two rails, whatever the measured floor says about the gaps between them. A face of the node
+// is a plank when it looks up, is within DECK_PLANK_BAND of the line the walked floor follows along the deck and is
+// at least DECK_PLANK_MIN_WIDTH wide across it.
+const DECKS = [{ name: 'puente de la grieta', node: 'TunelPuente' }];
+const DECK_PLANK_BAND = 0.15;
+const DECK_PLANK_MIN_WIDTH = 1;
 // The only places an opening may appear, and must appear: [x, y, z] of each mouth and how far around it.
 const MOUTHS = [
   { name: 'entrada (boca de la mina)', at: [105.02, 24.16, -186.64], radius: 4.5 },
@@ -262,8 +269,116 @@ function terrainHeights(x, z) {
   return heights;
 }
 
-// ---- Classify every edge of the outline -----------------------------------------------------------------------------
+// ---- Decks: one ramp and two rails each -----------------------------------------------------------------------------
 const round = (value) => Math.round(value * 1000) / 1000;
+const visualMeshes = VISUAL_GLBS.flatMap((file) => readGlb(file));
+// Least-squares line y = slope * t + base through [t, y] pairs.
+function fitLine(pairs) {
+  const n = pairs.length;
+  const meanT = pairs.reduce((sum, [t]) => sum + t, 0) / n;
+  const meanY = pairs.reduce((sum, [, y]) => sum + y, 0) / n;
+  const slope = pairs.reduce((sum, [t, y]) => sum + (t - meanT) * (y - meanY), 0) / pairs.reduce((sum, [t]) => sum + (t - meanT) ** 2, 0);
+  return { slope, base: meanY - slope * meanT };
+}
+
+const deckPatches = []; // rows of TUNEL_PATCH_ROWS
+const deckWalls = []; // rows of TUNEL_WALL_ROWS
+const deckReport = [];
+for (const { name, node } of DECKS) {
+  const parts = visualMeshes.filter((mesh) => mesh.name === node);
+  if (!parts.length) throw new Error(`Deck node ${node} not found in the drawn models`);
+  const points = parts.flatMap(({ positions }) => Array.from({ length: positions.length / 3 }, (_, i) => [...positions.subarray(i * 3, i * 3 + 3)]));
+  // Its long direction on the ground (u) and across it (v): the main axis of its points.
+  const cx = points.reduce((sum, p) => sum + p[0], 0) / points.length;
+  const cz = points.reduce((sum, p) => sum + p[2], 0) / points.length;
+  let xx = 0;
+  let xz = 0;
+  let zz = 0;
+  for (const [x, , z] of points) {
+    xx += (x - cx) ** 2;
+    xz += (x - cx) * (z - cz);
+    zz += (z - cz) ** 2;
+  }
+  const angle = Math.atan2(2 * xz, xx - zz) / 2;
+  const u = [Math.cos(angle), Math.sin(angle)];
+  const v = [-u[1], u[0]];
+  const along = (x, z) => (x - cx) * u[0] + (z - cz) * u[1];
+  const across = (x, z) => (x - cx) * v[0] + (z - cz) * v[1];
+  const span = { t0: Infinity, t1: -Infinity, s0: Infinity, s1: -Infinity, y0: Infinity, y1: -Infinity };
+  for (const [x, y, z] of points) {
+    span.t0 = Math.min(span.t0, along(x, z));
+    span.t1 = Math.max(span.t1, along(x, z));
+    span.s0 = Math.min(span.s0, across(x, z));
+    span.s1 = Math.max(span.s1, across(x, z));
+    span.y0 = Math.min(span.y0, y);
+    span.y1 = Math.max(span.y1, y);
+  }
+
+  // The walked floor over the middle of the deck says, roughly, where its planks are...
+  const inset = (span.t1 - span.t0) * 0.2;
+  const walked = vertices
+    .map(([x, y, z]) => [along(x, z), y, across(x, z)])
+    .filter(([t, y, s]) => t > span.t0 + inset && t < span.t1 - inset && s > span.s0 + 0.4 && s < span.s1 - 0.4 && y > span.y0 - 0.3 && y < span.y1);
+  if (walked.length < 8) throw new Error(`No walked floor found over the deck ${node}`);
+  const rough = fitLine(walked);
+  // ...and the faces of the node that look up near that line are the planks themselves.
+  const planks = [];
+  for (const { positions, indices } of parts) {
+    for (let f = 0; f < indices.length; f += 3) {
+      const [a, b, c] = [0, 1, 2].map((k) => [...positions.subarray(indices[f + k] * 3, indices[f + k] * 3 + 3)]);
+      const normalX = (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]);
+      const normalY = (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]);
+      const normalZ = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+      const normal = Math.hypot(normalX, normalY, normalZ);
+      if (normal < 1e-9 || Math.abs(normalY) / normal < 0.9) continue;
+      const corners = [a, b, c].map(([x, y, z]) => [along(x, z), y, across(x, z)]);
+      // (A plank crosses the deck: the small faces at that height are the feet of its posts.)
+      const wide = Math.max(...corners.map(([, , s]) => s)) - Math.min(...corners.map(([, , s]) => s)) >= DECK_PLANK_MIN_WIDTH;
+      if (wide && corners.every(([t, y]) => Math.abs(y - (rough.slope * t + rough.base)) <= DECK_PLANK_BAND)) planks.push(...corners);
+    }
+  }
+  if (planks.length < 12) throw new Error(`No planks found on the deck ${node}`);
+  const line = fitLine(planks);
+  const t0 = Math.min(...planks.map(([t]) => t));
+  const t1 = Math.max(...planks.map(([t]) => t));
+  const s0 = Math.min(...planks.map(([, , s]) => s));
+  const s1 = Math.max(...planks.map(([, , s]) => s));
+  // The ramp lies just over the walked floor between its ends (the highest edge of each plank), so nothing the avatar
+  // steps on sticks out of it and its feet stay on the wood.
+  const over = walked.filter(([t, , s]) => t >= t0 && t <= t1 && s >= s0 && s <= s1);
+  const lift = Math.min(0.12, Math.max(0, ...over.map(([t, y]) => y - (line.slope * t + line.base)))) + 0.01;
+  const heightAt = (t) => line.slope * t + line.base + lift;
+  const world = (t, s) => [cx + u[0] * t + v[0] * s, cz + u[1] * t + v[1] * s];
+  const centre = (s0 + s1) / 2;
+  const [ax, az] = world(t0, centre);
+  const [bx, bz] = world(t1, centre);
+  deckPatches.push([ax, heightAt(t0), az, bx, heightAt(t1), bz, (s1 - s0) / 2].map(round));
+  // A rail along each side of the planks, its inner face on their edge (the floor is to the left of a→b).
+  const bottom = Math.min(heightAt(t0), heightAt(t1)) - WALL_FOOT;
+  const top = Math.max(heightAt(t0), heightAt(t1)) + WALL_HEIGHT;
+  for (const s of [s0, s1]) {
+    let from = world(t0, s);
+    let to = world(t1, s);
+    // The wall side of a→b is (-dz, dx): it must point away from the middle of the deck.
+    const outward = -(to[1] - from[1]) * v[0] + (to[0] - from[0]) * v[1];
+    if (outward * (s - centre) < 0) [from, to] = [to, from];
+    deckWalls.push([...from, ...to, bottom, top].map(round));
+  }
+  // The outline of the measured floor inside the deck (gaps between planks, its ragged sides) is not walled.
+  let replaced = 0;
+  for (const edge of edges) {
+    const t = along(edge.mid[0], edge.mid[2]);
+    const s = across(edge.mid[0], edge.mid[2]);
+    if (t < t0 - 0.05 || t > t1 + 0.05 || s < s0 - 0.25 || s > s1 + 0.25 || Math.abs(edge.mid[1] - heightAt(t)) > 0.6) continue;
+    edge.kind = 'deck';
+    replaced++;
+  }
+  deckReport.push(
+    `Tablero ${name}: rampa de ${(t1 - t0).toFixed(1)} x ${(s1 - s0).toFixed(1)} m (sube ${Math.abs(heightAt(t1) - heightAt(t0)).toFixed(2)} m) y 2 barandas; reemplaza ${replaced} tramos del borde medido.`,
+  );
+}
+
+// ---- Classify every edge of the outline -----------------------------------------------------------------------------
 // Drawn geometry over the point `along` metres along the edge and `outward` metres out of the floor.
 const standsAt = (edge, outward, along = 0) => {
   const x = edge.mid[0] + edge.out[0] * outward + edge.out[1] * along;
@@ -278,7 +393,7 @@ for (const edge of edges) {
   const meetsTerrain = TERRAIN_REACH.some((reach) =>
     terrainHeights(x + edge.out[0] * reach, z + edge.out[1] * reach).some((h) => h - y >= TERRAIN_BAND[0] && h - y <= TERRAIN_BAND[1]),
   );
-  if (meetsTerrain && ![-0.2, 0, 0.2, 0.4].some((outward) => standsAt(edge, outward))) edge.kind = 'opening';
+  if (edge.kind === 'wall' && meetsTerrain && ![-0.2, 0, 0.2, 0.4].some((outward) => standsAt(edge, outward))) edge.kind = 'opening';
 }
 
 // 2. Blocks: a small hole in the floor with something standing in it.
@@ -336,7 +451,7 @@ for (const { loop, closed } of loopInfo) {
 }
 
 // One strip of floor per straight run of lips, from one lip to the other.
-const patches = []; // [ax, ay, az, bx, by, bz, halfWidth]
+const patches = [...deckPatches]; // [ax, ay, az, bx, by, bz, halfWidth]
 const lips = [...facing.entries()]
   .filter(([i, { other }]) => i < other || !facing.has(other))
   .map(([i, { other, gap }]) => {
@@ -463,6 +578,7 @@ const wallRows = walls.map(({ ax, az, bx, bz, yMin, yMax }) => {
   if (top < yMax + WALL_HEIGHT) lowered++;
   return [ax, az, bx, bz, yMin - WALL_FOOT, top].map(round);
 });
+wallRows.push(...deckWalls);
 
 // ---- Checks ---------------------------------------------------------------------------------------------------------
 const problems = [];
@@ -492,7 +608,8 @@ const report = [
   `Suelo: ${triangleCount} triángulos, ${vertices.length} vértices, ${outline.toFixed(0)} m de borde en ${loops.length} contornos.`,
   `Muros: ${wallRows.length} cajas (${lowered} recortadas bajo otra galería); desvío máximo del borde ${worstGap.toFixed(2)} m.`,
   `Bloques: ${blocks.length} (cosas de pie en medio de una galería).`,
-  `Parches de suelo: ${patches.length} (ranuras sin nada encima).`,
+  `Parches de suelo: ${patches.length - deckPatches.length} (ranuras sin nada encima).`,
+  ...deckReport,
   ...MOUTHS.map((mouth, i) => `Abertura ${mouth.name}: ${mouthWidths[i].toFixed(1)} m de borde sin muro.`),
   `Colisionadores en total: 1 malla de suelo + ${wallRows.length + blocks.length + patches.length} cajas.`,
 ];

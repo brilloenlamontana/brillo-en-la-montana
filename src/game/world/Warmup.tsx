@@ -29,13 +29,25 @@ function overheadCamera(scene: Object3D): PerspectiveCamera {
   return camera;
 }
 
+// Turns off frustum culling on everything shown that had it on, and returns those objects to turn it back on.
+function neverCull(scene: Object3D): Object3D[] {
+  const culled: Object3D[] = [];
+  scene.traverseVisible((object) => {
+    if (!object.frustumCulled) return;
+    object.frustumCulled = false;
+    culled.push(object);
+  });
+  return culled;
+}
+
 // Mounted last inside <Suspense>, so it runs once every model has loaded. Behind the loading screen (with RenderGate
-// drawing nothing meanwhile) it visits the region where the player appears and its neighbors: each region's parts are
-// mounted and compileAsync prepares all their shader pipelines asynchronously and in parallel, instead of one by one
-// in the middle of a frame. Then a single frame is drawn from the player's camera, which uploads the meshes and
-// textures around them, and the game opens. Only those regions, so it opens sooner wherever the player resumes; the
-// whole map is never drawn at once (on integrated GPUs that hung the device, DXGI_ERROR_DEVICE_HUNG). The timings go
-// to the console as "[carga]".
+// drawing nothing meanwhile) it visits every region of the map, one at a time, ending with the one where the player
+// appears: each region's parts are mounted (its characters too, even the ones that hide until their moment),
+// compileAsync prepares all their shader pipelines asynchronously and in parallel, instead of one by one in the middle
+// of a frame, and one frame from above uploads their meshes and textures. Then a frame is drawn from the player's
+// camera and the game opens. Loading takes a little longer, but walking into a new place or meeting its enemies no
+// longer stops the game. One region at a time: the whole map is never drawn at once (on integrated GPUs that hung
+// the device, DXGI_ERROR_DEVICE_HUNG). The timings go to the console as "[carga]".
 export function Warmup({ startRegion }: { startRegion: Region }) {
   const gl = useThree((state) => state.gl) as unknown as Renderer;
   const scene = useThree((state) => state.scene);
@@ -58,11 +70,18 @@ export function Warmup({ startRegion }: { startRegion: Region }) {
         // React mounts the region's parts and their useFrame callbacks run once (nothing is drawn).
         await nextFrame();
         await nextFrame();
+        // Whatever waits out of sight (enemies under the ground until they come out, things far below or beside the
+        // overhead view) is prepared too: nothing is skipped for being outside the camera while the region warms up.
+        const culled = neverCull(scene);
         try {
           await gl.compileAsync?.(scene, overhead);
+          // One frame from above uploads the region's meshes and textures, so arriving there later costs nothing.
+          gl.render(scene, overhead);
         } catch (error) {
-          console.warn(`Could not precompile the materials of ${region}:`, error);
+          console.warn(`Could not prepare the materials of ${region}:`, error);
         }
+        culled.forEach((object) => (object.frustumCulled = true));
+        await nextFrame();
         console.info(`[carga] región ${region} preparada en ${seconds(regionStarted)} s`);
         reportPrepared(done + 1, regions.length + 1);
       }

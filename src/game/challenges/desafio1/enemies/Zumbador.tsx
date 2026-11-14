@@ -10,7 +10,9 @@ import { useTerrainHeight } from '@/game/engine/physics/useTerrainHeight'
 import { usePlayerStore } from '@/game/player/playerStore'
 import { DESAFIO1_MODELS } from '../assets'
 import { usePantanoStore } from '../pantanoStore'
-import { pickWell, usePantanoWells } from '../pantanoTristeza/wells'
+import { usePantanoWells } from '../pantanoTristeza/wells'
+import { ZUMBADOR_COUNT } from '../mission'
+import { puestoDelZumbador } from './guarida'
 
 type ZumbadorState = 'hidden' | 'emerging' | 'chasing' | 'retreating' | 'hovering' | 'dying' | 'dead'
 
@@ -22,13 +24,10 @@ const MESH_SCALE = 0.5
 const CHASE_SPEED = 4
 const RETREAT_SPEED = 5
 const CLIMB_SPEED = 3
-const HOVER_ABOVE_RIM = 1.5
 const MIN_HEIGHT_ABOVE_GROUND = 0.5
 const STING_RANGE = 1.5
 const STING_DAMAGE = 2 // 10 stings empty the 100 health points
 const STING_COOLDOWN = 2
-const EMERGE_MIN_DISTANCE = 6
-const ZUMBADORES_PER_WELL = 2
 const DEATH_GRAVITY = 12
 const DEATH_SPIN = 9
 const DEATH_SECONDS = 1.8
@@ -37,7 +36,7 @@ const DEATH_SECONDS = 1.8
 // it is and chases them again if they return. `index` spreads the swarm across different wells (two per well)
 // and offsets each one's wing flapping. The backpack insecticide kills them: they fall spinning and disappear forever
 // (they are stored in the saved progress, so they do not come back on reload either).
-export function Zumbador({ index }: { index: number }) {
+export function Zumbador({ index, activo }: { index: number; activo: boolean }) {
   const { nodes, materials } = useGLTF(ZUMBADOR_URL)
   const rb = useRef<RapierRigidBody>(null)
   const group = useRef<THREE.Group>(null)
@@ -97,6 +96,18 @@ export function Zumbador({ index }: { index: number }) {
     const playerInPantano = usePantanoStore.getState().playerOnMud
     const wobble = Math.sin(now * 15 + flapOffset) * 0.8
     const enemies = usePantanoStore.getState()
+    // Far from the swamp it waits under the map: mounted and ready, doing nothing.
+    if (!activo) {
+      if (brainState.state !== 'hidden' && brainState.state !== 'dead') {
+        brainState.state = 'hidden'
+        p.set(0, HIDDEN_Y, 0)
+        rb.current.setNextKinematicTranslation(p)
+      }
+      group.current.visible = useWorldStore.getState().warming
+      const parked = enemies.zumbadores[index]
+      if (parked) parked.active = false
+      return
+    }
     const defeated = useProgressStore.getState().progress.zumbadoresDefeated.includes(index)
     if (defeated && brainState.state === 'hidden') brainState.state = 'dead'
     // If progress is reset (another player, mission restarted), it hides in its well again.
@@ -125,12 +136,15 @@ export function Zumbador({ index }: { index: number }) {
       }
 
       case 'hidden':
-        if (playerInPantano) {
-          const well = pickWell(wells, player.x, player.z, { minDistance: EMERGE_MIN_DISTANCE, rank: Math.floor(index / ZUMBADORES_PER_WELL) })
-          const side = index % ZUMBADORES_PER_WELL === 0 ? -1 : 1
-          brainState.hoverY = well.rimY + HOVER_ABOVE_RIM + (index % 3) * 0.4
-          p.set(well.x + side * well.innerRadius * 0.4, well.bottomY + 0.5, well.z)
-          brainState.state = 'emerging'
+        if (!defeated) {
+          // Already out, hovering around the golem in the middle of the mud until the player treads on it.
+          const puesto = puestoDelZumbador(index, ZUMBADOR_COUNT, wells)
+          const ground = terrainHeight(puesto.x, puesto.z, 60, 80)
+          if (ground !== null) {
+            brainState.hoverY = ground + puesto.height
+            p.set(puesto.x, brainState.hoverY, puesto.z)
+            brainState.state = 'hovering'
+          }
         }
         break
 

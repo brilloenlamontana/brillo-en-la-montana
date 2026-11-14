@@ -14,6 +14,7 @@ cp .env.example .env   # completar con los datos del proyecto de Firebase
 npm run dev            # servidor de desarrollo
 npm run build          # tsc estricto + build de producción en dist/
 npm run lint           # oxlint
+npm run tuneles:fisica # regenera la física de los túneles (muros, bloques, parches y puente) desde sus GLB
 ```
 
 El juego dibuja con **WebGPU** (Chrome/Edge recientes, Safari 26+) y, donde no lo hay, con **WebGL 2** usando el mismo
@@ -73,7 +74,7 @@ src/
 │  ├─ App.tsx
 │  ├─ useAuthSession.ts     Único lugar que escucha a Firebase Auth y carga perfil + progreso
 │  └─ onboarding.ts         login → registro → personaje → mundo (cada página redirige según el paso)
-├─ pages/                   Una por ruta: Login, CharacterSelection, World, Admin
+├─ pages/                   Una por ruta: Login, CharacterSelection, World (video introductorio la primera vez), Admin
 ├─ components/              UI fuera del juego (login, menú de usuario, modales de registro/perfil/Ley 1581)
 ├─ services/                Toda la E/S con Firebase. Ningún componente importa firebase directamente
 │  ├─ firebase.ts           Inicialización
@@ -99,8 +100,9 @@ src/
    │  ├─ visibility.ts      Qué se dibuja desde cada región (visibleFrom, useVisibleFrom)
    │  ├─ ZoneTracker.tsx    Clasifica la posición del jugador cada cuadro
    │  └─ Warmup.tsx         Precalienta materiales región por región detrás de la pantalla de carga
-   ├─ player/               Avatar, controlador (ecctrl), cámara, muerte y reaparición
-   ├─ hud/                  Capa 2D sobre el canvas: vida, mochila, controles táctiles, diálogos tipo pergamino
+   ├─ player/               Avatar, controlador (ecctrl), cámara, gestos al usar objetos, muerte y reaparición
+   ├─ hud/                  Capa 2D sobre el canvas: vida, mochila, minimapa, controles táctiles, diálogos tipo pergamino,
+   │                        video introductorio (IntroVideo)
    └─ challenges/
       ├─ types.ts           Contrato Challenge (World, Dialogs, Hud, backpack, regions, startPoint, isCompleted)
       ├─ registry.ts        Lista ordenada de desafíos: lo único que el juego conoce de ellos
@@ -109,6 +111,13 @@ src/
       ├─ desafio2/          Bosque de la Oscuridad (el elfo, su casa, su mochila, los duendes y las frutas con el lente)
       ├─ desafio3/          Túneles de la Cumbre: Hedrig, brújula, espectro y ogro
       └─ relatoCierre/      Cumbre, dríada, santuario y cáliz (victoria final)
+
+scripts/
+└─ tuneles-fisica.mjs       Genera la física de los túneles desde sus GLB (npm run tuneles:fisica)
+
+public/
+├─ models-3d/, audio/, textures/, sprites-2d/, draco/   Archivos del juego (el service worker sw.js los guarda)
+└─ video/                   Video introductorio (video-introductorio.mp4)
 ```
 
 ### Anatomía de un desafío
@@ -134,7 +143,11 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
 
 ### Flujo de la historia
 
-1. **Inicio:** la primera vez que se entra al mundo, la carta del alcalde se abre sola.
+0. **Video introductorio:** la primera vez que un jugador entra al mundo, antes de cargarlo, se reproduce a pantalla
+   completa el video de la historia (`public/video/video-introductorio.mp4`, `hud/IntroVideo.tsx`). No se puede saltar;
+   al terminar se guarda `introVista` en su progreso y el mundo carga. No vuelve a salir, ni siquiera tras un bajo.
+1. **Inicio:** el avatar aparece frente al portón de la Villa de Boj; el anuncio del alcalde está en el tablón junto a
+   él y se lee con `E`.
 2. **Aldeana** (junto al pozo de la plaza de la Villa de Boj): cuenta lo que pasó y pregunta si necesitas ayuda. Con
    **No**, Imeri no aparece y su casa sigue cerrada; se le puede volver a preguntar al salir y regresar. Con la ayuda ya
    aceptada, cuenta las habladurías del pozo (pistas de los bonos).
@@ -157,6 +170,20 @@ stores (bajo acoplamiento). Ejemplo, `desafio1/`:
 9. **Mapa** (tecla 3): hunde el muro de roca oculto y aparece en el suelo un sendero de flechas doradas desde donde
    está el jugador hasta la salida del bosque (`mapa/SenderoMapa.tsx`). La ruta (`mapa/senderoBosque.ts`) se calculó
    con A* sobre el terreno, lejos de los troncos y de las pendientes fuertes.
+10. **Hedrig** (pueblo minero, solo después del desafío 2): con **Sí** abre su casa y la mochila cambia a guante de
+    minero, brújula y muñeca Simona.
+11. **Túneles de la Cumbre:** un laberinto de galerías. La brújula (tecla 2) marca en el suelo el camino a la salida.
+    El **espectro** de la niña persigue y hiela: con la muñeca (tecla 3) cerca de ella, el avatar gira hasta quedar de
+    frente a la niña, se la ofrece, y ella se transforma y se va en paz. Después viene el **puente** sobre la grieta.
+12. **Ogro:** cuida la escalera a la cumbre y golpea a quien intente pasar. En su mesa (`E`) se juega a las vencidas
+    haciendo clic: los brazos se inclinan según la barra (si vas ganando, el brazo del ogro baja hacia su derecha; si
+    él gana, el tuyo baja hacia tu derecha). Con el guante de minero se le gana; sin él, gana él y cuesta una estrella.
+13. **Relato de cierre:** en la Cumbre la Dríada abre el Santuario; al tomar el cáliz corre la cinemática final, el
+    mundo recupera su verdor y aparece el resumen de victoria.
+
+**Bonos (opcionales):** la estatua de la choza a la salida del pantano (limpiarla, encender su fuego y tomar el anillo
+de oro) y el Claro del Hada a la salida del bosque (cortar las zarzas y tomar el amuleto). Cada uno da una estrella
+extra, que se pierde antes que las tres reales.
 
 **Bajos (vidas):** hay 3 estrellas para todo el juego, como el rendimiento académico. Morir es caer en un bajo:
 
@@ -197,10 +224,17 @@ derrotas por desafío y cuántos segundos y terceros bajos tuvo cada estudiante.
   coordenadas de mundo. glTF (x, y, z) = Blender (x, z, −y).
 - **Colisiones:** solo cuboides y solo donde el avatar camina o choca (`CuboidColliders`). Los GLB de colisión son
   `LimiteMapa` y `TunelesColision` (el suelo de los túneles). El terreno es una sola malla trimesh.
-- **Física de los túneles:** solo se modela el suelo (malla `TunelSueloColision`, lo que se puede caminar). Los muros,
-  los bloques y los parches de las ranuras del puente salen del borde de esa malla con `npm run tuneles:fisica`
-  (`scripts/tuneles-fisica.mjs`), que escribe `tunelColliderData.ts` y falla si algún borde quedaría abierto. Tras
-  cambiar los túneles en `Map.blend`: exportar el suelo y volver a correr el comando; no editar las cajas a mano.
+- **Física de los túneles:** solo se modela el suelo (malla `TunelSueloColision`, lo que se puede caminar). Lo demás lo
+  genera `npm run tuneles:fisica` (`scripts/tuneles-fisica.mjs`) desde los modelos y lo escribe en
+  `tunelColliderData.ts`: muros sobre todo el borde del suelo, un bloque por cada cosa de pie en una galería, parches
+  sobre las ranuras y, para el puente (nodo `TunelPuente`), una sola rampa lisa con una baranda a cada lado. El script
+  falla sin escribir nada si algún borde quedaría abierto o si aparece una abertura fuera de la boca de la mina y del
+  pozo de salida. Tras cambiar los túneles en `Map.blend`: exportar los GLB y volver a correr el comando; no editar las
+  cajas a mano.
+- **Gestos con destinatario:** un objeto de la mochila puede declarar `aim` (`challenges/types.ts`); mientras dura su
+  gesto el avatar gira hacia ese punto (la muñeca hacia la niña fantasma).
+- **Video introductorio:** `WorldPage` lo muestra en lugar del mundo mientras `progress.introVista` sea falso. Va en
+  `public/video/` (H.264 + AAC); `vercel.json` y `nginx.conf` lo sirven con caché, y el service worker no lo guarda.
 - **Puertas** (`PhysicsDoor`): cuerpos cinemáticos. Nada las mueve salvo el avatar al chocar con la hoja; giran hacia el
   lado contrario a él y se quedan donde las dejó. Bloqueadas (`locked`) quedan cerradas y no ceden. La caja de cada hoja
   se mide con sus vértices en su dirección real (`doorLeaf.ts`), aunque el nodo esté modelado en diagonal.
@@ -217,6 +251,29 @@ derrotas por desafío y cuántos segundos y terceros bajos tuvo cada estudiante.
 - **Seguridad:** las comprobaciones de administrador en el cliente solo deciden qué se muestra. La protección real son
   las **reglas de Firestore**: leer todos los usuarios y escribir `role` solo para administradores; cada jugador solo
   escribe su propio documento.
+
+## Pruebas sin iniciar sesión (`?dev=<preset>`)
+
+En desarrollo, cualquier ruta acepta `?dev=<preset>` (`src/app/devSession.ts`): entra con una sesión de prueba en
+memoria, sin Google ni Firestore, directo al punto de la historia que se quiere probar. Algunos:
+
+| URL (`http://localhost:5174`) | Qué abre |
+| --- | --- |
+| `/mundo?dev=intro` | Primera visita: video introductorio y luego el mundo |
+| `/mundo?dev=villa` | Puerta de la Villa de Boj desde cero (sin video) |
+| `/mundo?dev=pantano` | Pantano de la Tristeza con gema, soga e insecticida |
+| `/mundo?dev=chozaEstatua` · `?dev=claro` | Bono 1 (estatua) y Bono 2 (hada) |
+| `/mundo?dev=bosque` | Bosque de la Oscuridad con espada, lente y mapa |
+| `/mundo?dev=tuneles` | Boca de la mina, con guante, brújula y muñeca |
+| `/mundo?dev=espectro` | Cámara del espectro: usar la muñeca (`3`) |
+| `/mundo?dev=puente` | Puente de madera sobre la grieta |
+| `/mundo?dev=ogro` · `?dev=ogroSinGuante` | Vencidas con el Ogro, con y sin guante |
+| `/mundo?dev=cumbre` · `?dev=altar` · `?dev=cinematica` | Relato de cierre |
+| `/mundo?dev=bajo1` · `bajo2` · `bajo3` | Diálogos de cada bajo |
+| `/login?dev=registro` · `/seleccion-personaje?dev=personaje` · `/admin?dev=admin` | Registro, personaje y panel |
+
+Se combinan con `&vidas=`, `&bonos=`, `&vida=`, `&mochila=1`, `&dialogo=<id>`, `&avatar=`, `&spawn=x,y,z` y
+`&render=webgl`. La lista completa, con posiciones y casos, está en `CLAUDE.md` y `AGENTS.md`.
 
 ## Pendientes conocidos
 
