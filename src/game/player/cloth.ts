@@ -16,9 +16,9 @@ type Kind = 'capa' | 'falda' | 'cola';
 //   thick      how far from a limb the cloth stays (m): about half the gap between two chains, so a foot cannot slip
 //              between them
 const KINDS: Record<Kind, { stiffness: number; gravity: number; drag: number; sway: number; rootTurn: number; turn: number; thick: number }> = {
-  capa: { stiffness: 2.4, gravity: 2.6, drag: 0.32, sway: 0.35, rootTurn: 0.6, turn: 0.7, thick: 0.075 },
-  falda: { stiffness: 5, gravity: 1.6, drag: 0.42, sway: 0.2, rootTurn: 0.95, turn: 1.0, thick: 0.07 },
-  cola: { stiffness: 9, gravity: 0.4, drag: 0.38, sway: 0.5, rootTurn: 0.18, turn: 0.38, thick: 0.02 },
+  capa: { stiffness: 3, gravity: 3, drag: 0.4, sway: 0.1, rootTurn: 0.6, turn: 0.7, thick: 0.075 },
+  falda: { stiffness: 5.5, gravity: 1.8, drag: 0.46, sway: 0.06, rootTurn: 0.95, turn: 1.0, thick: 0.07 },
+  cola: { stiffness: 9, gravity: 0.4, drag: 0.38, sway: 0.15, rootTurn: 0.18, turn: 0.38, thick: 0.02 },
 };
 
 // The simulation advances in steps of this many seconds, whatever the frame rate (at most MAX_STEPS per frame).

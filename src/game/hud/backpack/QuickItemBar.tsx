@@ -52,7 +52,7 @@ export function QuickItemBar({ raised }: { raised: boolean }) {
   return (
     <div
       className={`fixed right-[max(16px,env(safe-area-inset-right,16px))] z-30 flex gap-2 sm:gap-2.5 transition-all duration-200 ${
-        raised ? 'bottom-[max(180px,calc(env(safe-area-inset-bottom,24px)+150px))]' : 'bottom-[max(16px,env(safe-area-inset-bottom,16px))]'
+        raised ? 'bottom-[max(172px,calc(env(safe-area-inset-bottom,18px)+154px))]' : 'bottom-[max(16px,env(safe-area-inset-bottom,16px))]'
       }`}
     >
       {owned.map(({ id, name, hotkey, Icon }) => (

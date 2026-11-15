@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { playAsStudent } from '@/app/onboarding';
 import { WorldBackdrop } from '@/components/WorldBackdrop';
@@ -199,33 +199,33 @@ export default function AdminPage() {
   // 2. STATE: LOGGED IN BUT NOT ADMIN -> Access Denied / First Admin Bootstrap
   if (isAdminUser === false) {
     return (
-      <main className="h-screen w-full bg-madera-900 flex items-center justify-center p-4 select-none overflow-y-auto relative">
+      <main className="h-dvh w-full bg-madera-900 flex items-center justify-center p-4 select-none overflow-y-auto relative">
         <WorldBackdrop />
-        <div className="w-full max-w-lg bg-white rounded-3xl p-8 shadow-2xl border border-slate-200 text-center flex flex-col items-center z-10">
-          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 mb-4 shadow-inner">
+        <div className="w-full max-w-lg bg-papel-50 rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-madera-600 text-center flex flex-col items-center z-10">
+          <div className="w-16 h-16 rounded-full bg-oro-300 flex items-center justify-center text-madera-700 mb-4 shadow-inner">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Acceso Restringido</h2>
+          <h2 className="font-serif text-2xl font-bold text-madera-800 mb-2">Acceso Restringido</h2>
 
-          <p className="text-sm text-slate-600 mb-4">
+          <p className="text-sm text-madera-600 mb-4 break-words">
             Has iniciado sesión con la cuenta <strong>{user.email}</strong>, pero este usuario no tiene privilegios de <strong>Administrador</strong> en el sistema.
           </p>
-          {authError && <p className="text-xs text-red-600 mb-4">{authError}</p>}
+          {authError && <p className="text-xs text-carmesi mb-4">{authError}</p>}
 
           {/* If there are NO admins yet, allow initializing first admin */}
           {hasAnyAdminInDB === false && (
-            <div className="w-full mb-5 p-4 rounded-2xl bg-blue-50 border border-blue-200 text-left text-xs text-blue-900">
-              <p className="font-semibold text-blue-800 mb-1">👑 Acceso Inicial para Docentes y Coordinadores:</p>
-              <p className="mb-3 text-blue-700">
+            <div className="w-full mb-5 p-4 rounded-2xl bg-papel-200 border border-papel-400 text-left text-xs text-madera-700">
+              <p className="font-semibold text-madera-800 mb-1">👑 Acceso Inicial para Docentes y Coordinadores:</p>
+              <p className="mb-3 text-madera-600">
                 Aún no se ha asignado un administrador en el portal institucional. Como usuario de la Universidad del Valle, puedes activar tu cuenta como Administrador Principal.
               </p>
               <button
                 onClick={handleClaimFirstAdmin}
                 disabled={authLoading}
-                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl text-xs transition cursor-pointer shadow-sm disabled:opacity-60"
+                className="w-full py-2.5 px-4 bg-musgo-600 hover:bg-musgo-700 text-white font-semibold rounded-xl text-sm transition cursor-pointer shadow-sm disabled:opacity-60"
               >
                 {authLoading ? 'Activando...' : 'Activar mi cuenta como Administrador'}
               </button>
@@ -235,13 +235,13 @@ export default function AdminPage() {
           <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
             <button
               onClick={goPlay}
-              className="flex-1 py-3 px-4 rounded-xl border border-slate-300 text-slate-700 font-medium text-xs hover:bg-slate-50 transition cursor-pointer"
+              className="flex-1 py-3 px-4 rounded-xl border border-madera-400 text-madera-700 font-semibold text-sm hover:bg-papel-200 transition cursor-pointer"
             >
               Ir al Mundo de Juego
             </button>
             <button
               onClick={handleSignOut}
-              className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium text-xs transition cursor-pointer"
+              className="flex-1 py-3 px-4 rounded-xl bg-madera-600 hover:bg-madera-700 text-papel-100 font-semibold text-sm transition cursor-pointer"
             >
               Cerrar Sesión
             </button>
@@ -254,82 +254,67 @@ export default function AdminPage() {
   // 3. STATE: LOADING ADMIN CHECK
   if (isAdminUser === null || authLoading) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-900 text-white gap-4">
-        <div className="w-12 h-12 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
-        <p className="text-sm font-medium text-slate-300">Verificando credenciales de administrador...</p>
+      <div className="h-dvh w-full flex flex-col items-center justify-center bg-madera-900 text-papel-100 gap-4">
+        <div className="w-12 h-12 border-4 border-oro-400/30 border-t-oro-400 rounded-full animate-spin" />
+        <p className="text-sm font-medium text-papel-300">Verificando credenciales de administrador...</p>
       </div>
     );
   }
 
   // 4. STATE: AUTHORIZED ADMIN DASHBOARD
   return (
-    <div className="h-screen w-full bg-slate-100 text-slate-900 flex flex-col overflow-hidden font-sans">
-      {/* Top Navbar */}
-      <header className="h-18 bg-white border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between shrink-0 shadow-xs z-20">
-        <div className="flex items-center gap-3.5">
-          <img src="/univalle.svg" alt="Univalle" className="w-10 h-auto object-contain" />
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="font-bold text-slate-900 text-lg sm:text-xl leading-tight">
-                Brillo en la Montaña
-              </h1>
-              <span className="px-2.5 py-0.5 rounded-md bg-red-100 text-[#C8102E] text-xs font-bold uppercase tracking-wider">
-                Panel Admin
+    <div className="h-dvh w-full bg-papel-100 text-madera-800 flex flex-col overflow-hidden font-sans">
+      {/* Top bar: the game's wood and gold */}
+      <header className="bg-madera-800 text-papel-100 border-b-2 border-oro-600 px-3 sm:px-8 py-2.5 sm:py-3 pt-[max(0.625rem,env(safe-area-inset-top))] flex items-center justify-between gap-2 shrink-0 shadow-md z-20">
+        <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <span className="shrink-0 rounded-lg bg-papel-50 p-1 sm:p-1.5">
+            <img src="/univalle.svg" alt="Univalle" className="w-7 sm:w-9 h-auto object-contain" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-serif font-bold text-base sm:text-xl leading-tight truncate">Brillo en la Montaña</h1>
+              <span className="px-2 py-0.5 rounded-md bg-oro-400 text-madera-900 text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap">
+                Panel admin
               </span>
             </div>
-            <p className="text-xs text-slate-500 hidden sm:block mt-0.5">
-              Monitoreo académico y seguimiento en tiempo real del progreso estudiantil
-            </p>
+            <p className="text-xs text-papel-300 hidden md:block mt-0.5">Seguimiento en tiempo real del progreso de los estudiantes</p>
           </div>
         </div>
 
-        {/* Right side controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
             onClick={handleRefresh}
             disabled={refreshing || loadingUsers}
-            className="p-2 sm:px-3.5 sm:py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-sm flex items-center gap-2 transition cursor-pointer font-medium disabled:opacity-50"
+            className={`${HEADER_BUTTON} disabled:opacity-50`}
             title="Recargar datos"
+            aria-label="Recargar datos"
           >
-            <svg
-              className={`w-4 h-4 text-slate-500 ${refreshing ? 'animate-spin text-[#C8102E]' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className={`w-4 h-4 ${refreshing ? 'animate-spin text-oro-400' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             <span className="hidden sm:inline">{refreshing ? 'Actualizando...' : 'Recargar'}</span>
           </button>
 
-          <button
-            onClick={goPlay}
-            className="hidden md:flex px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-medium items-center gap-2 transition cursor-pointer"
-          >
-            <span>Ver Mundo 3D</span>
+          <button onClick={goPlay} className={HEADER_BUTTON} title="Ver el mundo 3D" aria-label="Ver el mundo 3D">
+            <span className="hidden md:inline">Ver Mundo 3D</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </button>
 
-          {/* Admin User Profile Capsule */}
-          <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 pl-1.5 sm:pl-3 border-l border-madera-500">
             {user.photoURL ? (
-              <img src={user.photoURL} alt={user.name} className="w-9 h-9 rounded-full border border-slate-200 object-cover" />
+              <img src={user.photoURL} alt={user.name} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-oro-600 object-cover" />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-[#C8102E] text-white flex items-center justify-center text-sm font-bold">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-oro-400 text-madera-900 flex items-center justify-center text-sm font-bold">
                 {user.name.charAt(0) || 'A'}
               </div>
             )}
             <div className="hidden lg:flex flex-col text-left">
-              <span className="text-sm font-bold text-slate-800 leading-tight truncate max-w-[160px]">{user.name}</span>
-              <span className="text-xs text-slate-500 truncate max-w-[160px]">{user.email}</span>
+              <span className="text-sm font-bold leading-tight truncate max-w-[160px]">{user.name}</span>
+              <span className="text-xs text-papel-300 truncate max-w-[160px]">{user.email}</span>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
-              title="Cerrar sesión"
-            >
+            <button onClick={handleSignOut} className={HEADER_BUTTON} title="Cerrar sesión" aria-label="Cerrar sesión">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
@@ -339,65 +324,58 @@ export default function AdminPage() {
       </header>
 
       {/* Main Content Area (Scrollable) */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
-
-
-
-        {/* Missions summary (en vivo) */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <main className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-4 sm:space-y-6">
+        {/* Missions summary (live): the number first, what it counts under it */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {[
-            { label: 'Total Jugadores', value: missionStats.players, sub: `${missionStats.started1} han jugado` },
-            { label: 'Misión 1: Pantano', value: `${missionStats.completed1} superaron`, sub: `${missionStats.average1}% avance promedio` },
-            { label: 'Misión 2: En el Bosque', value: `${missionStats.unlocked2} llegaron`, sub: 'Desafío desbloqueado' },
-            { label: 'Misión 2: Completada', value: `${missionStats.completed2} superaron`, sub: 'Camino despejado' },
-            { label: 'Misión 3: Cumbre', value: `${missionStats.completed3} superaron`, sub: 'Túneles, espectro y ogro' },
-            { label: 'Juego completado', value: `${missionStats.finished} con el cáliz`, sub: `${missionStats.bonos} bonos obtenidos` },
-            { label: 'Bono 1: Estatua', value: `${missionStats.bono1} lo obtuvieron`, sub: 'Anillo de oro (pantano)' },
-            { label: 'Bono 2: Hada', value: `${missionStats.bono2} lo obtuvieron`, sub: 'Amuleto del hada (bosque)' },
-          ].map(({ label, value, sub }) => (
-            <div key={label} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
-              <p className="text-xs uppercase tracking-wider font-semibold text-slate-500">{label}</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+            { label: 'Jugadores', value: missionStats.players, unit: 'en total', sub: `${missionStats.started1} han jugado` },
+            { label: 'Misión 1 · Pantano', value: missionStats.completed1, unit: 'la superaron', sub: `${missionStats.average1}% de avance promedio` },
+            { label: 'Misión 2 · Bosque', value: missionStats.unlocked2, unit: 'llegaron', sub: `${missionStats.completed2} la superaron` },
+            { label: 'Misión 3 · Cumbre', value: missionStats.completed3, unit: 'la superaron', sub: 'Túneles, espectro y ogro' },
+            { label: 'Juego completado', value: missionStats.finished, unit: 'con el cáliz', sub: `${missionStats.bonos} bonos obtenidos` },
+            { label: 'Bono 1 · Estatua', value: missionStats.bono1, unit: 'lo obtuvieron', sub: 'Anillo de oro (pantano)' },
+            { label: 'Bono 2 · Hada', value: missionStats.bono2, unit: 'lo obtuvieron', sub: 'Amuleto del hada (bosque)' },
+          ].map(({ label, value, unit, sub }, index) => (
+            <div key={label} className={`${CARD} p-3 sm:p-4 ${index === 0 ? 'col-span-2 lg:col-span-1' : ''}`}>
+              <p className="text-[11px] sm:text-xs uppercase tracking-wide font-bold text-madera-500 leading-tight">{label}</p>
+              <p className="mt-1 flex items-baseline gap-1.5 flex-wrap">
+                <span className="font-serif text-3xl font-bold text-madera-800 leading-none">{value}</span>
+                <span className="text-sm font-semibold text-madera-600">{unit}</span>
+              </p>
+              <p className="text-xs text-madera-400 mt-1 leading-snug">{sub}</p>
             </div>
           ))}
         </section>
 
-        {/* Toolbar & Filters Card */}
-        <section className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col lg:flex-row items-center justify-between gap-4">
-          {/* Search Box */}
+        {/* Search, filters and export */}
+        <section className={`${CARD} p-3 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3`}>
           <div className="relative w-full lg:w-[420px]">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-madera-400">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <input
-              type="text"
+              type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por estudiante, código, email o programa..."
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm sm:text-base text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C8102E]/20 focus:border-[#C8102E] transition"
+              placeholder="Buscar estudiante, código, correo o programa"
+              className={`${FIELD} w-full pl-11 pr-9`}
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer text-sm"
+                aria-label="Borrar la búsqueda"
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-madera-400 hover:text-madera-700 cursor-pointer text-sm"
               >
                 ✕
               </button>
             )}
           </div>
 
-          {/* Select Filters and Action Buttons */}
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
-            {/* Sede Filter */}
-            <select
-              value={sedeFilter}
-              onChange={(e) => setSedeFilter(e.target.value)}
-              className="py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-medium focus:outline-none focus:border-[#C8102E] transition cursor-pointer"
-            >
-              <option value="ALL">Todas las Sedes</option>
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3 w-full lg:w-auto sm:justify-end">
+            <select value={sedeFilter} onChange={(e) => setSedeFilter(e.target.value)} aria-label="Filtrar por sede" className={`${FIELD} min-w-0 font-medium cursor-pointer`}>
+              <option value="ALL">Todas las sedes</option>
               {SEDES.map((s) => (
                 <option key={s.codigo} value={s.codigo}>
                   {s.nombre}
@@ -405,21 +383,15 @@ export default function AdminPage() {
               ))}
             </select>
 
-            {/* Role Filter */}
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 font-medium focus:outline-none focus:border-[#C8102E] transition cursor-pointer"
-            >
-              <option value="ALL">Todos los Roles</option>
-              <option value="STUDENT_ONLY">Solo Estudiantes</option>
-              <option value="ADMIN_ONLY">Solo Administradores</option>
+            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} aria-label="Filtrar por rol" className={`${FIELD} min-w-0 font-medium cursor-pointer`}>
+              <option value="ALL">Todos los roles</option>
+              <option value="STUDENT_ONLY">Solo estudiantes</option>
+              <option value="ADMIN_ONLY">Solo administradores</option>
             </select>
 
-            {/* Export CSV Button */}
             <button
               onClick={() => exportUsersToCSV(filteredUsers)}
-              className="py-3 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold rounded-xl text-sm flex items-center gap-2 shadow-sm transition cursor-pointer ml-auto sm:ml-0"
+              className="col-span-2 py-3 px-5 bg-musgo-600 hover:bg-musgo-700 active:scale-[0.98] text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 shadow-sm transition cursor-pointer"
               title="Descargar listado en formato Excel / CSV"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -430,530 +402,279 @@ export default function AdminPage() {
           </div>
         </section>
 
-        {/* Users Table Card */}
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+        {/* Players: cards on phones and tablets, a table on wide screens */}
+        <section>
+          <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 px-1">
             <div className="flex items-center gap-2.5">
-              <h2 className="font-bold text-slate-900 text-base sm:text-lg">Listado de Usuarios</h2>
-              <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold">
+              <h2 className="font-serif font-bold text-madera-800 text-lg">Jugadores</h2>
+              <span className="px-2.5 py-0.5 rounded-full bg-papel-300 text-madera-700 text-xs font-bold">
                 {filteredUsers.length} {filteredUsers.length === 1 ? 'registro' : 'registros'}
               </span>
             </div>
             {loadingUsers && (
-              <span className="text-sm text-[#C8102E] flex items-center gap-2 font-medium animate-pulse">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#C8102E]" />
-                Cargando datos...
+              <span className="text-sm text-carmesi flex items-center gap-2 font-medium animate-pulse">
+                <span className="w-2.5 h-2.5 rounded-full bg-carmesi" />
+                Cargando...
               </span>
             )}
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-700 border-collapse">
-              <thead className="bg-slate-50/90 text-slate-600 font-bold border-b border-slate-200 uppercase tracking-wider text-xs">
-                <tr>
-                  <th className="py-4 px-5">Estudiante</th>
-                  <th className="py-4 px-5">Código</th>
-                  <th className="py-4 px-5">Sede y Programa</th>
-                  <th className="py-4 px-5">Personaje</th>
-                  <th className="py-4 px-5 min-w-[170px]">Misión 1: Pantano</th>
-                  <th className="py-4 px-5 min-w-[170px]">Misión 2: Bosque</th>
-                  <th className="py-4 px-5 min-w-[170px]">Misión 3 y cierre</th>
-                  <th className="py-4 px-5 min-w-[170px]">Bonos</th>
-                  <th className="py-4 px-5 text-center">Datos Ley 1581</th>
-                  <th className="py-4 px-5 text-center">Rol</th>
-                  <th className="py-4 px-5 text-right">Ficha</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={11} className="py-14 text-center text-slate-400">
-                      <div className="flex flex-col items-center justify-center gap-2.5">
-                        <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p className="font-semibold text-base text-slate-600">No se encontraron usuarios coincidentes</p>
-                        <p className="text-sm text-slate-400">Prueba cambiando los filtros o el término de búsqueda.</p>
+          {filteredUsers.length === 0 ? (
+            <div className={`${CARD} py-12 px-4 text-center`}>
+              <p className="font-serif font-bold text-base text-madera-700">No se encontraron jugadores</p>
+              <p className="text-sm text-madera-400 mt-1">Prueba cambiando los filtros o la búsqueda.</p>
+            </div>
+          ) : (
+            <>
+              {/* Cards (under 1024 px) */}
+              <ul className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3">
+                {filteredUsers.map((u) => (
+                  <li key={u.uid} className={`${CARD} p-3.5 flex flex-col gap-3`}>
+                    <div className="flex items-start gap-3">
+                      <UserPhoto record={u} />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-madera-800 leading-tight break-words">{u.nombresApellidos || u.name || 'Sin especificar'}</p>
+                        <p className="text-xs text-madera-500 break-all mt-0.5">{u.email}</p>
                       </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((u) => {
-                    const isAdmin = u.role === 'admin';
+                      <RoleChip admin={u.role === 'admin'} />
+                    </div>
 
-                    return (
-                      <tr
-                        key={u.uid}
-                        className="hover:bg-slate-50/90 transition-colors"
-                      >
-                        {/* Student Name & Email */}
-                        <td className="py-4 px-5">
-                          <div className="flex items-center gap-3.5">
-                            {u.photoURL ? (
-                              <img src={u.photoURL} alt="" className="w-10 h-10 rounded-full border border-slate-200 object-cover shrink-0" />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0">
-                                {(u.nombresApellidos || u.name || 'U').charAt(0)}
-                              </div>
-                            )}
+                    <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                      <Fact label="Código">{u.codigoEstudiantil ? <span className="font-mono font-semibold">{u.codigoEstudiantil}</span> : <span className="text-carmesi font-medium">Pendiente</span>}</Fact>
+                      <Fact label="Sede">{u.sedeNombre || u.sedeCodigo || 'No asignada'}</Fact>
+                      <Fact label="Programa" wide>
+                        {u.programaNombre || u.programaCodigo || 'Sin programa'}
+                      </Fact>
+                      <Fact label="Personaje" wide>
+                        {u.avatarName ? `${u.nickname || 'Sin alias'} · ${u.avatarName} (${u.gender === 'male' ? 'M' : 'F'})` : <span className="italic text-madera-400">No seleccionado</span>}
+                      </Fact>
+                    </dl>
+
+                    <div className="space-y-2.5 rounded-xl bg-papel-100 border border-papel-300 p-3">
+                      {userMissions(u).map((mission) => (
+                        <MissionBar key={mission.title} mission={mission} titled />
+                      ))}
+                    </div>
+
+                    <UserBonuses record={u} row />
+
+                    <div className="flex items-center justify-between gap-3 pt-0.5">
+                      <span className="flex items-center gap-2 text-xs text-madera-500">
+                        Ley 1581
+                        <ConsentChip signed={Boolean(u.acceptedLaw1581)} />
+                      </span>
+                      <button onClick={() => setSelectedUser(u)} className={`${OPEN_BUTTON} px-5 py-2.5`}>
+                        Ver ficha
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Table (1024 px and up) */}
+              <div className={`${CARD} hidden lg:block overflow-x-auto`}>
+                <table className="w-full text-left text-sm text-madera-700 border-collapse">
+                  <thead className="bg-papel-200 text-madera-600 font-bold border-b border-papel-300 uppercase tracking-wider text-xs">
+                    <tr>
+                      <th className="py-3.5 px-4">Estudiante</th>
+                      <th className="py-3.5 px-4">Código</th>
+                      <th className="py-3.5 px-4">Sede y programa</th>
+                      <th className="py-3.5 px-4">Personaje</th>
+                      <th className="py-3.5 px-4 min-w-[170px]">Misión 1: Pantano</th>
+                      <th className="py-3.5 px-4 min-w-[170px]">Misión 2: Bosque</th>
+                      <th className="py-3.5 px-4 min-w-[170px]">Misión 3 y cierre</th>
+                      <th className="py-3.5 px-4 min-w-[170px]">Bonos</th>
+                      <th className="py-3.5 px-4 text-center">Ley 1581</th>
+                      <th className="py-3.5 px-4 text-center">Rol</th>
+                      <th className="py-3.5 px-4 text-right">Ficha</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-papel-300">
+                    {filteredUsers.map((u) => (
+                      <tr key={u.uid} className="hover:bg-papel-100 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <UserPhoto record={u} />
                             <div>
-                              <p className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
-                                {u.nombresApellidos || u.name || 'Sin especificar'}
-                              </p>
-                              <p className="text-xs sm:text-sm text-slate-500 truncate max-w-[240px] mt-0.5">
-                                {u.email}
-                              </p>
+                              <p className="font-bold text-madera-800 leading-tight">{u.nombresApellidos || u.name || 'Sin especificar'}</p>
+                              <p className="text-xs text-madera-500 truncate max-w-[240px] mt-0.5">{u.email}</p>
                             </div>
                           </div>
                         </td>
-
-                        {/* Student Code */}
-                        <td className="py-4 px-5">
+                        <td className="py-3.5 px-4">
                           {u.codigoEstudiantil ? (
-                            <span className="font-mono px-3 py-1.5 bg-slate-100 text-slate-800 rounded-lg font-semibold text-xs sm:text-sm">
-                              {u.codigoEstudiantil}
-                            </span>
+                            <span className="font-mono px-2.5 py-1 bg-papel-200 text-madera-800 rounded-lg font-semibold text-xs">{u.codigoEstudiantil}</span>
                           ) : (
-                            <span className="text-xs sm:text-sm text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg font-medium">
-                              Pendiente
-                            </span>
+                            <span className="text-xs text-carmesi bg-carmesi-claro px-2.5 py-1 rounded-lg font-medium">Pendiente</span>
                           )}
                         </td>
-
-                        {/* Sede and Program */}
-                        <td className="py-4 px-5">
-                          <p className="font-bold text-slate-800 text-sm leading-tight">
-                            {u.sedeNombre || u.sedeCodigo || 'No asignada'}
-                          </p>
-                          <p className="text-xs sm:text-sm text-slate-500 truncate max-w-[240px] mt-0.5" title={u.programaNombre}>
+                        <td className="py-3.5 px-4">
+                          <p className="font-bold text-madera-800 text-sm leading-tight">{u.sedeNombre || u.sedeCodigo || 'No asignada'}</p>
+                          <p className="text-xs text-madera-500 truncate max-w-[240px] mt-0.5" title={u.programaNombre}>
                             {u.programaNombre || u.programaCodigo || 'Sin programa'}
                           </p>
                         </td>
-
-                        {/* Character 3D & Nickname */}
-                        <td className="py-4 px-5">
+                        <td className="py-3.5 px-4">
                           {u.avatarName ? (
                             <div>
-                              <span className="font-bold text-slate-800 text-sm">
-                                {u.nickname || 'Sin alias'}
-                              </span>
-                              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                              <span className="font-bold text-madera-800 text-sm">{u.nickname || 'Sin alias'}</span>
+                              <p className="text-xs text-madera-500 mt-0.5">
                                 Avatar: {u.avatarName} ({u.gender === 'male' ? 'M' : 'F'})
                               </p>
                             </div>
                           ) : (
-                            <span className="text-sm text-slate-400 italic">No seleccionado</span>
+                            <span className="text-sm text-madera-400 italic">No seleccionado</span>
                           )}
                         </td>
-
-                        {/* Mission 1 progress */}
-                        <td className="py-4 px-5">
-                          {(() => {
-                            const mission = getMissionSummary(u.progress);
-                            return (
-                              <div className="min-w-[150px]">
-                                <div className="flex items-center justify-between text-xs font-semibold mb-1">
-                                  <span className={mission.completed ? 'text-emerald-700 font-bold' : 'text-slate-700'}>
-                                    {mission.completed ? 'Completada' : `${mission.done} de ${mission.total} pasos`}
-                                  </span>
-                                  <span className="text-slate-500">{mission.percent}%</span>
-                                </div>
-                                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${mission.completed ? 'bg-emerald-500' : mission.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
-                                    style={{ width: `${mission.percent}%` }}
-                                  />
-                                </div>
-                                <p className="text-[11px] text-slate-400 mt-1">
-                                  {mission.completed && u.progress?.mision1CompletadaEn
-                                    ? `Superado: ${new Date(u.progress.mision1CompletadaEn).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`
-                                    : u.progressUpdatedAt
-                                      ? `Activo: ${new Date(u.progressUpdatedAt).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`
-                                      : 'Sin actividad'}
-                                </p>
-                              </div>
-                            );
-                          })()}
+                        {userMissions(u).map((mission) => (
+                          <td key={mission.title} className="py-3.5 px-4">
+                            <MissionBar mission={mission} />
+                          </td>
+                        ))}
+                        <td className="py-3.5 px-4">
+                          <UserBonuses record={u} />
                         </td>
-
-                        {/* Mission 2 progress */}
-                        <td className="py-4 px-5">
-                          {(() => {
-                            const desafio2 = getDesafio2Summary(u.progress);
-                            if (!desafio2.unlocked) {
-                              return (
-                                <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg font-medium inline-block">
-                                  Bloqueada
-                                </span>
-                              );
-                            }
-                            return (
-                              <div className="min-w-[150px]">
-                                <div className="flex items-center justify-between text-xs font-semibold mb-1">
-                                  <span className={desafio2.completed ? 'text-emerald-700 font-bold' : 'text-slate-700'}>
-                                    {desafio2.completed ? 'Completada' : `${desafio2.done} de ${desafio2.total} pasos`}
-                                  </span>
-                                  <span className="text-slate-500">{desafio2.percent}%</span>
-                                </div>
-                                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${desafio2.completed ? 'bg-emerald-500' : desafio2.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
-                                    style={{ width: `${desafio2.percent}%` }}
-                                  />
-                                </div>
-                                <p className="text-[11px] text-slate-400 mt-1">
-                                  {desafio2.completed && u.progress?.mision2CompletadaEn
-                                    ? `Superado: ${new Date(u.progress.mision2CompletadaEn).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}`
-                                    : `${desafio2.steps.find((s) => s.id === 'duendes')?.status} duendes · ${desafio2.steps.find((s) => s.id === 'frutos')?.status} frutas`}
-                                </p>
-                              </div>
-                            );
-                          })()}
+                        <td className="py-3.5 px-4 text-center">
+                          <ConsentChip signed={Boolean(u.acceptedLaw1581)} />
                         </td>
-
-                        {/* Mission 3, closing story and bonuses */}
-                        <td className="py-4 px-5">
-                          {(() => {
-                            const desafio3 = getDesafio3Summary(u.progress);
-                            const cierre = getCierreSummary(u.progress);
-                            const bonos = getBonosSummary(u.progress);
-                            if (!desafio3.unlocked) {
-                              return (
-                                <div>
-                                  <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg font-medium inline-block">Bloqueada</span>
-                                  {bonos.bonos > 0 && (
-                                    <p className="text-[11px] text-slate-400 mt-1">
-                                      Bonos: {bonos.bonos} de {bonos.totalBonos}
-                                    </p>
-                                  )}
-                                </div>
-                              );
-                            }
-                            return (
-                              <div className="min-w-[150px]">
-                                <div className="flex items-center justify-between text-xs font-semibold mb-1">
-                                  <span className={desafio3.completed ? 'text-emerald-700 font-bold' : 'text-slate-700'}>
-                                    {cierre.completed ? 'Juego completado' : desafio3.completed ? 'Completada' : `${desafio3.done} de ${desafio3.total} pasos`}
-                                  </span>
-                                  <span className="text-slate-500">{desafio3.percent}%</span>
-                                </div>
-                                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${desafio3.completed ? 'bg-emerald-500' : desafio3.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
-                                    style={{ width: `${desafio3.percent}%` }}
-                                  />
-                                </div>
-                                <p className="text-[11px] text-slate-400 mt-1">
-                                  Cierre: {cierre.done} de {cierre.total} · Bonos: {bonos.bonos} de {bonos.totalBonos}
-                                </p>
-                              </div>
-                            );
-                          })()}
+                        <td className="py-3.5 px-4 text-center">
+                          <RoleChip admin={u.role === 'admin'} />
                         </td>
-
-                        {/* Bonuses: the statue's ring and the fairy's amulet */}
-                        <td className="py-4 px-5">
-                          {(() => {
-                            const { bono1, bono2 } = getBonosSummary(u.progress);
-                            return (
-                              <div className="flex flex-col gap-1.5 min-w-[150px]">
-                                <BonusChip label="Bono 1 · Estatua" part={bono1} />
-                                <BonusChip label="Bono 2 · Hada" part={bono2} />
-                              </div>
-                            );
-                          })()}
-                        </td>
-
-                        {/* Law 1581 Consent */}
-                        <td className="py-4 px-5 text-center">
-                          {u.acceptedLaw1581 ? (
-                            <span className="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs sm:text-sm font-semibold">
-                              Firmado
-                            </span>
-                          ) : (
-                            <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs sm:text-sm font-medium">
-                              Pendiente
-                            </span>
-                          )}
-                        </td>
-
-                        {/* User Role */}
-                        <td className="py-4 px-5 text-center">
-                          {isAdmin ? (
-                            <span className="px-3 py-1 rounded-lg bg-purple-100 text-purple-800 font-bold text-xs sm:text-sm uppercase tracking-wider">
-                              Admin
-                            </span>
-                          ) : (
-                            <span className="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs sm:text-sm font-medium">
-                              Estudiante
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Action Buttons */}
-                        <td className="py-4 px-5 text-right">
-                          <button
-                            onClick={() => setSelectedUser(u)}
-                            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs sm:text-sm font-semibold transition cursor-pointer shadow-xs"
-                          >
-                            Ver Ficha
+                        <td className="py-3.5 px-4 text-right">
+                          <button onClick={() => setSelectedUser(u)} className={`${OPEN_BUTTON} px-4 py-2 whitespace-nowrap`}>
+                            Ver ficha
                           </button>
                         </td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </section>
       </main>
 
-      {/* User Detail Modal */}
+      {/* Player record: a sheet from the bottom on phones, a centred window on wide screens */}
       {selectedUser && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setSelectedUser(null)}
-        >
+        <div className="fixed inset-0 z-50 bg-madera-900/70 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setSelectedUser(null)}>
           <div
-            className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]"
+            className="bg-papel-50 w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl border-2 border-madera-600 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Ficha del jugador"
           >
-            {/* Modal Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-4">
-                {selectedUser.photoURL ? (
-                  <img src={selectedUser.photoURL} alt="" className="w-14 h-14 rounded-full border border-slate-200 object-cover" />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-[#C8102E] text-white flex items-center justify-center font-bold text-lg">
-                    {(selectedUser.nombresApellidos || selectedUser.name || 'U').charAt(0)}
+            <div className="p-4 sm:p-6 border-b border-papel-300 flex items-start justify-between gap-3 bg-papel-200">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                <UserPhoto record={selectedUser} large />
+                <div className="min-w-0">
+                  <h3 className="font-serif font-bold text-madera-800 text-lg sm:text-xl leading-tight break-words">{selectedUser.nombresApellidos || selectedUser.name}</h3>
+                  <p className="text-xs sm:text-sm text-madera-500 mt-0.5 break-all">{selectedUser.email}</p>
+                  <div className="mt-1.5">
+                    <RoleChip admin={selectedUser.role === 'admin'} />
                   </div>
-                )}
-                <div>
-                  <div className="flex items-center gap-2.5">
-                    <h3 className="font-bold text-slate-900 text-lg sm:text-xl leading-tight">
-                      {selectedUser.nombresApellidos || selectedUser.name}
-                    </h3>
-                    <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider ${selectedUser.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-600'
-                      }`}>
-                      {selectedUser.role === 'admin' ? 'Administrador' : 'Estudiante'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-500 mt-0.5">{selectedUser.email}</p>
                 </div>
               </div>
-
               <button
                 onClick={() => setSelectedUser(null)}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer text-base"
+                aria-label="Cerrar la ficha"
+                className="shrink-0 w-9 h-9 flex items-center justify-center rounded-full border-2 border-madera-600 text-madera-600 hover:bg-madera-600 hover:text-papel-100 transition cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            {/* Modal Body (Scrollable) */}
-            <div className="p-6 overflow-y-auto space-y-6 text-sm text-slate-700">
-
-              {/* Section 1: Academic Data */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-6 text-sm text-madera-700">
               <div>
-                <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] mb-3 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                  </svg>
-                  Datos Académicos Universidad del Valle
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100">
-                  <div>
-                    <span className="text-slate-400 block text-xs uppercase font-semibold">Código Estudiantil</span>
-                    <span className="font-mono font-bold text-slate-900 text-base mt-0.5 block">
-                      {selectedUser.codigoEstudiantil || 'No diligenciado'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-xs uppercase font-semibold">Sede</span>
-                    <span className="font-bold text-slate-800 text-sm sm:text-base mt-0.5 block">
-                      {selectedUser.sedeNombre || selectedUser.sedeCodigo || 'No especificada'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-xs uppercase font-semibold">Facultad</span>
-                    <span className="font-semibold text-slate-800 text-sm sm:text-base mt-0.5 block">
-                      {selectedUser.facultadNombre || selectedUser.facultadCodigo || 'No especificada'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-xs uppercase font-semibold">Programa Académico</span>
-                    <span className="font-semibold text-slate-800 text-sm sm:text-base mt-0.5 block">
-                      {selectedUser.programaNombre || selectedUser.programaCodigo || 'No especificado'}
-                    </span>
-                  </div>
-                </div>
+                <h4 className={SECTION_TITLE}>Datos académicos · Universidad del Valle</h4>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-papel-100 p-4 sm:p-5 rounded-2xl border border-papel-300">
+                  <Fact label="Código estudiantil">
+                    <span className="font-mono font-bold text-base">{selectedUser.codigoEstudiantil || 'No diligenciado'}</span>
+                  </Fact>
+                  <Fact label="Sede">{selectedUser.sedeNombre || selectedUser.sedeCodigo || 'No especificada'}</Fact>
+                  <Fact label="Facultad">{selectedUser.facultadNombre || selectedUser.facultadCodigo || 'No especificada'}</Fact>
+                  <Fact label="Programa académico">{selectedUser.programaNombre || selectedUser.programaCodigo || 'No especificado'}</Fact>
+                </dl>
               </div>
 
-              {/* Section 2: Character 3D & Avatar */}
               <div>
-                <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] mb-3 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  Configuración del Avatar en el Videojuego
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100">
-                  <div>
-                    <span className="text-slate-400 block text-xs uppercase font-semibold">Alias (Nickname)</span>
-                    <span className="font-bold text-slate-800 text-sm sm:text-base mt-0.5 block">{selectedUser.nickname || 'Sin alias'}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-xs uppercase font-semibold">Avatar 3D</span>
-                    <span className="font-semibold text-slate-800 text-sm sm:text-base mt-0.5 block">{selectedUser.avatarName || 'No seleccionado'}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-xs uppercase font-semibold">Género</span>
-                    <span className="font-semibold text-slate-800 text-sm sm:text-base mt-0.5 block">
-                      {selectedUser.gender === 'male' ? 'Masculino' : selectedUser.gender === 'female' ? 'Femenino' : 'No definido'}
-                    </span>
-                  </div>
-                </div>
+                <h4 className={SECTION_TITLE}>Personaje en el videojuego</h4>
+                <dl className="grid grid-cols-3 gap-3.5 bg-papel-100 p-4 sm:p-5 rounded-2xl border border-papel-300">
+                  <Fact label="Alias">{selectedUser.nickname || 'Sin alias'}</Fact>
+                  <Fact label="Avatar 3D">{selectedUser.avatarName || 'No seleccionado'}</Fact>
+                  <Fact label="Género">{selectedUser.gender === 'male' ? 'Masculino' : selectedUser.gender === 'female' ? 'Femenino' : 'No definido'}</Fact>
+                </dl>
               </div>
 
-              {/* Section 3: Mission 1 progress (se actualiza en vivo) */}
+              <div>
+                <h4 className={SECTION_TITLE}>Vidas y derrotas</h4>
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 bg-papel-100 p-4 sm:p-5 rounded-2xl border border-papel-300">
+                  <Fact label="Estrellas">
+                    {selectedUser.progress.estrellas} de {STARS}
+                  </Fact>
+                  <Fact label="Estrellas extra">{selectedUser.progress.vidasExtra}</Fact>
+                  <Fact label="Extra perdidas">{selectedUser.progress.vidasExtraPerdidas}</Fact>
+                  <Fact label="Vidas disponibles">{selectedUser.progress.estrellas + selectedUser.progress.vidasExtra}</Fact>
+                  <Fact label="Derrotas totales">{countDerrotas(selectedUser.progress)}</Fact>
+                  <Fact label="En el pantano">{selectedUser.progress.derrotas.desafio1 ?? 0}</Fact>
+                  <Fact label="En el bosque">{selectedUser.progress.derrotas.desafio2 ?? 0}</Fact>
+                  <Fact label="En la cumbre">{selectedUser.progress.derrotas.desafio3 ?? 0}</Fact>
+                  <Fact label="Segundos bajos">{selectedUser.progress.reinicios.segundoBajo ?? 0}</Fact>
+                  <Fact label="Terceros bajos">{selectedUser.progress.reinicios.tercerBajo ?? 0}</Fact>
+                  <Fact label="Personajes perdidos" wide>
+                    {(selectedUser.lostCharacters ?? []).join(', ') || 'Ninguno'}
+                  </Fact>
+                </dl>
+              </div>
+
+              {/* The three missions, the closing story and the bonuses (live) */}
               {(() => {
-                const mission = getMissionSummary(selectedUser.progress);
-                return (
-                  <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                        Misión 1: El Pantano de la Tristeza
-                      </h4>
-                      <span className={`text-xs sm:text-sm font-bold px-3 py-1 rounded-full ${mission.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>
-                        {mission.completed ? 'Completada' : `${mission.done} de ${mission.total} pasos`} ({mission.percent}%)
-                      </span>
-                    </div>
-
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-2">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${mission.completed ? 'bg-emerald-500' : mission.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
-                        style={{ width: `${mission.percent}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500 mb-3.5">
-                      {selectedUser.progressUpdatedAt
-                        ? `Última actividad: ${new Date(selectedUser.progressUpdatedAt).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' })}`
-                        : 'Todavía no ha jugado.'}
-                      {mission.completed && selectedUser.progress?.mision1CompletadaEn
-                        ? ` · Completada el ${new Date(selectedUser.progress.mision1CompletadaEn).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' })}`
-                        : ''}
-                    </p>
-
-                    <p className="text-xs text-slate-600 mb-3.5 flex flex-wrap gap-x-4 gap-y-1">
-                      <span>
-                        Estrellas: <strong>{selectedUser.progress.estrellas} de {STARS}</strong>
-                      </span>
-                      <span>
-                        Estrellas extra (bonos): <strong>{selectedUser.progress.vidasExtra}</strong>
-                      </span>
-                      <span>
-                        Estrellas extra perdidas: <strong>{selectedUser.progress.vidasExtraPerdidas}</strong>
-                      </span>
-                      <span>
-                        Vidas disponibles: <strong>{selectedUser.progress.estrellas + selectedUser.progress.vidasExtra}</strong>
-                      </span>
-                      <span>
-                        Derrotas totales: <strong>{countDerrotas(selectedUser.progress)}</strong>
-                      </span>
-                      <span>
-                        Derrotas en el pantano: <strong>{selectedUser.progress.derrotas.desafio1 ?? 0}</strong>
-                      </span>
-                      <span>
-                        Derrotas en el bosque: <strong>{selectedUser.progress.derrotas.desafio2 ?? 0}</strong>
-                      </span>
-                      <span>
-                        Segundos bajos: <strong>{selectedUser.progress.reinicios.segundoBajo ?? 0}</strong>
-                      </span>
-                      <span>
-                        Terceros bajos: <strong>{selectedUser.progress.reinicios.tercerBajo ?? 0}</strong>
-                      </span>
-                      <span>
-                        Derrotas en la cumbre: <strong>{selectedUser.progress.derrotas.desafio3 ?? 0}</strong>
-                      </span>
-                      <span>
-                        Personajes perdidos: <strong>{(selectedUser.lostCharacters ?? []).join(', ') || 'Ninguno'}</strong>
-                      </span>
-                    </p>
-
-                    <MissionSteps steps={mission.steps} />
-                  </div>
-                );
-              })()}
-
-              {/* Section 3b: Challenge 2 (once the swamp is crossed) */}
-              {(() => {
-                const desafio2 = getDesafio2Summary(selectedUser.progress);
-                return (
-                  <div>
-                    <div className="flex items-center justify-between mb-2.5">
-                      <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                        Misión 2: El Bosque de la Oscuridad
-                      </h4>
-                      <span className={`text-xs sm:text-sm font-bold px-3 py-1 rounded-full ${desafio2.completed ? 'bg-emerald-100 text-emerald-800' : desafio2.unlocked ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-400'}`}>
-                        {desafio2.completed ? 'Completada' : desafio2.unlocked ? `${desafio2.done} de ${desafio2.total} pasos (${desafio2.percent}%)` : 'Bloqueada'}
-                      </span>
-                    </div>
-
-                    {desafio2.unlocked && (
-                      <>
-                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-2">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${desafio2.completed ? 'bg-emerald-500' : desafio2.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
-                            style={{ width: `${desafio2.percent}%` }}
-                          />
-                        </div>
-                        <p className="text-xs text-slate-500 mb-3.5">
-                          {desafio2.completed && selectedUser.progress?.mision2CompletadaEn
-                            ? `Completada el ${new Date(selectedUser.progress.mision2CompletadaEn).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' })}`
-                            : `Herramientas élficas recogidas: ${desafio2.steps.filter((s) => s.id.startsWith('recoger-') && s.done).length} de 3 · Sendero oculto: ${desafio2.steps.find((s) => s.id === 'mapa')?.done ? 'Despejado con mapa' : 'Bloqueado por muro de roca'}`}
-                        </p>
-                      </>
-                    )}
-
-                    {desafio2.unlocked ? (
-                      <MissionSteps steps={desafio2.steps} />
-                    ) : (
-                      <p className="text-xs text-slate-500 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                        Se habilita al completar la Misión 1 (Pantano de la Tristeza): el elfo espera al pie del gran árbol al otro lado del pantano.
-                      </p>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Section 3c: Challenge 3, closing story and bonuses */}
-              {(() => {
-                const desafio3 = getDesafio3Summary(selectedUser.progress);
-                const cierre = getCierreSummary(selectedUser.progress);
-                const bonos = getBonosSummary(selectedUser.progress);
+                const record = selectedUser;
+                const mission = getMissionSummary(record.progress);
+                const desafio2 = getDesafio2Summary(record.progress);
+                const desafio3 = getDesafio3Summary(record.progress);
+                const cierre = getCierreSummary(record.progress);
+                const bonos = getBonosSummary(record.progress);
                 const date = (iso: string | undefined) => (iso ? new Date(iso).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' }) : 'sin fecha');
                 return (
                   <>
                     <MissionSection
+                      title="Misión 1: El Pantano de la Tristeza"
+                      summary={mission}
+                      unlocked
+                      note={
+                        mission.completed && record.progress?.mision1CompletadaEn
+                          ? `Completada el ${date(record.progress.mision1CompletadaEn)}`
+                          : record.progressUpdatedAt
+                            ? `Última actividad: ${date(record.progressUpdatedAt)}`
+                            : 'Todavía no ha jugado.'
+                      }
+                      locked=""
+                    />
+                    <MissionSection
+                      title="Misión 2: El Bosque de la Oscuridad"
+                      summary={desafio2}
+                      unlocked={desafio2.unlocked}
+                      note={
+                        desafio2.completed && record.progress?.mision2CompletadaEn
+                          ? `Completada el ${date(record.progress.mision2CompletadaEn)}`
+                          : `Herramientas élficas recogidas: ${desafio2.steps.filter((s) => s.id.startsWith('recoger-') && s.done).length} de 3 · Sendero oculto: ${desafio2.steps.find((s) => s.id === 'mapa')?.done ? 'despejado con el mapa' : 'cerrado por el muro de roca'}`
+                      }
+                      locked="Se habilita al completar la Misión 1 (Pantano de la Tristeza): el elfo espera al pie del gran árbol al otro lado del pantano."
+                    />
+                    <MissionSection
                       title="Misión 3: Los Túneles de la Cumbre"
                       summary={desafio3}
                       unlocked={desafio3.unlocked}
-                      note={desafio3.completed ? `Completada el ${date(selectedUser.progress?.mision3CompletadaEn)}` : 'Brújula para el laberinto, muñeca para el espectro y guante para el ogro'}
+                      note={desafio3.completed ? `Completada el ${date(record.progress?.mision3CompletadaEn)}` : 'Brújula para el laberinto, muñeca para el espectro y guante para el ogro'}
                       locked="Se habilita al completar la Misión 2 (Bosque de la Oscuridad): Hedrig espera junto a la fogata de su casa, al pie de la cumbre."
                     />
                     <MissionSection
                       title="Relato de cierre: El Santuario y el Cáliz"
                       summary={cierre}
                       unlocked={cierre.unlocked}
-                      note={cierre.completed ? `Juego completado el ${date(selectedUser.progress?.juegoCompletadoEn)}` : 'La dríada abre el santuario; el cáliz está sobre el altar'}
+                      note={cierre.completed ? `Juego completado el ${date(record.progress?.juegoCompletadoEn)}` : 'La dríada abre el santuario; el cáliz está sobre el altar'}
                       locked="Se habilita al llegar a la Cumbre de la Desolación (Misión 3 completada)."
                     />
                     <MissionSection title="Bonos: La Estatua y el Hada" summary={bonos} unlocked note={`${bonos.bonos} de ${bonos.totalBonos} bonos obtenidos (opcionales)`} locked="" />
@@ -961,39 +682,26 @@ export default function AdminPage() {
                 );
               })()}
 
-              {/* Section 4: Consent & Authorization */}
               <div>
-                <h4 className="font-bold text-slate-900 text-sm uppercase tracking-wider text-[#C8102E] mb-3 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  Tratamiento de Datos Institucionales (Ley 1581)
-                </h4>
-                <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100 flex items-center justify-between">
+                <h4 className={SECTION_TITLE}>Tratamiento de datos (Ley 1581)</h4>
+                <div className="bg-papel-100 p-4 sm:p-5 rounded-2xl border border-papel-300 flex items-center justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-slate-900 text-sm sm:text-base">
-                      Estado: {selectedUser.acceptedLaw1581 ? 'Autorización otorgada' : 'Pendiente por autorizar'}
-                    </p>
-                    <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                      Fecha: {selectedUser.acceptedLaw1581Date ? new Date(selectedUser.acceptedLaw1581Date).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Sin registro'}
+                    <p className="font-semibold text-madera-800">{selectedUser.acceptedLaw1581 ? 'Autorización otorgada' : 'Pendiente por autorizar'}</p>
+                    <p className="text-xs sm:text-sm text-madera-500 mt-0.5">
+                      Fecha:{' '}
+                      {selectedUser.acceptedLaw1581Date
+                        ? new Date(selectedUser.acceptedLaw1581Date).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        : 'Sin registro'}
                     </p>
                   </div>
-                  <span className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold ${selectedUser.acceptedLaw1581 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                    }`}>
-                    {selectedUser.acceptedLaw1581 ? 'Válido' : 'Pendiente'}
-                  </span>
+                  <ConsentChip signed={Boolean(selectedUser.acceptedLaw1581)} />
                 </div>
               </div>
-
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end">
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="py-2.5 px-6 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-sm transition cursor-pointer shadow-xs"
-              >
-                Cerrar Ficha
+            <div className="p-3 sm:p-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-papel-300 bg-papel-200 flex items-center justify-end">
+              <button onClick={() => setSelectedUser(null)} className={`${OPEN_BUTTON} w-full sm:w-auto py-3 sm:py-2.5 px-6`}>
+                Cerrar ficha
               </button>
             </div>
           </div>
@@ -1003,15 +711,153 @@ export default function AdminPage() {
   );
 }
 
+// The dashboard wears the game's colours: parchment panels, wood borders and text, gold accents, moss for what is done.
+const CARD = 'bg-papel-50 rounded-2xl border border-papel-400 shadow-[0_2px_6px_rgba(62,39,35,0.12)]';
+const FIELD =
+  'py-3 px-3.5 bg-papel-100 border border-papel-400 rounded-xl text-base sm:text-sm text-madera-800 placeholder-madera-300 focus:outline-none focus:ring-2 focus:ring-oro-600/30 focus:border-oro-600 transition';
+const HEADER_BUTTON =
+  'h-9 min-w-9 px-2 sm:px-3.5 rounded-xl border border-madera-500 text-papel-100 hover:bg-madera-600 text-sm font-medium flex items-center justify-center gap-2 transition cursor-pointer';
+const OPEN_BUTTON = 'rounded-xl bg-madera-600 hover:bg-madera-700 active:scale-[0.98] text-papel-100 text-sm font-semibold transition cursor-pointer shadow-sm';
+const SECTION_TITLE = 'font-serif font-bold text-sm uppercase tracking-wider text-carmesi mb-2.5';
+
+const shortDate = (iso: string) => new Date(iso).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
+
+// A mission as the list shows it: how far the player got, or that it is still locked.
+type MissionGlance = { title: string; locked: boolean; label: string; percent: number; completed: boolean; note: string };
+
+// The three missions of a player at a glance (the third one carries the closing story and the bonuses in its note).
+function userMissions(record: AdminUserRecord): MissionGlance[] {
+  const mission = getMissionSummary(record.progress);
+  const desafio2 = getDesafio2Summary(record.progress);
+  const desafio3 = getDesafio3Summary(record.progress);
+  const cierre = getCierreSummary(record.progress);
+  const bonos = getBonosSummary(record.progress);
+  const steps = (summary: { done: number; total: number; completed: boolean }) => (summary.completed ? 'Completada' : `${summary.done} de ${summary.total} pasos`);
+  return [
+    {
+      title: 'Misión 1 · Pantano',
+      locked: false,
+      label: steps(mission),
+      percent: mission.percent,
+      completed: mission.completed,
+      note:
+        mission.completed && record.progress?.mision1CompletadaEn
+          ? `Superado: ${shortDate(record.progress.mision1CompletadaEn)}`
+          : record.progressUpdatedAt
+            ? `Activo: ${shortDate(record.progressUpdatedAt)}`
+            : 'Sin actividad',
+    },
+    {
+      title: 'Misión 2 · Bosque',
+      locked: !desafio2.unlocked,
+      label: steps(desafio2),
+      percent: desafio2.percent,
+      completed: desafio2.completed,
+      note:
+        desafio2.completed && record.progress?.mision2CompletadaEn
+          ? `Superado: ${shortDate(record.progress.mision2CompletadaEn)}`
+          : `${desafio2.steps.find((s) => s.id === 'duendes')?.status} duendes · ${desafio2.steps.find((s) => s.id === 'frutos')?.status} frutas`,
+    },
+    {
+      title: 'Misión 3 y cierre',
+      locked: !desafio3.unlocked,
+      label: cierre.completed ? 'Juego completado' : steps(desafio3),
+      percent: desafio3.percent,
+      completed: desafio3.completed,
+      note: desafio3.unlocked ? `Cierre: ${cierre.done} de ${cierre.total} · Bonos: ${bonos.bonos} de ${bonos.totalBonos}` : bonos.bonos > 0 ? `Bonos: ${bonos.bonos} de ${bonos.totalBonos}` : '',
+    },
+  ];
+}
+
+// One mission of a player in the list: its bar, how far it got and a line of detail. `titled` writes its name over it
+// (the cards; in the table the column says it).
+function MissionBar({ mission, titled = false }: { mission: MissionGlance; titled?: boolean }) {
+  const { title, locked, label, percent, completed, note } = mission;
+  return (
+    <div className="min-w-[150px]">
+      {titled && <p className="text-[11px] uppercase tracking-wide font-bold text-madera-500 mb-1">{title}</p>}
+      {locked ? (
+        <span className="text-xs text-madera-400 bg-papel-200 px-2.5 py-1 rounded-lg font-medium inline-block">Bloqueada</span>
+      ) : (
+        <>
+          <div className="flex items-center justify-between text-xs font-semibold mb-1">
+            <span className={completed ? 'text-musgo-700 font-bold' : 'text-madera-700'}>{label}</span>
+            <span className="text-madera-500">{percent}%</span>
+          </div>
+          <ProgressTrack percent={percent} completed={completed} />
+        </>
+      )}
+      {note && <p className="text-[11px] text-madera-400 mt-1">{note}</p>}
+    </div>
+  );
+}
+
+function ProgressTrack({ percent, completed, tall = false }: { percent: number; completed: boolean; tall?: boolean }) {
+  return (
+    <div className={`w-full bg-papel-300 ${tall ? 'h-2.5' : 'h-2'} rounded-full overflow-hidden`}>
+      <div className={`h-full rounded-full transition-all duration-500 ${completed ? 'bg-musgo-500' : 'bg-oro-600'}`} style={{ width: `${percent}%` }} />
+    </div>
+  );
+}
+
+// The player's picture, or their initial.
+function UserPhoto({ record, large = false }: { record: AdminUserRecord; large?: boolean }) {
+  const size = large ? 'w-12 h-12 sm:w-14 sm:h-14 text-lg' : 'w-10 h-10 text-sm';
+  return record.photoURL ? (
+    <img src={record.photoURL} alt="" className={`${size} rounded-full border-2 border-papel-400 object-cover shrink-0`} />
+  ) : (
+    <div className={`${size} rounded-full bg-madera-600 text-papel-100 flex items-center justify-center font-bold shrink-0`}>
+      {(record.nombresApellidos || record.name || 'U').charAt(0)}
+    </div>
+  );
+}
+
+function RoleChip({ admin }: { admin: boolean }) {
+  return admin ? (
+    <span className="inline-block px-2.5 py-1 rounded-lg bg-madera-800 text-oro-300 font-bold text-xs uppercase tracking-wider whitespace-nowrap">Admin</span>
+  ) : (
+    <span className="inline-block px-2.5 py-1 rounded-lg bg-papel-200 text-madera-600 text-xs font-semibold whitespace-nowrap">Estudiante</span>
+  );
+}
+
+function ConsentChip({ signed }: { signed: boolean }) {
+  return signed ? (
+    <span className="inline-block px-3 py-1 rounded-full bg-musgo-50 text-musgo-700 text-xs font-bold whitespace-nowrap">Firmado</span>
+  ) : (
+    <span className="inline-block px-3 py-1 rounded-full bg-carmesi-claro text-carmesi text-xs font-bold whitespace-nowrap">Pendiente</span>
+  );
+}
+
+// A named fact of a player's record (`wide` takes the whole row of its grid).
+function Fact({ label, wide = false, children }: { label: string; wide?: boolean; children: ReactNode }) {
+  return (
+    <div className={`min-w-0 ${wide ? 'col-span-full' : ''}`}>
+      <dt className="text-[11px] uppercase tracking-wide font-bold text-madera-400">{label}</dt>
+      <dd className="font-semibold text-madera-800 mt-0.5 break-words">{children}</dd>
+    </div>
+  );
+}
+
+// The two bonuses of a player: one under the other in the table, side by side on a card.
+function UserBonuses({ record, row = false }: { record: AdminUserRecord; row?: boolean }) {
+  const { bono1, bono2 } = getBonosSummary(record.progress);
+  return (
+    <div className={row ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-1.5 min-w-[150px]'}>
+      <BonusChip label="Bono 1 · Estatua" part={bono1} />
+      <BonusChip label="Bono 2 · Hada" part={bono2} />
+    </div>
+  );
+}
+
 type BonusPart = { done: number; total: number; completed: boolean };
 
-// One bonus in the users table: obtained, under way (steps done) or not started.
+// One bonus in the list: obtained, under way (steps done) or not started.
 function BonusChip({ label, part }: { label: string; part: BonusPart }) {
-  const tone = part.completed ? 'bg-emerald-100 text-emerald-800' : part.done > 0 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500';
+  const tone = part.completed ? 'bg-musgo-50 text-musgo-700 border-musgo-200' : part.done > 0 ? 'bg-oro-300/40 text-madera-700 border-oro-400' : 'bg-papel-200 text-madera-500 border-papel-300';
   return (
-    <span className={`inline-flex items-center justify-between gap-2 px-2.5 py-1 rounded-lg text-xs font-semibold ${tone}`}>
+    <span className={`flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-semibold ${tone}`}>
       <span>{label}</span>
-      <span>{part.completed ? 'Obtenido' : `${part.done}/${part.total}`}</span>
+      <span className="whitespace-nowrap">{part.completed ? 'Obtenido' : `${part.done}/${part.total}`}</span>
     </span>
   );
 }
@@ -1030,27 +876,22 @@ type MissionSectionProps = {
 function MissionSection({ title, summary, unlocked, note, locked }: MissionSectionProps) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-2.5 gap-2">
-        <h4 className="font-bold text-sm uppercase tracking-wider text-[#C8102E]">{title}</h4>
+      <div className="flex flex-wrap items-center justify-between mb-2.5 gap-x-2 gap-y-1.5">
+        <h4 className={`${SECTION_TITLE} mb-0`}>{title}</h4>
         <span
-          className={`text-xs sm:text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap ${summary.completed ? 'bg-emerald-100 text-emerald-800' : unlocked ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-400'}`}
+          className={`text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap ${summary.completed ? 'bg-musgo-50 text-musgo-700' : unlocked ? 'bg-papel-200 text-madera-700' : 'bg-papel-200 text-madera-400'}`}
         >
           {summary.completed ? 'Completada' : unlocked ? `${summary.done} de ${summary.total} pasos (${summary.percent}%)` : 'Bloqueada'}
         </span>
       </div>
       {unlocked ? (
         <>
-          <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-2">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${summary.completed ? 'bg-emerald-500' : summary.percent > 0 ? 'bg-amber-500' : 'bg-slate-200'}`}
-              style={{ width: `${summary.percent}%` }}
-            />
-          </div>
-          <p className="text-xs text-slate-500 mb-3.5">{note}</p>
+          <ProgressTrack percent={summary.percent} completed={summary.completed} tall />
+          <p className="text-xs text-madera-500 mt-2 mb-3.5">{note}</p>
           <MissionSteps steps={summary.steps} />
         </>
       ) : (
-        <p className="text-xs text-slate-500 bg-slate-50 p-3.5 rounded-xl border border-slate-100">{locked}</p>
+        <p className="text-xs text-madera-500 bg-papel-100 p-3.5 rounded-xl border border-papel-300">{locked}</p>
       )}
     </div>
   );
@@ -1061,23 +902,21 @@ function MissionSteps({ steps }: { steps: MissionStep[] }) {
   return (
     <ol className="space-y-2">
       {steps.map((step, index) => (
-        <li key={step.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-100 bg-slate-50/70">
-          <div className="flex items-center gap-3">
-            <span
-              className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${step.done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}
-            >
-              {step.done ? '✓' : index + 1}
-            </span>
-            <div>
-              <p className="font-semibold text-slate-900 text-sm">{step.label}</p>
-              <p className="text-xs text-slate-500">{step.detail}</p>
-            </div>
-          </div>
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${step.done ? 'bg-emerald-100 text-emerald-800' : step.status === 'Rechazó la ayuda' ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-500'}`}
-          >
-            {step.status ?? (step.done ? 'Hecho' : 'Pendiente')}
+        <li key={step.id} className="flex items-start gap-3 p-3 rounded-2xl border border-papel-300 bg-papel-100">
+          <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${step.done ? 'bg-musgo-200 text-musgo-700' : 'bg-papel-300 text-madera-500'}`}>
+            {step.done ? '✓' : index + 1}
           </span>
+          <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold text-madera-800 text-sm">{step.label}</p>
+              <p className="text-xs text-madera-500">{step.detail}</p>
+            </div>
+            <span
+              className={`self-start sm:self-auto px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${step.done ? 'bg-musgo-50 text-musgo-700' : step.status === 'Rechazó la ayuda' ? 'bg-carmesi-claro text-carmesi' : 'bg-papel-200 text-madera-500'}`}
+            >
+              {step.status ?? (step.done ? 'Hecho' : 'Pendiente')}
+            </span>
+          </div>
         </li>
       ))}
     </ol>

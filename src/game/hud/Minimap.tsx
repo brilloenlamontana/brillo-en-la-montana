@@ -214,7 +214,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
   if (!shown) return null;
 
   const place = touch
-    ? 'top-[max(6.4rem,calc(env(safe-area-inset-top,12px)+5.6rem))] left-[max(12px,env(safe-area-inset-left,12px))]'
+    ? 'top-[max(4rem,calc(env(safe-area-inset-top,12px)+3.25rem))] left-[max(12px,env(safe-area-inset-left,12px))]'
     : 'bottom-[max(12px,env(safe-area-inset-bottom,12px))] left-[max(12px,env(safe-area-inset-left,12px))]';
 
   return (
@@ -225,7 +225,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
           onClick={() => toggle(true)}
           aria-label="Abrir el mapa completo"
           title="Abrir el mapa completo (M)"
-          className={`relative ${touch ? 'w-24' : 'w-36 sm:w-44'} aspect-square overflow-hidden ${PANEL} cursor-pointer hover:brightness-105 active:scale-[0.98] transition`}
+          className={`relative ${touch ? 'w-[4.5rem]' : 'w-36 sm:w-44'} aspect-square overflow-hidden ${PANEL} cursor-pointer hover:brightness-105 active:scale-[0.98] transition`}
         >
           {/* The ground: the whole picture, much bigger than the panel, hung from the panel's middle. */}
           <div ref={ground} className="absolute left-1/2 top-1/2 will-change-transform" style={{ width: percent(ZOOM), aspectRatio: ASPECT }}>

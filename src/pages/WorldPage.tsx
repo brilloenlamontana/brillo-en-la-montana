@@ -1,6 +1,5 @@
 // First: the GLTF loader must know where the Draco decoder is before the challenges preload their models.
 import '@/game/engine/models/dracoDecoder';
-import { useState } from 'react';
 import { useOnboardingRedirect } from '@/app/onboarding';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { Toast } from '@/components/Toast';
@@ -14,7 +13,7 @@ import { IntroVideo } from '@/game/hud/IntroVideo';
 import { QuickItemBar } from '@/game/hud/backpack/QuickItemBar';
 import { Minimap } from '@/game/hud/Minimap';
 import { MobileControls } from '@/game/hud/MobileControls';
-import { MobileControlsToggle } from '@/game/hud/MobileControlsToggle';
+import { LandscapeOnly } from '@/game/hud/LandscapeOnly';
 import { PlayerStatus } from '@/game/hud/PlayerStatus';
 import { RendererErrorScreen } from '@/game/hud/RendererErrorScreen';
 import { SoundToggle } from '@/game/hud/SoundToggle';
@@ -33,26 +32,28 @@ export default function WorldPage() {
   const rendererError = useWorldStore((state) => state.rendererError);
   const ready = useWorldStore((state) => state.ready);
   const introVista = useProgressStore((state) => state.progress.introVista);
-  const isMobile = useIsMobile();
-  // On touch devices the joystick shows unless the player hides it.
-  const [touchControls, setTouchControls] = useState<boolean | null>(null);
-  const showTouchControls = isMobile && (touchControls ?? true);
+  // On touch devices: the joystick and its buttons, and the game is played with the screen on its side.
+  const showTouchControls = useIsMobile();
 
   if (step !== 'mundo') return null;
   if (backend === 'none') return <RendererErrorScreen error="unsupported" />;
   if (rendererError) return <RendererErrorScreen error={rendererError} />;
   // First visit: the introduction plays before anything of the world is mounted; the world loads when it ends.
-  if (!introVista) return <IntroVideo onDone={() => void saveProgress({ introVista: true })} />;
+  if (!introVista) {
+    return (
+      <>
+        <IntroVideo onDone={() => void saveProgress({ introVista: true })} />
+        <LandscapeOnly />
+      </>
+    );
+  }
 
   return (
-    <main className="w-screen h-screen relative overflow-hidden select-none">
+    <main className="w-screen h-dvh relative overflow-hidden select-none">
       {backend !== 'checking' && <GameCanvas />}
       <GameSound />
       <StoryFlags />
       {CHALLENGES.map(({ id, Hud }) => Hud && <Hud key={id} />)}
-      {isMobile && (
-        <MobileControlsToggle showMobileControls={showTouchControls} detectedMobile={isMobile} setManualControlsToggle={setTouchControls} />
-      )}
       <UserMenu
         leading={
           <>
@@ -69,6 +70,7 @@ export default function WorldPage() {
       {CHALLENGES.map(({ id, Dialogs }) => Dialogs && <Dialogs key={id} />)}
       <BajoDialog />
       {!ready && <WorldLoadingScreen />}
+      <LandscapeOnly />
     </main>
   );
 }
