@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 const PORTRAIT = '(orientation: portrait)';
@@ -10,20 +10,13 @@ function subscribe(onChange: () => void) {
 }
 const isPortrait = () => window.matchMedia(PORTRAIT).matches;
 
-type LockableOrientation = ScreenOrientation & { lock?: (orientation: 'landscape') => Promise<void> };
 
 // On a phone or tablet the game is played with the screen lying on its side. A web page cannot turn the screen by
 // itself (only an installed or full-screen page may, and never on iPhone), so while the device is held upright this
-// covers everything and asks the player to turn it; where the browser allows it, the screen is also locked sideways.
+// covers everything and asks the player to turn it.
 export function LandscapeOnly() {
   const mobile = useIsMobile();
   const portrait = useSyncExternalStore(subscribe, isPortrait, () => false);
-
-  useEffect(() => {
-    if (!mobile) return;
-    // Refused almost everywhere outside full screen: the cover below is what always works.
-    (screen.orientation as LockableOrientation | undefined)?.lock?.('landscape').catch(() => {});
-  }, [mobile]);
 
   if (!mobile || !portrait) return null;
 

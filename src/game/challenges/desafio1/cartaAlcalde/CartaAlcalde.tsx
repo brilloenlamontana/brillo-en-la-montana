@@ -1,4 +1,4 @@
-import { Html, useGLTF } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 import type { Zone } from '@/game/engine/geometry/zone';
 import { InteractionPrompt } from '@/game/engine/interaction/InteractionPrompt';
 import { PROMPT_Z_RANGE } from '@/game/engine/interaction/promptLayer';
@@ -54,4 +54,3 @@ export function CartaAlcalde() {
   );
 }
 
-useGLTF.preload(URL);

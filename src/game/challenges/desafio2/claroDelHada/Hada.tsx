@@ -230,4 +230,3 @@ export function Hada({ visible, liberada, completado, canTalk }: HadaProps) {
   );
 }
 
-useGLTF.preload(URL);

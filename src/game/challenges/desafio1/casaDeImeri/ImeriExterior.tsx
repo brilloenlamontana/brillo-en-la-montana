@@ -28,4 +28,3 @@ export function ImeriExterior({ locked, visible }: { locked: boolean; visible: b
   );
 }
 
-useGLTF.preload(IMERI_EXTERIOR_URL);

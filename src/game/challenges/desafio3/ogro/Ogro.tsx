@@ -236,4 +236,3 @@ function OgroEnSuSala() {
   );
 }
 
-useGLTF.preload(URL);

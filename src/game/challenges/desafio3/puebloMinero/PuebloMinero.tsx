@@ -1,4 +1,3 @@
-import { useGLTF } from '@react-three/drei';
 import { StaticModel } from '@/game/engine/models/StaticModel';
 import { CuboidColliders } from '@/game/engine/physics/CuboidColliders';
 import { useVisibleFrom } from '@/game/world/visibility';
@@ -20,4 +19,3 @@ export function PuebloMinero() {
   );
 }
 
-useGLTF.preload(URL);

@@ -15,20 +15,21 @@ export const LoginLayout: React.FC<LoginLayoutProps> = ({
   children,
 }) => {
   return (
-    <main className="min-h-[100dvh] w-full bg-madera-900 flex flex-col justify-between items-center px-4 py-6 sm:py-10 relative overflow-x-hidden select-none">
+    // On a phone lying on its side (a short screen) everything shrinks so the card fits without scrolling.
+    <main className="min-h-[100dvh] w-full bg-madera-900 flex flex-col justify-between items-center px-4 py-6 sm:py-10 [@media(max-height:500px)]:py-3 relative overflow-x-hidden select-none">
       <WorldBackdrop />
 
       {/* Top Spacer */}
-      <div className="h-2 sm:h-6 relative z-10" />
+      <div className="h-2 sm:h-6 [@media(max-height:500px)]:hidden relative z-10" />
 
       {/* Login Card */}
-      <section className="w-full max-w-[420px] sm:max-w-[440px] bg-papel-100 border-[3px] border-madera-600 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] relative rounded-3xl py-10 px-8 sm:py-12 sm:px-10 flex flex-col items-center text-center z-10 my-auto">
+      <section className="w-full max-w-[420px] sm:max-w-[440px] bg-papel-100 border-[3px] border-madera-600 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] relative rounded-3xl py-10 px-8 sm:py-12 sm:px-10 [@media(max-height:500px)]:py-4 [@media(max-height:500px)]:px-6 flex flex-col items-center text-center z-10 my-auto">
         {/* Univalle Emblem Box */}
-        <div className="p-3.5 bg-papel-200/90 rounded-2xl border border-papel-300 mb-6 shadow-sm flex items-center justify-center">
-          <img 
-            src="/univalle.svg" 
-            alt="Universidad del Valle" 
-            className="w-20 sm:w-22 h-auto object-contain" 
+        <div className="p-3.5 [@media(max-height:500px)]:p-2 bg-papel-200/90 rounded-2xl border border-papel-300 mb-6 [@media(max-height:500px)]:mb-2 shadow-sm flex items-center justify-center">
+          <img
+            src="/univalle.svg"
+            alt="Universidad del Valle"
+            className="w-20 sm:w-22 [@media(max-height:500px)]:w-12 h-auto object-contain"
           />
         </div>
 
@@ -38,7 +39,7 @@ export const LoginLayout: React.FC<LoginLayoutProps> = ({
         </span>
 
         {/* Game Title (strictly two lines on all screens) */}
-        <h1 className="font-serif font-bold text-3xl sm:text-4xl text-madera-800 tracking-tight mb-8 sm:mb-9 flex flex-col items-center leading-tight">
+        <h1 className="font-serif font-bold text-3xl sm:text-4xl [@media(max-height:500px)]:text-2xl text-madera-800 tracking-tight mb-8 sm:mb-9 [@media(max-height:500px)]:mb-4 flex flex-col items-center leading-tight">
           <span>Brillo en la</span>
           <span className="text-musgo-700">Montaña</span>
         </h1>
@@ -67,7 +68,7 @@ export const LoginLayout: React.FC<LoginLayoutProps> = ({
       </section>
 
       {/* Institutional Footer */}
-      <footer className="w-full max-w-md text-center text-papel-200 text-[11px] sm:text-xs tracking-wide leading-relaxed pt-6 pb-2 z-10 relative flex flex-col items-center drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+      <footer className="w-full max-w-md [@media(max-height:500px)]:hidden text-center text-papel-200 text-[11px] sm:text-xs tracking-wide leading-relaxed pt-6 pb-2 z-10 relative flex flex-col items-center drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
         <p className="text-papel-200">Desarrollado por Dirección de Desarrollo Estudiantil y Éxito Académico - DEXIA</p>
         <p className="text-[10px] text-papel-300 mt-1">© 2026 Universidad del Valle</p>
       </footer>

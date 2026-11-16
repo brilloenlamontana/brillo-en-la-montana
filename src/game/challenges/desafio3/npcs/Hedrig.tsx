@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useGLTF } from '@react-three/drei';
 import { useContando, useSalida } from '@/game/challenges/llegada';
 import { Npc, type NpcEntrance, type NpcGait } from '@/game/engine/interaction/Npc';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
@@ -53,4 +52,3 @@ export function Hedrig() {
   );
 }
 
-useGLTF.preload(URL);

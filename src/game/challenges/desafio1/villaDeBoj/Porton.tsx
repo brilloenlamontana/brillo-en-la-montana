@@ -36,4 +36,3 @@ export function Porton() {
   );
 }
 
-useGLTF.preload(PORTON_URL);

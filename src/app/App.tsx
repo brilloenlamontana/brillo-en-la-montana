@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useImmersiveOnTouch } from '@/game/hud/useImmersiveOnTouch';
 import { LoginPage } from '@/pages/LoginPage';
 import { useAuthStore } from '@/store/authStore';
 import { useAuthSession } from './useAuthSession';
@@ -13,6 +14,7 @@ const AdminPage = lazy(() => import('@/pages/AdminPage'));
 
 export function App() {
   useAuthSession();
+  useImmersiveOnTouch();
   const isAuthReady = useAuthStore((state) => state.isAuthReady);
   if (!isAuthReady) return <LoadingScreen />;
 

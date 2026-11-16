@@ -270,5 +270,3 @@ function Despedida({ from }: { from: { x: number; y: number; z: number } }) {
 
 // Preloaded one by one: both are mounted late (the spectre in the tunnels, the girl at the farewell) and each
 // useGLTF(url) must find its own cache entry, or mounting would suspend the whole world for a moment.
-useGLTF.preload(FANTASMA_URL);
-useGLTF.preload(CLARA_URL);

@@ -49,4 +49,3 @@ export function TunelesCumbre() {
   );
 }
 
-useGLTF.preload([ESTRUCTURA_URL, OBJETOS_URL, COLISION_URL]);

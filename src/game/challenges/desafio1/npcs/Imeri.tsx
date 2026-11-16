@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useGLTF } from '@react-three/drei';
 import type { Zone } from '@/game/engine/geometry/zone';
 import { Npc, type NpcEntrance, type NpcGait } from '@/game/engine/interaction/Npc';
 import { usePlayerNear } from '@/game/engine/interaction/usePlayerNear';
@@ -51,4 +50,3 @@ export function Imeri() {
   );
 }
 
-useGLTF.preload(URL);

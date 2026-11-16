@@ -91,9 +91,9 @@ export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProp
         role="dialog"
         aria-labelledby="mochila-titulo"
         onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-lg bg-[#f4e4bc] border-2 sm:border-[3px] border-[#5c3a21] rounded-2xl shadow-2xl p-4 sm:p-6 text-[#3e2723] font-sans max-h-[92vh] overflow-y-auto"
+        className="w-full max-w-lg sm:max-w-3xl bg-[#f4e4bc] border-2 sm:border-[3px] border-[#5c3a21] rounded-2xl shadow-2xl p-3 sm:p-5 text-[#3e2723] font-sans max-h-[92dvh] overflow-y-auto"
       >
-        <header className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
+        <header className="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
           <BackpackIcon className="w-8 h-8 sm:w-9 sm:h-9" />
           <div className="flex-1">
             <h2 id="mochila-titulo" className="text-xl sm:text-2xl font-serif font-bold">
@@ -113,12 +113,14 @@ export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProp
           </button>
         </header>
 
-        <div className="mb-3 sm:mb-4 rounded-xl border border-[#5c3a21]/30 bg-[#5c3a21]/10 px-3 py-2 sm:px-4 sm:py-2.5">
+        {/* Wide screens (and phones lying on their side): the goal at the left, the items at the right. */}
+        <div className="flex flex-col sm:grid sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:items-start gap-2.5 sm:gap-4">
+        <div className="rounded-xl border border-[#5c3a21]/30 bg-[#5c3a21]/10 px-3 py-2 sm:px-4 sm:py-2.5">
           <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#5c3a21]">Qué debes hacer</p>
           <p className="text-xs sm:text-sm leading-snug">{backpack.goal(progress)}</p>
         </div>
 
-        <div ref={gridRef} className="relative grid grid-cols-3 gap-2.5 sm:gap-4">
+        <div ref={gridRef} className="relative grid grid-cols-3 gap-2 sm:gap-3">
           {backpack.items.map(({ id, name, Icon }, i) => {
             const owned = states[i] === 'owned';
             return (
@@ -153,6 +155,7 @@ export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProp
                 backpack.items.map((item, i) => (states[i] === 'owned' ? <SpinningItem key={item.id} url={item.model} slot={slots[i]} /> : null))}
             </Suspense>
           </Canvas>
+        </div>
         </div>
       </div>
     </div>,

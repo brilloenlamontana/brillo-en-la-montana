@@ -22,4 +22,3 @@ export function PantanoTapas() {
   return <primitive object={merged} visible={visible} />;
 }
 
-useGLTF.preload(TAPAS_URL);

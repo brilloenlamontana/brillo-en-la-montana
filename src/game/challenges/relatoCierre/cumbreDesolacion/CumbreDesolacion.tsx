@@ -55,6 +55,4 @@ export function CumbreDesolacion() {
   );
 }
 
-useGLTF.preload([montanas, camino, columnas, nieve, edificios, jardines]);
 // On its own: it is drawn late, and a model that is not ready then would suspend the whole world.
-useGLTF.preload(follaje);

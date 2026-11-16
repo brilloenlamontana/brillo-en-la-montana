@@ -117,4 +117,3 @@ export function ChozaEstatua() {
   );
 }
 
-useGLTF.preload([EXTERIOR_URL, INTERIOR_URL, ANILLO_URL, TRAPO_URL, PEDERNAL_URL, PIRITA_URL]);

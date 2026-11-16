@@ -1,4 +1,3 @@
-import { useGLTF } from '@react-three/drei';
 import { InstancedField } from '@/game/engine/models/InstancedField';
 import { useVisibleFrom } from '@/game/world/visibility';
 import { DESAFIO1_MODELS } from '../assets';
@@ -17,4 +16,3 @@ export function PantanoVegetacion() {
   return <InstancedField url={URL} maxDistance={MAX_DISTANCE} enabled={visible} />;
 }
 
-useGLTF.preload(URL);

@@ -243,4 +243,3 @@ export function Driada({ visible }: { visible: boolean }) {
   );
 }
 
-useGLTF.preload(URL);

@@ -48,4 +48,3 @@ export function PantanoPozos() {
   );
 }
 
-useGLTF.preload(POZOS_URL);

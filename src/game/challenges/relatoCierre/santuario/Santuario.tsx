@@ -80,4 +80,3 @@ export function Santuario() {
   );
 }
 
-useGLTF.preload([EXTERIOR_URL, INTERIOR_URL, CALIZ_URL, CALIZ_BRILLO_URL]);

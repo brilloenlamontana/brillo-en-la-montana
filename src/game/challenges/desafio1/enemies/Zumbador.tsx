@@ -210,4 +210,3 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
   )
 }
 
-useGLTF.preload(ZUMBADOR_URL)

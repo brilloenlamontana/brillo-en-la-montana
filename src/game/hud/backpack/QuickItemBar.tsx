@@ -23,9 +23,10 @@ function activateItem(backpack: Backpack, id: string) {
   }
 }
 
-// Bottom-right bar with the carried items: a click, a tap or the item's hotkey uses it. A used-up item disappears from
-// it. On phones it rises so it does not cover the jump and run buttons.
-export function QuickItemBar({ raised }: { raised: boolean }) {
+// Bar with the carried items: a click, a tap or the item's hotkey uses it. A used-up item disappears from it. On touch
+// screens it is a small row under the top bar (top right), out of the way of the walking area and the jump and run
+// buttons at the bottom.
+export function QuickItemBar({ touch }: { touch: boolean }) {
   const { backpack, progress } = useActiveBackpack();
   const owned = backpack ? backpack.items.filter((item) => backpack.stateOf(item.id, progress) === 'owned') : [];
   const ownedKey = owned.map((item) => item.hotkey).join('');
@@ -51,8 +52,8 @@ export function QuickItemBar({ raised }: { raised: boolean }) {
 
   return (
     <div
-      className={`fixed right-[max(16px,env(safe-area-inset-right,16px))] z-30 flex gap-2 sm:gap-2.5 transition-all duration-200 ${
-        raised ? 'bottom-[max(172px,calc(env(safe-area-inset-bottom,18px)+154px))]' : 'bottom-[max(16px,env(safe-area-inset-bottom,16px))]'
+      className={`fixed right-[max(16px,env(safe-area-inset-right,16px))] z-30 flex gap-2 sm:gap-2.5 ${
+        touch ? 'top-[calc(max(12px,env(safe-area-inset-top,12px))+62px)]' : 'bottom-[max(16px,env(safe-area-inset-bottom,16px))]'
       }`}
     >
       {owned.map(({ id, name, hotkey, Icon }) => (
@@ -62,12 +63,16 @@ export function QuickItemBar({ raised }: { raised: boolean }) {
           onClick={() => activateItem(backpack, id)}
           title={`Usar ${name} (${hotkey})`}
           aria-label={`Usar ${name}`}
-          className="relative flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#f4e4bc]/95 border-2 sm:border-[3px] border-[#5c3a21] shadow-xl hover:scale-110 active:scale-95 transition-transform cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f4d03f]"
+          className={`relative flex items-center justify-center rounded-lg sm:rounded-2xl bg-[#f4e4bc]/95 border-2 sm:border-[3px] border-[#5c3a21] shadow-xl hover:scale-110 active:scale-95 transition-transform cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f4d03f] ${
+            touch ? 'w-10 h-10' : 'w-12 h-12 sm:w-16 sm:h-16'
+          }`}
         >
-          <Icon className="w-7 h-7 sm:w-10 sm:h-10" />
+          <Icon className={touch ? 'w-6 h-6' : 'w-7 h-7 sm:w-10 sm:h-10'} />
           <span
             aria-hidden="true"
-            className="absolute -top-1.5 -left-1.5 sm:-top-2 sm:-left-2 w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#5c3a21] text-[#f4d03f] text-[10px] sm:text-xs font-bold flex items-center justify-center border sm:border-2 border-[#f4e4bc]"
+            className={`absolute -top-1.5 -left-1.5 sm:-top-2 sm:-left-2 rounded-md bg-[#5c3a21] text-[#f4d03f] font-bold flex items-center justify-center border sm:border-2 border-[#f4e4bc] ${
+              touch ? 'w-4 h-4 text-[9px]' : 'w-5 h-5 sm:w-6 sm:h-6 text-[10px] sm:text-xs'
+            }`}
           >
             {hotkey}
           </span>

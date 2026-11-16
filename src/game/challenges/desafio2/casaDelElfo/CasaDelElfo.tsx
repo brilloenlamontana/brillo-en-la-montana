@@ -1,4 +1,3 @@
-import { useGLTF } from '@react-three/drei';
 import { CameraColliderBoxes } from '@/game/engine/camera/CameraColliderBoxes';
 import { Collectibles } from '@/game/engine/interaction/Collectibles';
 import { StaticModel } from '@/game/engine/models/StaticModel';
@@ -41,4 +40,3 @@ export function CasaDelElfo() {
   );
 }
 
-useGLTF.preload([INTERIOR_URL, ARBOL_URL, ...ELFO_COLLECTIBLES.map(({ url }) => url)]);

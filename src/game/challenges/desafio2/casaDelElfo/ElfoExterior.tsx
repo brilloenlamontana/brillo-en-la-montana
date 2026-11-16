@@ -23,4 +23,3 @@ export function ElfoExterior({ locked, visible }: { locked: boolean; visible: bo
   );
 }
 
-useGLTF.preload(EXTERIOR_URL);
