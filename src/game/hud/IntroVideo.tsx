@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNoMusic } from '@/game/engine/audio/useMenuMusic';
 
 const INTRO_URL = '/video/video-introductorio.mp4';
 
@@ -8,6 +9,8 @@ const INTRO_URL = '/video/video-introductorio.mp4';
 export function IntroVideo({ onDone }: { onDone: () => void }) {
   const video = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState<'loading' | 'playing' | 'blocked'>('loading');
+  // The video brings its own sound: the main theme of the pages before it stops, and returns with the world's loading.
+  useNoMusic();
 
   const play = () => {
     video.current?.play().catch(() => setStatus('blocked'));
