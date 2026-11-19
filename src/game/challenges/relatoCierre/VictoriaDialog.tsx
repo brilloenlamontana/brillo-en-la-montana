@@ -36,7 +36,10 @@ function Row({ label, value, done }: { label: string; value: string; done: boole
   );
 }
 
-const TITULO = '¡Fin del juego: el cáliz brilla para todos!';
+// Opinion form the player is invited to fill in after finishing (a Google Form). Without the address, no button.
+const FEEDBACK_URL = String(import.meta.env.VITE_FEEDBACK_FORM_URL ?? '').trim();
+
+const TITULO ='¡Fin del juego: el cáliz brilla para todos!';
 const RELATO = [
   'Sobre el altar, bajo la torre, la dríada posa su mano sobre el cáliz de madera con grabados de hojas de sauce y runas en el borde: brilla más de lo que jamás imaginaste. Su resplandor verde sube por la aguja del santuario, señala el camino de regreso a quienes tuvieron que abandonar su hogar y lleva su calor hasta la Villa de Boj.',
   'El frío cede y la tierra vuelve a ser fértil: todo vuelve a estar bien. Atravesaste el Pantano de la Tristeza, el Bosque de la Oscuridad y los túneles de la Cumbre de la Desolación; el juego ha terminado y este es el resumen de tu aventura.',
@@ -101,7 +104,13 @@ function Victoria() {
         <p className="mt-3 text-xs sm:text-sm font-sans italic text-[#5c3a21]">
           {bonos.completed ? BONOS.todos : BONOS.faltan}
         </p>
-        <div className="mt-5 pt-3 border-t border-[#5c3a21]/20 flex justify-end">
+        {FEEDBACK_URL && (
+          <p className="mt-3 text-xs sm:text-sm font-sans text-[#3e2723]">
+            Cuéntanos cómo te pareció el juego: tu opinión nos ayuda a mejorarlo para los demás estudiantes.
+          </p>
+        )}
+        <div className="mt-5 pt-3 border-t border-[#5c3a21]/20 flex flex-wrap justify-end gap-2">
+          {FEEDBACK_URL && <ParchmentButton onClick={() => window.open(FEEDBACK_URL, '_blank', 'noopener,noreferrer')}>Dar mi opinión</ParchmentButton>}
           <ParchmentButton onClick={() => useUIStore.getState().closeDialog()}>Seguir explorando</ParchmentButton>
         </div>
       </div>

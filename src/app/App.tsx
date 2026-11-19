@@ -11,6 +11,7 @@ import { useAuthSession } from './useAuthSession';
 const CharacterSelectionPage = lazy(() => import('@/pages/CharacterSelectionPage'));
 const WorldPage = lazy(() => import('@/pages/WorldPage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
+const ManualPage = lazy(() => import('@/pages/ManualPage'));
 
 export function App() {
   useAuthSession();
@@ -27,6 +28,7 @@ export function App() {
           <Route path="/seleccion-personaje" element={<CharacterSelectionPage />} />
           <Route path="/mundo" element={<WorldPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/manual" element={<ManualPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Suspense>

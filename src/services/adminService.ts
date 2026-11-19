@@ -112,13 +112,13 @@ const devAdminRecords = (): AdminUserRecord[] => {
     gender: 'female',
     role: 'student',
     progress: studentProgress,
-    progressUpdatedAt: '2026-10-25T21:50:00.000Z',
+    progressUpdatedAt: '2026-11-11T18:30:00.000Z',
   };
   const admin: AdminUserRecord = {
     ...user,
     role: 'admin',
     progress: normalizeProgress(undefined),
-    progressUpdatedAt: '2026-10-28T15:00:00.000Z',
+    progressUpdatedAt: '2026-11-17T15:00:00.000Z',
   };
   return [student, admin];
 };

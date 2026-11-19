@@ -1,4 +1,5 @@
 import React from 'react';
+import { ManualButton } from '@/components/manual/UserManual';
 import { WorldBackdrop } from '@/components/WorldBackdrop';
 
 interface LoginLayoutProps {
@@ -65,6 +66,11 @@ export const LoginLayout: React.FC<LoginLayoutProps> = ({
           </svg>
           <span>{loading ? 'Verificando credenciales...' : 'Iniciar Sesión con Cuenta Institucional'}</span>
         </button>
+
+        {/* User manual (opens over the page; no session needed) */}
+        <div className="mt-5 [@media(max-height:500px)]:mt-2">
+          <ManualButton variant="link" />
+        </div>
       </section>
 
       {/* Institutional Footer */}
