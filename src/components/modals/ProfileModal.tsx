@@ -160,10 +160,10 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl max-h-[96dvh] flex flex-col bg-papel-100 rounded-3xl border-[3px] border-madera-600 shadow-2xl overflow-hidden text-madera-800"
+        className="relative w-full max-w-4xl max-h-[calc(100dvh-1rem)] flex flex-col bg-papel-100 rounded-2xl sm:rounded-3xl border-2 sm:border-[3px] border-madera-600 shadow-2xl overflow-hidden text-madera-800"
       >
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 px-5 py-3 sm:px-7 border-b border-madera-600/15 bg-gradient-to-r from-papel-200/70 via-papel-50 to-papel-50 flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 px-4 py-2 sm:px-7 sm:py-3 border-b border-madera-600/15 bg-gradient-to-r from-papel-200/70 via-papel-50 to-papel-50 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <img src="/univalle.svg" alt="Universidad del Valle" className="w-9 h-9 object-contain flex-shrink-0" />
             <div className="min-w-0">
@@ -185,8 +185,8 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
           </button>
         </div>
 
-        {/* Body: on phones it may scroll; from tablet width up everything fits */}
-        <div className="flex-1 min-h-0 overflow-y-auto sm:overflow-hidden grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] gap-4 sm:gap-6 p-4 sm:p-5">
+        {/* Body: it scrolls when the screen is short (a phone lying on its side has little height) */}
+        <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] gap-3 sm:gap-6 p-3 sm:p-5">
           {/* Left: account, nickname, registration */}
           <div className="flex flex-col gap-3 min-w-0">
             <div className="flex items-center gap-3.5 p-3 rounded-2xl border border-madera-600/20 bg-papel-50/80">
@@ -241,7 +241,7 @@ export function ProfileModal({ user, onClose }: ProfileModalProps) {
 
           {/* Right: the character in 3D */}
           <div className="flex flex-col min-h-0 rounded-2xl border border-madera-600/20 bg-gradient-to-b from-papel-200/60 to-papel-50 overflow-hidden">
-            <div className="relative h-[clamp(14rem,48dvh,24rem)] sm:h-auto sm:flex-1 sm:min-h-[14rem]">
+            <div className="relative h-[clamp(8rem,44dvh,24rem)] sm:h-auto sm:flex-1 sm:min-h-[12rem]">
               {character ? (
                 <Suspense fallback={<img src={character.imagePath} alt={character.name} className="h-full w-full object-contain" />}>
                   <CharacterPreview3D character={character} />

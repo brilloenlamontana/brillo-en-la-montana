@@ -39,16 +39,16 @@ const NEIGHBORS: Record<Region, readonly Region[]> = {
   cumbre: ['tuneles'],
 };
 
-// Regions the renderer warmup visits while loading: every one of them, so that walking into a new part of the map
-// never stops the game to get it ready. The farthest from where the player appears go first and that one last (the
-// last one visited is what shows first).
+// The regions whose parts are loaded for a player standing in `region`: that one and the regions bordering it. Walking
+// on, the next ones load as the player reaches them, so a part of the story the player is not near is never downloaded.
+export function loadedRegions(region: Region): Region[] {
+  return [region, ...NEIGHBORS[region]];
+}
+
+// Regions the renderer warmup visits while loading: the ones loaded for the start (see loadedRegions). The start comes
+// last: it is what shows first.
 export function warmupRegions(start: Region): Region[] {
-  const order: Region[] = [start];
-  for (let i = 0; i < order.length; i++) {
-    for (const neighbor of NEIGHBORS[order[i]]) if (!order.includes(neighbor)) order.push(neighbor);
-  }
-  for (const region of REGIONS) if (!order.includes(region)) order.push(region);
-  return order.reverse();
+  return [...NEIGHBORS[start], start];
 }
 
 // Horizontal distance to the nearest gallery the point is in (between its floor and its ceiling); Infinity when it is

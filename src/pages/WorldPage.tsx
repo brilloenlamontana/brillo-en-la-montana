@@ -63,7 +63,7 @@ export default function WorldPage() {
         }
       />
       <MobileControls show={showTouchControls} />
-      <QuickItemBar raised={showTouchControls} />
+      <QuickItemBar touch={showTouchControls} />
       <PlayerStatus />
       <Minimap touch={showTouchControls} />
       <Toast />

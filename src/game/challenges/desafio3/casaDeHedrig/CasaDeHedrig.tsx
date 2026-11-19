@@ -50,4 +50,3 @@ export function CasaDeHedrig() {
   );
 }
 
-useGLTF.preload([EXTERIOR_URL, INTERIOR_URL, ...HEDRIG_COLLECTIBLES.map(({ url }) => url)]);

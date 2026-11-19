@@ -7,6 +7,7 @@ import { PROMPT_Z_RANGE } from '@/game/engine/interaction/promptLayer';
 import { useInteractKey } from '@/game/engine/interaction/useInteractKey';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
+import { isTouchDevice } from '@/hooks/useIsMobile';
 import { useProgressStore } from '@/store/progressStore';
 import { DESAFIO2_MODELS } from '../assets';
 import { EAT_RANGE, LENS_RANGE } from '../items';
@@ -15,6 +16,7 @@ import { comerFruto } from './comer';
 import { isLenteActivo } from './lente';
 
 const URL = DESAFIO2_MODELS.bosqueOscuridad.manzanas;
+const isTouch = isTouchDevice();
 // The skin of the fruit (the stem keeps its color). Its red comes from vertex colors averaging this red channel.
 const SKIN_MATERIAL = 'BosqueManzana';
 const SKIN_RED = 0.157;
@@ -213,10 +215,41 @@ export function FrutosBosque({ maxDistance, enabled }: FrutosBosqueProps) {
 
   useInteractKey(focused !== null, eat);
 
+  // On a touch screen the fruit can also be eaten by tapping it (the button under the thumb does the same): each one has
+  // an invisible sphere the taps hit, so a tree in front of it takes the tap instead.
+  const tap = useCallback(
+    (index: number) => {
+      const player = usePlayerStore.getState();
+      const { progress } = useProgressStore.getState();
+      const fruit = orchard.fruits[index];
+      if (!enabled || player.health <= 0 || isDesafio2Completado(progress) || progress.frutosComidos.includes(index) || bitten.current.has(index)) return;
+      const distance = Math.hypot(fruit.center.x - player.position.x, fruit.center.z - player.position.z) - fruit.radius;
+      if (distance > EAT_RANGE) return;
+      focusedRef.current = index;
+      eat();
+    },
+    [enabled, orchard, eat],
+  );
+
   const fruit = focused === null ? null : orchard.fruits[focused];
   return (
     <>
       <primitive object={orchard.group} />
+      {isTouch &&
+        enabled &&
+        orchard.fruits.map((hit, i) => (
+          <mesh
+            key={i}
+            position={hit.center}
+            onClick={(event) => {
+              event.stopPropagation();
+              tap(i);
+            }}
+          >
+            <sphereGeometry args={[hit.radius * 1.15, 8, 6]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          </mesh>
+        ))}
       {fruit && (
         <Html zIndexRange={PROMPT_Z_RANGE} position={[fruit.center.x, fruit.top + 0.35, fruit.center.z]} center>
           <InteractionPrompt action="comer la fruta" onActivate={eat} />
@@ -226,4 +259,3 @@ export function FrutosBosque({ maxDistance, enabled }: FrutosBosqueProps) {
   );
 }
 
-useGLTF.preload(URL);

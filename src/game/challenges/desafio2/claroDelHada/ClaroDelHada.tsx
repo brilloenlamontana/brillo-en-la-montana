@@ -118,4 +118,3 @@ export function ClaroDelHada() {
   );
 }
 
-useGLTF.preload([EXTERIOR_URL, INTERACTIVOS_URL, AMULETO_URL]);

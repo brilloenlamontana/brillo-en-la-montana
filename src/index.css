@@ -226,6 +226,17 @@ button:focus-visible {
   }
 }
 
+/* The map of the journey (Minimap): the picture keeps its shape; on a phone lying on its side it takes the height of
+   the screen and the title and legend go beside it. --map-aspect is the picture's width / height. */
+.map-frame {
+  height: min(68dvh, calc((100vw - 4rem) / var(--map-aspect)));
+}
+@media (orientation: landscape) {
+  .map-frame {
+    height: min(78dvh, calc((100vw - 13rem) / var(--map-aspect)));
+  }
+}
+
 @keyframes espectro-toque {
   from {
     opacity: 0.45;

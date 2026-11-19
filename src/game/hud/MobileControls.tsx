@@ -20,7 +20,8 @@ const CAP: CSSProperties = {
 
 // Touch controls (phones and tablets, played lying on their side): the joystick under the left thumb; under the right
 // one, RUN at the bottom (the one held most) and JUMP over it, smaller and fainter. When there is something to do with
-// what is in reach (what the E key does: eat a fruit, talk, pick up), a button for it shows beside them.
+// what is in reach (what the E key does: eat a fruit, talk, pick up), a labelled button for it shows beside them, in the
+// same place every time, so the thumb learns where it is.
 export function MobileControls({ show = true }: { show?: boolean }) {
   const offer = useInteractionStore((state) => state.offers[state.offers.length - 1]);
   // Nothing to tap behind a dialog, a cinematic or the open backpack.

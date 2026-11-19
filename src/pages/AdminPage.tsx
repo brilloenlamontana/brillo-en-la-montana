@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ManualButton } from '@/components/manual/UserManual';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { playAsStudent } from '@/app/onboarding';
 import { WorldBackdrop } from '@/components/WorldBackdrop';
@@ -294,6 +295,8 @@ export default function AdminPage() {
             </svg>
             <span className="hidden sm:inline">{refreshing ? 'Actualizando...' : 'Recargar'}</span>
           </button>
+
+          <ManualButton variant="header" />
 
           <button onClick={goPlay} className={HEADER_BUTTON} title="Ver el mundo 3D" aria-label="Ver el mundo 3D">
             <span className="hidden md:inline">Ver Mundo 3D</span>

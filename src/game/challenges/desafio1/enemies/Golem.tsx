@@ -225,4 +225,3 @@ export function Golem({ activo }: { activo: boolean }) {
   )
 }
 
-useGLTF.preload(GOLEM_URL)

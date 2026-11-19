@@ -41,4 +41,3 @@ export function BosqueOscuridad() {
   );
 }
 
-useGLTF.preload([ARBOLES_URL, HONGOS_URL]);

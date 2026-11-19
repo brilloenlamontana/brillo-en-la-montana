@@ -1,12 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { CharacterThumb } from '@/components/CharacterThumb';
+import { ManualButton } from '@/components/manual/UserManual';
 import { ProfileModal } from '@/components/modals/ProfileModal';
 import { CHARACTERS } from '@/data/characters';
 import { signOutUser } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
 import { useUIStore } from '@/store/uiStore';
 
-// Top-right bar: profile (opens ProfileModal) and sign out. `leading` goes to the left of the profile (e.g. the
+// Top-right bar: the user manual, the profile (opens ProfileModal) and sign out. `leading` goes to the left of the profile (e.g. the
 // backpack). Signing out clears the session; the onboarding redirect then takes the player to /login.
 export function UserMenu({ leading }: { leading?: ReactNode }) {
   const user = useAuthStore((state) => state.user);
@@ -16,10 +17,13 @@ export function UserMenu({ leading }: { leading?: ReactNode }) {
 
   // The profile takes the screen: whatever narration or panel of the game was open closes (its voice stops with it).
   // A bajo stays: closing it is what applies its consequence (back to the start, or choosing another character).
-  const openProfile = () => {
+  const putAway = () => {
     const ui = useUIStore.getState();
     if (ui.dialog !== null && !ui.dialog.startsWith('bajo.')) ui.closeDialog();
     ui.setBackpackOpen(false);
+  };
+  const openProfile = () => {
+    putAway();
     setIsProfileOpen(true);
   };
 
@@ -31,6 +35,8 @@ export function UserMenu({ leading }: { leading?: ReactNode }) {
       >
         <div className="flex items-center gap-2 bg-papel-200/95 hover:bg-papel-200 px-2.5 py-1.5 rounded-full border-2 border-madera-600 shadow-[0_4px_12px_rgba(62,39,35,0.35)] transition-all">
           {leading}
+          <ManualButton variant="icon" onOpen={putAway} />
+          <div className="w-px h-5 bg-papel-300" />
           <button
             type="button"
             onClick={openProfile}

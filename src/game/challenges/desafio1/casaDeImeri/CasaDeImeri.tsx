@@ -1,4 +1,3 @@
-import { useGLTF } from '@react-three/drei';
 import { CameraColliderBoxes } from '@/game/engine/camera/CameraColliderBoxes';
 import type { Zone } from '@/game/engine/geometry/zone';
 import { Collectibles } from '@/game/engine/interaction/Collectibles';
@@ -49,4 +48,3 @@ export function CasaDeImeri() {
   );
 }
 
-useGLTF.preload(INTERIOR_URL);

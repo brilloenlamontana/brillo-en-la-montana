@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useGLTF } from '@react-three/drei';
 import { Npc } from '@/game/engine/interaction/Npc';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { useVisibleFrom } from '@/game/world/visibility';
@@ -113,4 +112,3 @@ export function AldeanaDialog() {
   );
 }
 
-useGLTF.preload(URL);

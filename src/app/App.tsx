@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useImmersiveOnTouch } from '@/game/hud/useImmersiveOnTouch';
 import { LoginPage } from '@/pages/LoginPage';
 import { useAuthStore } from '@/store/authStore';
 import { useAuthSession } from './useAuthSession';
@@ -10,9 +11,11 @@ import { useAuthSession } from './useAuthSession';
 const CharacterSelectionPage = lazy(() => import('@/pages/CharacterSelectionPage'));
 const WorldPage = lazy(() => import('@/pages/WorldPage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
+const ManualPage = lazy(() => import('@/pages/ManualPage'));
 
 export function App() {
   useAuthSession();
+  useImmersiveOnTouch();
   const isAuthReady = useAuthStore((state) => state.isAuthReady);
   if (!isAuthReady) return <LoadingScreen />;
 
@@ -25,6 +28,7 @@ export function App() {
           <Route path="/seleccion-personaje" element={<CharacterSelectionPage />} />
           <Route path="/mundo" element={<WorldPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/manual" element={<ManualPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Suspense>

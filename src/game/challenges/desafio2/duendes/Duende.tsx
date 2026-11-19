@@ -241,4 +241,3 @@ export function Duende({ index, home }: { index: number; home: readonly [number,
   );
 }
 
-useGLTF.preload(URL);

@@ -356,14 +356,16 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
   },
 
   // In the Ogre's hall at the end of the maze (H3, floor at 42.5), spectre calmed, ready to challenge the Ogre with the glove [1].
+  // The spawn of the three Ogre presets is 1.6 m inside the hall: right on its west wall (x 111.4) the capsule was
+  // pushed out through the wall and fell under the map.
   ogro: {
-    spawn: { x: 111.5, y: 44, z: -166, yaw: 2 },
+    spawn: { x: 113, y: 44, z: -167, yaw: 2 },
     progress: { ...TUNELES_LISTO, espectroCalmado: true },
   },
 
   // In the Ogre's hall WITHOUT the miner's glove, to test being repelled and losing 20 HP.
   ogroSinGuante: {
-    spawn: { x: 111.5, y: 44, z: -166, yaw: 2 },
+    spawn: { x: 113, y: 44, z: -167, yaw: 2 },
     progress: {
       ...DESAFIO2_DONE,
       ...HEDRIG_HELP,
@@ -374,7 +376,7 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
 
   // Ogre defeated in arm-wrestling: narration dialog open and spiral stairs to the Summit unlocked.
   ogroVencido: {
-    spawn: { x: 111.5, y: 44, z: -166, yaw: 2 },
+    spawn: { x: 113, y: 44, z: -167, yaw: 2 },
     progress: { ...TUNELES_LISTO, espectroCalmado: true, ogroVencido: true },
     dialog: 'desafio3.ogroVencido',
   },
@@ -554,7 +556,17 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
 
   // Admin dashboard (/admin?dev=admin) — signed in as Fabian Stiven Valencia Cordoba (admin) with Danna Guerrero Vargas (student) in the table.
   admin: {
-    progress: { ...DESAFIO2_DONE, llegoAlPueblo: true },
+    // Danna finished the whole game with both bonuses, so the dashboard shows every mission, the bonuses and the ending.
+    progress: {
+      ...SANTUARIO_ABIERTO,
+      ...BONO1,
+      ...BONO2,
+      collectedItems: [...IMERI_ITEMS, ...ELFO_ITEMS, ...HEDRIG_ITEMS, ANILLO_ORO, AMULETO_HADA],
+      vidasExtra: 2,
+      calizTomado: true,
+      juegoCompletado: true,
+      juegoCompletadoEn: '2026-11-11T18:30:00.000Z',
+    },
     user: {
       name: 'Fabian Stiven Valencia Cordoba',
       nombresApellidos: 'Fabian Stiven Valencia Cordoba',

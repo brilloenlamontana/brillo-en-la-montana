@@ -80,4 +80,3 @@ export function BosqueMuroOculto() {
   );
 }
 
-useGLTF.preload(URL);

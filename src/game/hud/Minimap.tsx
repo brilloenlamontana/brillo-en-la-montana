@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { playSfx } from '@/game/engine/audio/audio';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
@@ -213,8 +213,9 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
 
   if (!shown) return null;
 
+  // On touch it goes under the health bar and the forest's hunger bar (HambreBar), which share the top left corner.
   const place = touch
-    ? 'top-[max(4rem,calc(env(safe-area-inset-top,12px)+3.25rem))] left-[max(12px,env(safe-area-inset-left,12px))]'
+    ? 'top-[calc(max(12px,env(safe-area-inset-top,12px))+5.75rem)] left-[max(12px,env(safe-area-inset-left,12px))]'
     : 'bottom-[max(12px,env(safe-area-inset-bottom,12px))] left-[max(12px,env(safe-area-inset-left,12px))]';
 
   return (
@@ -253,7 +254,9 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
             aria-modal="true"
             aria-label="Mapa del viaje"
           >
-            <div className={`relative flex max-h-full flex-col gap-2 p-3 sm:p-4 ${PANEL}`} onClick={(event) => event.stopPropagation()}>
+            {/* Phones lying on their side: the title and legend sit at the left and the map takes the height of the screen. */}
+            <div className={`relative flex max-h-full flex-col landscape:flex-row gap-2 landscape:gap-3 p-3 sm:p-4 ${PANEL}`} onClick={(event) => event.stopPropagation()}>
+              <div className="flex min-w-0 flex-col gap-2 landscape:w-44 landscape:shrink-0">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="font-serif text-base sm:text-lg font-bold leading-tight text-[#3e2723]">Mapa del viaje</h2>
@@ -271,18 +274,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
                   </svg>
                 </button>
               </div>
-              <div
-                className="relative overflow-hidden rounded-lg sm:rounded-xl border-2 border-[#5c3a21]"
-                style={{ aspectRatio: ASPECT, height: 'min(68dvh, calc((100vw - 4rem) / ' + ASPECT.toFixed(4) + '))' }}
-              >
-                <img src={MAP_PICTURE.url} alt="El mundo visto desde arriba" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
-                <Fog stage={stage} />
-                <Places next={next} names stage={stage} />
-                <div ref={whole} className="absolute h-5 w-5">
-                  <Arrow className="h-full w-full" />
-                </div>
-              </div>
-              <p className="flex flex-wrap gap-x-3 gap-y-0.5 font-serif text-[10px] sm:text-xs text-[#3e2723]">
+              <p className="flex flex-wrap landscape:flex-col gap-x-3 gap-y-0.5 font-serif text-[10px] sm:text-xs text-[#3e2723]">
                 <span className="inline-flex items-center gap-1">
                   <Arrow className="h-3 w-3" />
                   Tú
@@ -298,6 +290,18 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
                   Tu siguiente destino
                 </span>
               </p>
+              </div>
+              <div
+                className="map-frame relative overflow-hidden rounded-lg sm:rounded-xl border-2 border-[#5c3a21]"
+                style={{ aspectRatio: ASPECT, '--map-aspect': ASPECT } as CSSProperties}
+              >
+                <img src={MAP_PICTURE.url} alt="El mundo visto desde arriba" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
+                <Fog stage={stage} />
+                <Places next={next} names stage={stage} />
+                <div ref={whole} className="absolute h-5 w-5">
+                  <Arrow className="h-full w-full" />
+                </div>
+              </div>
             </div>
           </div>,
           document.body,

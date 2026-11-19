@@ -13,9 +13,9 @@ function tick() {
   playSfx('ui_prompt', { volume: 0.5 });
 }
 
-// The label that floats over something the player can use. With a keyboard it names the E key; on a touch screen it
-// can be tapped, and the same action is offered as a big button next to the run and jump buttons (interactionStore),
-// since a small label in the middle of the world is hard to hit with a thumb.
+// The label that floats over something the player can use. With a keyboard it names the E key. On a touch screen no
+// label is drawn in the world (it would sit over the avatar): the same action is offered as a button under the thumb
+// (interactionStore, MobileControls), and tapping the thing itself also works.
 export function InteractionPrompt({ action, onActivate }: { action: string; onActivate: () => void }) {
   const isMobile = useIsMobile();
   useEffect(tick, []);
@@ -32,17 +32,7 @@ export function InteractionPrompt({ action, onActivate }: { action: string; onAc
     return () => withdraw(id);
   }, [id, action]);
 
-  if (isMobile) {
-    return (
-      <button
-        type="button"
-        onClick={onActivate}
-        className="bg-[#3e2723]/85 text-[#f4e4bc] px-3.5 py-1.5 rounded-xl whitespace-nowrap select-none border border-[#f4d03f]/60 text-xs font-semibold shadow-xl cursor-pointer active:scale-95 transition-transform"
-      >
-        Toca para <b>{action}</b>
-      </button>
-    );
-  }
+  if (isMobile) return null;
 
   return (
     <div className="bg-black/80 text-white px-3 py-1.5 rounded-lg whitespace-nowrap select-none border border-white/10 text-xs sm:text-sm font-medium shadow-lg pointer-events-none">

@@ -28,13 +28,15 @@ export type RenderQuality = {
 
 function qualityFor(backend: RenderBackend | null): RenderQuality {
   const webgl = backend === 'webgl';
-  // Below this the image smears.
-  const minDpr = 0.75;
+  // Below this the image smears. On touch screens the adaptive resolution stops at the native pixel ratio (1x): it may
+  // lower the resolution only a little, since a scaled-down image looks jagged on a phone, and MSAA stays off there.
+  const minDpr = TOUCH ? 1 : 0.75;
   // The screen's own resolution (phones report 2–3x: they stop at 1.5x); with WebGPU a desktop may go above it.
   const native = TOUCH ? Math.min(DEVICE_DPR, 1.5) : Math.min(Math.max(DEVICE_DPR, 1), 2);
   const maxDpr = TOUCH || webgl ? native : Math.min(native * 1.5, 2);
   // WebGL 2 starts sharp, at the screen's resolution; WebGPU starts at 1x and climbs while there is room.
-  const startDpr = webgl ? native : Math.min(DEVICE_DPR, 1);
+  // Phones open at 1x, so the first frames arrive sooner; AdaptiveResolution raises it while the frame rate allows.
+  const startDpr = TOUCH ? 1 : webgl ? native : Math.min(DEVICE_DPR, 1);
   return {
     antialias: !TOUCH,
     anisotropy: TOUCH ? 4 : 8,
