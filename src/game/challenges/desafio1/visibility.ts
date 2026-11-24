@@ -13,9 +13,8 @@ export const VISIBLE_FROM = {
   imeri: visibleFrom(['camino', 'casa'], ['imeri']),
   // The golem and the zumbadores only exist near the swamp.
   enemigos: visibleFrom(['pantano', 'valle']),
-  // The inside of the wells only shows from the swamp; the lids cover the holes in the ground from farther away.
+  // The darkness under the wells only shows from the swamp (the ground itself covers them: see Terreno).
   pozos: visibleFrom(['pantano']),
-  tapas: visibleFrom(['camino', 'casa', 'pantano', 'valle']),
   // The reeds and dry branches of the mud show from the shores around the swamp too.
   vegetacion: visibleFrom(['camino', 'casa', 'pantano', 'valle']),
   // Bonus 1: the ruined hut of the statue, where the swamp ends and the valley begins.

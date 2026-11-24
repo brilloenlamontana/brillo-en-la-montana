@@ -17,8 +17,7 @@ import { knownBackend } from '@/game/engine/rendering/backend';
 type ColorNode = NonNullable<MeshStandardNodeMaterial['colorNode']>;
 
 // Materials painted with the baked terrain texture (TerrenoColor 4096 px + TerrenoRugosidad).
-const TERRAIN_MATERIALS = new Set(['TerrenoMaterial', 'TerrenoTapa']);
-const TEXTURE_SLOTS = ['map', 'roughnessMap', 'metalnessMap'] as const;
+const TERRAIN_MATERIALS = new Set(['TerrenoMaterial']);
 
 // The baked colour covers the whole map with one picture (about 10 texels per metre), which looks blurred and blocky
 // under the avatar's feet. Two things sharpen it without a bigger picture:
@@ -130,32 +129,4 @@ export function loadTerrainColorTexture(url: string): Promise<Texture> {
     loads.set(url, load);
   }
   return load;
-}
-
-// Each GLB (terrain, well covers) brings its own copy of the terrain texture: each 4096px copy takes
-// ~85 MB of video memory, too much for an integrated GPU. Here they all share textures from `source`
-// and duplicate textures are disposed before uploading to GPU.
-export function shareTerrainTextures(source: Object3D, ...targets: Object3D[]) {
-  const [reference] = materialsOf(source);
-  if (!reference) return;
-  register(reference);
-  // The reference's own textures: its `map` may be showing the override right now.
-  const shared = { map: ownMaps.get(reference) ?? null, roughnessMap: reference.roughnessMap, metalnessMap: reference.metalnessMap };
-  for (const target of targets) {
-    for (const material of materialsOf(target)) {
-      const current = { ...shared, map: registered.has(material) ? (ownMaps.get(material) ?? null) : material.map };
-      const duplicates = new Set<Texture>();
-      for (const slot of TEXTURE_SLOTS) {
-        const texture = slot === 'map' ? current.map : material[slot];
-        if (texture && texture !== shared[slot]) duplicates.add(texture);
-        if (slot !== 'map') material[slot] = shared[slot];
-      }
-      duplicates.forEach((texture) => texture.dispose());
-      registered.add(material);
-      ownMaps.set(material, shared.map);
-      withDetail(material);
-      material.needsUpdate = true;
-      applyLook(material);
-    }
-  }
 }

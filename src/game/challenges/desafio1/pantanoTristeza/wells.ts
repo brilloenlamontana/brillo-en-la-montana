@@ -4,7 +4,7 @@ import { Vector3, type Mesh, type Object3D } from 'three';
 import { ringBoxes, type ColliderBox } from '@/game/engine/physics/colliderBoxes';
 import { DESAFIO1_MODELS } from '../assets';
 
-export const POZOS_URL = DESAFIO1_MODELS.pantanoTristeza.pozos;
+const POZOS_URL = DESAFIO1_MODELS.pantanoTristeza.pozos;
 
 export type Well = {
   name: string;
@@ -38,7 +38,7 @@ export function nearestWellRim(x: number, z: number) {
   return nearest && { x: nearest.x, y: nearest.rimY, z: nearest.z };
 }
 
-// The swamp wells are irregular and the terrain has an opening over each one. Each well is measured per angular
+// The swamp wells are irregular and the terrain's physics has an opening over each one. Each well is measured per angular
 // segment: the outer radius of its mesh holds the physics wall (outside the hole, so there is no invisible ledge) and
 // the radius of its inner wall holds the camera blocker (so the camera stays inside the dark well).
 function getPantanoWells(scene: Object3D): Well[] {
@@ -51,7 +51,7 @@ function getPantanoWells(scene: Object3D): Well[] {
   return wells;
 }
 
-// Wells of the Swamp of Sadness, measured once from PantanoPozos.glb and shared by every user.
+// Wells of the Swamp of Sadness, measured once from PantanoPozosFisica.glb and shared by every user.
 export function usePantanoWells(): Well[] {
   const { scene } = useGLTF(POZOS_URL);
   return useMemo(() => getPantanoWells(scene), [scene]);

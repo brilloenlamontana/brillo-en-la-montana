@@ -12,8 +12,10 @@ export const DESAFIO1_MODELS = {
     tablonAnuncio: `${DIR}/VillaDeBoj/TablonAnuncio.glb`,
   },
   pantanoTristeza: {
-    pozos: `${DIR}/PantanoTristeza/PantanoPozos.glb`,
-    tapas: `${DIR}/PantanoTristeza/PantanoTapas.glb`,
+    // The wells as physics only (never drawn): where each one is, how wide and how deep.
+    pozos: `${DIR}/PantanoTristeza/PantanoPozosFisica.glb`,
+    // Black shell under the ground around each well: what the camera sees from inside one.
+    oscuridad: `${DIR}/PantanoTristeza/PantanoPozosOscuridad.glb`,
     // Reeds, cattails and dry branches growing in the mud.
     vegetacion: `${DIR}/PantanoTristeza/PantanoVegetacion.glb`,
   },
