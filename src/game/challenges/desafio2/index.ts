@@ -3,7 +3,7 @@ import { DESAFIO2_BACKPACK } from './backpack';
 import { Desafio2Dialogs } from './Desafio2Dialogs';
 import { Desafio2Hud } from './Desafio2Hud';
 import { Desafio2World } from './Desafio2World';
-import { isDesafio2Completado } from './mission';
+import { getObjective, isDesafio2Completado } from './mission';
 
 // Challenge 2 — Dark Forest. So far: the elf (after Challenge 1), his help, his house, his tools in the backpack, the
 // wild goblins (defeated with the elven sword), the forest's hunger with its fruit (only the lens tells the good ones
@@ -20,5 +20,6 @@ export const desafio2: Challenge = {
   World: Desafio2World,
   Dialogs: Desafio2Dialogs,
   backpack: DESAFIO2_BACKPACK,
+  objective: getObjective,
   isCompleted: isDesafio2Completado,
 };

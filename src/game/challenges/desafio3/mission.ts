@@ -1,5 +1,5 @@
 import { listText } from '@/game/challenges/listText';
-import type { ItemState, MissionStep } from '@/game/challenges/types';
+import type { ItemState, MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { isDesafio2Completado } from '../desafio2/mission';
 import { HEDRIG_COLLECTIBLES, type HedrigItemId } from './items';
@@ -41,6 +41,27 @@ export function getItemState(id: HedrigItemId, progress: Progress): ItemState {
 
 // How each item is named in a sentence.
 const ITEM_LABEL: Record<HedrigItemId, string> = { guante: 'el guante de minero', brujula: 'la brújula', muneca: 'la muñeca de trapo' };
+
+// Where each step of Challenge 3 happens (the ground there): Hedrig by her bonfire and the mouth of the mine.
+const HEDRIG = { x: 82.6, y: 23.8, z: -206.3 };
+const MINA = { x: 99, y: 24, z: -194 };
+
+// The step of Challenge 3 the player is on, in one line, and where it happens (inside the tunnels the compass guides).
+export function getObjective(progress: Progress): Objective {
+  if (!hasArrived(progress)) return { text: 'Sigue las flechas doradas del suelo hasta el pueblo minero.', at: HEDRIG };
+  if (!isHedrigHouseUnlocked(progress)) {
+    const text =
+      progress?.hedrigHelp === 'rejected'
+        ? 'Vuelve con Hedrig y acepta su ayuda: sin sus objetos no pasarás los túneles.'
+        : 'Habla con Hedrig, la enana minera, junto a la fogata de su casa.';
+    return { text, at: HEDRIG };
+  }
+  const missing = HEDRIG_COLLECTIBLES.filter(({ id }) => !hasCollected(id, progress)).map(({ id }) => ITEM_LABEL[id]);
+  if (missing.length) return { text: `Entra a la casa de Hedrig y recoge ${listText(missing)}.`, at: HEDRIG };
+  if (!isEspectroCalmado(progress)) return { text: 'Entra a los túneles por la boca de la mina, guíate con la brújula y calma al espectro con la muñeca.', at: MINA };
+  if (!isOgroVencido(progress)) return { text: 'Sigue la brújula hasta la sala del ogro y véncelo en el pulso con el guante.', at: MINA };
+  return { text: 'El ogro te dejó pasar: sube la escalera de piedra hasta la cumbre.' };
+}
 
 // What the player has to do now (shown in the backpack).
 export function getGoal(progress: Progress): string {

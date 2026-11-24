@@ -249,3 +249,14 @@ button:focus-visible {
 .animate-espectro-toque {
   animation: espectro-toque 0.6s ease-out forwards;
 }
+
+/* A new objective comes in with a short fade (ObjectiveLine). */
+@keyframes objetivo-entra {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.objective-in {
+  animation: objetivo-entra 0.45s ease-out;
+}

@@ -1,5 +1,5 @@
 import { listText } from '@/game/challenges/listText';
-import type { ItemState, MissionStep } from '@/game/challenges/types';
+import type { ItemState, MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { isDesafio1Completado } from '../desafio1/mission';
 import { ELFO_COLLECTIBLES, type ElfoItemId } from './items';
@@ -51,6 +51,31 @@ export function getItemState(id: ElfoItemId, progress: Progress): ItemState {
 
 // How each tool is named in a sentence.
 const ITEM_LABEL: Record<ElfoItemId, string> = { espada: 'la espada élfica', lente: 'el lente revelador', mapa: 'el mapa del bosque' };
+
+// Where each step of Challenge 2 happens (the ground there): the elf at the foot of his tree and the heart of the forest.
+const ELFO = { x: -36.4, y: 10.2, z: -126.4 };
+const BOSQUE = { x: -24, y: 13, z: -214 };
+
+// The step of Challenge 2 the player is on, in one line, and where it happens.
+export function getObjective(progress: Progress): Objective {
+  if (!isElfoHouseUnlocked(progress)) {
+    const text =
+      progress?.elfoHelp === 'rejected'
+        ? 'Vuelve con el elfo y acepta su ayuda: sin sus herramientas no saldrás del bosque.'
+        : 'Busca al elfo al pie del árbol gigante, al otro lado del pantano, y habla con él.';
+    return { text, at: ELFO };
+  }
+  const missing = ELFO_COLLECTIBLES.filter(({ id }) => !collected(progress).includes(id)).map(({ id }) => ITEM_LABEL[id]);
+  if (missing.length) return { text: `Sube a la casa del elfo, en la copa del árbol, y recoge ${listText(missing)}.`, at: ELFO };
+  const duendes = DUENDE_COUNT - defeatedDuendes(progress);
+  const frutos = FRUTOS_NEEDED - frutosEaten(progress);
+  const tasks = [
+    ...(duendes > 0 ? [duendes === 1 ? 'vence al último duende con la espada' : `vence a los ${duendes} duendes con la espada`] : []),
+    ...(frutos > 0 ? [`come ${frutos === 1 ? 'una fruta amarilla más' : `${frutos} frutas amarillas`} (míralas con el lente)`] : []),
+    ...(isMapaActivado(progress) ? [] : ['usa el mapa para bajar el muro oculto']),
+  ];
+  return { text: `En el Bosque de la Oscuridad: ${listText(tasks)}.`, at: BOSQUE };
+}
 
 // What the player has to do now (shown in the backpack).
 export function getGoal(progress: Progress): string {

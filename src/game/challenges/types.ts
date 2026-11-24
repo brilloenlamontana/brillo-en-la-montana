@@ -5,6 +5,10 @@ import type { Point, Spawn } from '@/game/player/playerStore';
 import type { Region } from '@/game/world/regions';
 import type { GameProgress } from '@/store/progressStore';
 
+// What the story asks of the player right now: one short line that stays on screen (ObjectiveLine) and, when it
+// happens at a place, where that place is (its ground), which a beacon of light marks in the world (ObjectiveBeacon).
+export type Objective = { text: string; at?: Point };
+
 // A step of a mission as the admin dashboard lists it.
 export type MissionStep = { id: string; label: string; detail: string; done: boolean; status?: string };
 
@@ -53,6 +57,8 @@ export interface Challenge {
   // Its own HUD pieces (bars, screen effects), drawn over the canvas under the game's HUD.
   Hud?: ComponentType;
   backpack?: Backpack;
+  // What to do now while this is the challenge being played (see Objective).
+  objective?: (progress: GameProgress) => Objective;
   // Map regions it takes place in: a defeat there is a defeat in this challenge.
   regions: readonly Region[];
   // Where the player comes back after a first "bajo" in this challenge.
