@@ -94,7 +94,34 @@ export function getObjective(progress: Progress): Objective {
   return { text: `En el pantano: ${listText(swampTasks(progress))}.`, at: PANTANO };
 }
 
-const answerLabel = (help: string) => (help === 'accepted' ? 'Aceptó la ayuda' : help === 'rejected' ? 'Rechazó la ayuda' : 'Pendiente');
+// What the player still has to fetch before the swamp can be cleared, and from whom; null when nothing is missing.
+function swampLack(progress: Progress): string | null {
+  if (progress?.aldeanoHelp !== 'accepted') return 'vuelve a la Villa de Boj y acepta la ayuda de la aldeana, junto al pozo';
+  if (progress.imeriHelp !== 'accepted') return 'vuelve con Imeri y acepta su ayuda';
+  const items = collected(progress);
+  const missing = [
+    ...(!progress.golemDefeated && !items.includes('gema') ? ['la gema'] : []),
+    ...(!allZumbadoresDefeated(progress) && countPociones(progress) < POTION_IDS.length ? ['el insecticida (las 5 pociones)'] : []),
+    ...(items.includes('soga') ? [] : ['la soga']),
+  ];
+  return missing.length ? `vuelve a la casa de Imeri y recoge ${listText(missing)}` : null;
+}
+
+// Said at the shore on walking into the swamp without what it takes to cross it.
+export function getUnprepared(progress: Progress): string | null {
+  if (isDesafio1Completado(progress)) return null;
+  const lack = swampLack(progress);
+  return lack ? `¡Cuidado! No estás listo para el Pantano de la Tristeza: el Golem y los zumbadores te quitarán la vida. Antes, ${lack}.` : null;
+}
+
+// Said on walking out of the swamp with the Golem or the zumbadores still there.
+export function getPending(progress: Progress): string | null {
+  if (isDesafio1Completado(progress)) return null;
+  const lack = swampLack(progress);
+  return `El Pantano de la Tristeza sigue pendiente: ${listText(swampTasks(progress))}. ${lack ? `Para eso, ${lack}. ` : ''}Hasta entonces el elfo no saldrá a tu encuentro.`;
+}
+
+const answerLabel =(help: string) => (help === 'accepted' ? 'Aceptó la ayuda' : help === 'rejected' ? 'Rechazó la ayuda' : 'Pendiente');
 
 // Steps of Challenge 1 in order, as the admin dashboard shows them for each player.
 function getMissionSteps(progress: Progress): MissionStep[] {

@@ -20,6 +20,7 @@ import { RendererErrorScreen } from '@/game/hud/RendererErrorScreen';
 import { SoundToggle } from '@/game/hud/SoundToggle';
 import { WorldLoadingScreen } from '@/game/hud/WorldLoadingScreen';
 import { GameSound } from '@/game/sound/GameSound';
+import { DangerWarnings } from '@/game/challenges/DangerWarnings';
 import { StoryFlags } from '@/game/challenges/StoryFlags';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { saveProgress } from '@/services/progressService';
@@ -54,6 +55,7 @@ export default function WorldPage() {
       {backend !== 'checking' && <GameCanvas />}
       <GameSound />
       <StoryFlags />
+      <DangerWarnings />
       {CHALLENGES.map(({ id, Hud }) => Hud && <Hud key={id} />)}
       <UserMenu
         leading={

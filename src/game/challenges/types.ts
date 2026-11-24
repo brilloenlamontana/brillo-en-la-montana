@@ -9,6 +9,16 @@ import type { GameProgress } from '@/store/progressStore';
 // happens at a place, where that place is (its ground), which a beacon of light marks in the world (ObjectiveBeacon).
 export type Objective = { text: string; at?: Point };
 
+// The dangerous place of a challenge (the swamp, the forest, the tunnels) and what the game tells the player at its
+// edge (DangerWarnings): nobody walks in unprepared, or out with the challenge half done, without being told why.
+export interface Danger {
+  region: Region;
+  // Said on walking in: what the player still lacks to face it and where to get it. Null when ready.
+  unprepared: (progress: GameProgress) => string | null;
+  // Said on walking out with the challenge unfinished: what is left to do in there. Null when nothing is.
+  pending: (progress: GameProgress) => string | null;
+}
+
 // A step of a mission as the admin dashboard lists it.
 export type MissionStep = { id: string; label: string; detail: string; done: boolean; status?: string };
 
@@ -59,6 +69,8 @@ export interface Challenge {
   backpack?: Backpack;
   // What to do now while this is the challenge being played (see Objective).
   objective?: (progress: GameProgress) => Objective;
+  // Its dangerous place and the warnings at its edge (see Danger).
+  danger?: Danger;
   // Map regions it takes place in: a defeat there is a defeat in this challenge.
   regions: readonly Region[];
   // Where the player comes back after a first "bajo" in this challenge.

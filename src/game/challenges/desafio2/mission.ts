@@ -67,14 +67,39 @@ export function getObjective(progress: Progress): Objective {
   }
   const missing = ELFO_COLLECTIBLES.filter(({ id }) => !collected(progress).includes(id)).map(({ id }) => ITEM_LABEL[id]);
   if (missing.length) return { text: `Sube a la casa del elfo, en la copa del árbol, y recoge ${listText(missing)}.`, at: ELFO };
+  return { text: `En el Bosque de la Oscuridad: ${listText(forestTasks(progress))}.`, at: BOSQUE };
+}
+
+// What is left to do in the forest.
+function forestTasks(progress: Progress): string[] {
   const duendes = DUENDE_COUNT - defeatedDuendes(progress);
   const frutos = FRUTOS_NEEDED - frutosEaten(progress);
-  const tasks = [
+  return [
     ...(duendes > 0 ? [duendes === 1 ? 'vence al último duende con la espada' : `vence a los ${duendes} duendes con la espada`] : []),
     ...(frutos > 0 ? [`come ${frutos === 1 ? 'una fruta amarilla más' : `${frutos} frutas amarillas`} (míralas con el lente)`] : []),
     ...(isMapaActivado(progress) ? [] : ['usa el mapa para bajar el muro oculto']),
   ];
-  return { text: `En el Bosque de la Oscuridad: ${listText(tasks)}.`, at: BOSQUE };
+}
+
+// What the player still has to fetch before the forest can be crossed, and from whom; null when nothing is missing.
+function forestLack(progress: Progress): string | null {
+  if (!isElfoHouseUnlocked(progress)) return 'vuelve al árbol gigante y acepta la ayuda del elfo';
+  const missing = ELFO_COLLECTIBLES.filter(({ id }) => getItemState(id, progress) === 'missing').map(({ id }) => ITEM_LABEL[id]);
+  return missing.length ? `sube a la casa del elfo, en la copa del árbol, y recoge ${listText(missing)}` : null;
+}
+
+// Said on walking into the forest without what it takes to cross it.
+export function getUnprepared(progress: Progress): string | null {
+  if (isDesafio2Completado(progress)) return null;
+  const lack = forestLack(progress);
+  return lack ? `¡Cuidado! No estás listo para el Bosque de la Oscuridad: los duendes y el hambre te quitarán la vida. Antes, ${lack}.` : null;
+}
+
+// Said on walking out of the forest with something still to do in it.
+export function getPending(progress: Progress): string | null {
+  if (isDesafio2Completado(progress)) return null;
+  const lack = forestLack(progress);
+  return `El Bosque de la Oscuridad sigue pendiente: ${listText(forestTasks(progress))}. ${lack ? `Para eso, ${lack}. ` : ''}Hasta entonces no se abre el paso al pueblo minero.`;
 }
 
 // What the player has to do now (shown in the backpack).

@@ -63,6 +63,33 @@ export function getObjective(progress: Progress): Objective {
   return { text: 'El ogro te dejó pasar: sube la escalera de piedra hasta la cumbre.' };
 }
 
+// What is left to do in the tunnels (the climb after the Ogre needs no telling).
+function tunnelTasks(progress: Progress): string[] {
+  return [...(isEspectroCalmado(progress) ? [] : ['calma al espectro de la niña con la muñeca']), ...(isOgroVencido(progress) ? [] : ['vence al ogro en el pulso con el guante'])];
+}
+
+// What the player still has to fetch before the tunnels can be passed, and from whom; null when nothing is missing.
+function tunnelLack(progress: Progress): string | null {
+  if (!isHedrigHouseUnlocked(progress)) return 'vuelve con Hedrig, junto a la fogata de su casa, y acepta su ayuda';
+  const missing = HEDRIG_COLLECTIBLES.filter(({ id }) => getItemState(id, progress) === 'missing').map(({ id }) => ITEM_LABEL[id]);
+  return missing.length ? `vuelve a la casa de Hedrig y recoge ${listText(missing)}` : null;
+}
+
+// Said at the mouth of the mine on walking into the tunnels without what it takes to pass them.
+export function getUnprepared(progress: Progress): string | null {
+  if (isDesafio3Completado(progress)) return null;
+  const lack = tunnelLack(progress);
+  return lack ? `¡Cuidado! No estás listo para los túneles: te perderás, y el espectro y el ogro te quitarán la vida. Antes, ${lack}.` : null;
+}
+
+// Said on walking back out of the tunnels with the spectre or the Ogre still in the way.
+export function getPending(progress: Progress): string | null {
+  const tasks = tunnelTasks(progress);
+  if (isDesafio3Completado(progress) || !tasks.length) return null;
+  const lack = tunnelLack(progress);
+  return `Los Túneles de la Cumbre siguen pendientes: ${listText(tasks)}. ${lack ? `Para eso, ${lack}. ` : ''}Sin eso no hay paso a la cumbre.`;
+}
+
 // What the player has to do now (shown in the backpack).
 export function getGoal(progress: Progress): string {
   if (isDesafio3Completado(progress)) {
