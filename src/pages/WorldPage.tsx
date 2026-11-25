@@ -18,6 +18,7 @@ import { LandscapeOnly } from '@/game/hud/LandscapeOnly';
 import { PlayerStatus } from '@/game/hud/PlayerStatus';
 import { RendererErrorScreen } from '@/game/hud/RendererErrorScreen';
 import { SoundToggle } from '@/game/hud/SoundToggle';
+import { Tutorial, TutorialButton } from '@/game/hud/Tutorial';
 import { WorldLoadingScreen } from '@/game/hud/WorldLoadingScreen';
 import { GameSound } from '@/game/sound/GameSound';
 import { DangerWarnings } from '@/game/challenges/DangerWarnings';
@@ -60,6 +61,7 @@ export default function WorldPage() {
       <UserMenu
         leading={
           <>
+            <TutorialButton />
             <SoundToggle />
             <BackpackButton />
           </>
@@ -70,6 +72,7 @@ export default function WorldPage() {
       <PlayerStatus />
       <Minimap touch={showTouchControls} />
       <ObjectiveLine touch={showTouchControls} />
+      <Tutorial touch={showTouchControls} />
       <Toast />
       {CHALLENGES.map(({ id, Dialogs }) => Dialogs && <Dialogs key={id} />)}
       <BajoDialog />

@@ -99,7 +99,9 @@ export const DEV_PRESETS: Record<string, DevPreset> = {
   villa: { spawn: PLAYER_START },
   desafio1: { spawn: PLAYER_START },
   // First visit to the world: the introduction video plays and then the world loads at the gate.
-  intro: { spawn: PLAYER_START, progress: { introVista: false } },
+  intro: { spawn: PLAYER_START, progress: { introVista: false, tutorialVisto: false } },
+  // First time in the world, without the video: the tutorial of the controls starts by itself at the gate.
+  tutorial: { spawn: PLAYER_START, progress: { tutorialVisto: false } },
 
   // A few steps from the notice board by the gate, announcement not read yet: walking up to it opens it.
   carta: { spawn: { x: -45, y: 12.2, z: 19.9, yaw: -Math.PI / 2 } },
@@ -715,8 +717,9 @@ export function applyDevSession() {
   const spawn = parseSpawnParam(params.get('spawn')) ?? preset.spawn ?? null;
   const progress = applyProgressModifiers(preset.progress, params);
 
-  // The presets go straight to the game: only those that say so start with the introduction video still to be seen.
-  useProgressStore.getState().loadProgress({ introVista: true, ...progress });
+  // The presets go straight to the game: only those that say so start with the introduction video or the tutorial of
+  // the controls still to be seen.
+  useProgressStore.getState().loadProgress({ introVista: true, tutorialVisto: true, ...progress });
   usePlayerStore.getState().setInitialSpawn(spawn);
   installDevInspector();
   useAuthStore.getState().setSession(buildDevUser(params.get('avatar'), params.get('perdidos'), preset.user));

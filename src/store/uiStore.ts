@@ -10,6 +10,12 @@ interface UIState {
   cinematic: boolean;
   // The user manual is open over the game (components/manual/UserManual).
   manualOpen: boolean;
+  // The tutorial of the controls is showing (hud/Tutorial): the game goes on under it. `tutorialRun` counts the times
+  // it was opened, so asking for it again starts it over.
+  tutorialOpen: boolean;
+  tutorialRun: number;
+  openTutorial: () => void;
+  closeTutorial: () => void;
   openDialog: (id: string) => void;
   closeDialog: () => void;
   setBackpackOpen: (open: boolean) => void;
@@ -22,6 +28,10 @@ export const useUIStore = create<UIState>((set) => ({
   backpackOpen: false,
   cinematic: false,
   manualOpen: false,
+  tutorialOpen: false,
+  tutorialRun: 0,
+  openTutorial: () => set((state) => ({ tutorialOpen: true, tutorialRun: state.tutorialRun + 1 })),
+  closeTutorial: () => set({ tutorialOpen: false }),
   openDialog: (dialog) => set({ dialog }),
   closeDialog: () => set({ dialog: null }),
   setBackpackOpen: (backpackOpen) => set({ backpackOpen }),

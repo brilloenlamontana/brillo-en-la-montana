@@ -6,10 +6,10 @@ import { useUIStore } from '@/store/uiStore';
 // Bottom centre: what the story asks of the player right now, in one line that never goes away on its own (each
 // challenge writes it: see `objective` in challenges/types.ts). It changes by itself when a step is done, and the
 // beacon of light in the world (ObjectiveBeacon) marks the same place. It steps aside while a narration, a cinematic
-// or the backpack fills the screen. `touch`: the joystick and the action buttons take the bottom corners.
+// or the backpack fills the screen, and while the tutorial of the controls takes its place. `touch`: the joystick and the action buttons take the bottom corners.
 export function ObjectiveLine({ touch = false }: { touch?: boolean }) {
   const ready = useWorldStore((state) => state.ready);
-  const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen);
+  const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen || state.tutorialOpen);
   const text = useProgressStore((state) => currentObjective(state.progress)?.text ?? null);
 
   if (!ready || busy || !text) return null;
