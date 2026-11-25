@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { DIALOG } from '../dialogs';
+import { getHedrigHint } from '../mission';
 
 // "Audio explicación de Hedrig", from the scene schedule.
 const EXPLICACION = [
@@ -13,13 +15,29 @@ const EXPLICACION = [
 ];
 
 // Hedrig explains the dangers of the summit and offers help: only if the player accepts does her door unlock, with the
-// glove, the compass and the doll inside.
+// glove, the compass and the doll inside. Until then she explains it all again each time (it can be skipped by then).
+// Once accepted she says, in a few words, what to do now, and explains the dangers again only if asked.
 export function HedrigDialog() {
   const isOpen = useDialogOpen(DIALOG.hedrig);
-  const accepted = useProgressStore((state) => state.progress.hedrigHelp === 'accepted');
+  const progress = useProgressStore((state) => state.progress);
+  const [again, setAgain] = useState(false);
   if (!isOpen) return null;
 
-  const close = () => useUIStore.getState().closeDialog();
+  const accepted = progress.hedrigHelp === 'accepted';
+  const close = () => {
+    setAgain(false);
+    useUIStore.getState().closeDialog();
+  };
+  if (accepted && !again) {
+    return (
+      <ParchmentDialog title="Hedrig" subtitle="Qué hacer ahora" paragraphs={getHedrigHint(progress).paragraphs} voice={[getHedrigHint(progress).voice]} skippable onClose={close}>
+        <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+          <ParchmentButton onClick={() => setAgain(true)}>Cuéntame otra vez los peligros</ParchmentButton>
+          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+        </div>
+      </ParchmentDialog>
+    );
+  }
   const answer = (help: 'accepted' | 'rejected') => {
     saveProgress({ interactedWithHedrig: true, hedrigHelp: help });
     close();

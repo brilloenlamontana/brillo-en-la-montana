@@ -58,7 +58,7 @@ const TEXT: Record<Step, { title: string; keyboard: ReactNode; touch: ReactNode 
     ),
     touch: (
       <>
-        Mantén <Boton>CORRER</Boton> mientras caminas. Con <Boton>SALTAR</Boton> saltas.
+        Toca <Boton>CORRER</Boton> una vez para correr; el botón cambia a <Boton>CAMINAR</Boton>: tócalo para volver a caminar. Con <Boton>SALTAR</Boton> saltas.
       </>
     ),
   },
@@ -200,7 +200,13 @@ function TutorialCard({ touch }: { touch: boolean }) {
           {done && <span className="ml-2 font-sans text-[#3d7a36]">✓ ¡Bien!</span>}
         </p>
         <p className="mt-0.5 text-[11px] sm:text-sm leading-snug">{touch ? text.touch : text.keyboard}</p>
-        {last && <p className="mt-1 text-[10px] sm:text-xs leading-snug italic text-[#6d4c33]">Al cerrar esta ayuda, aquí abajo verás siempre tu objetivo. Si la necesitas otra vez, toca el botón «?» de arriba.</p>}
+        {last && (
+          <p className="mt-1 text-[10px] sm:text-xs leading-snug italic text-[#6d4c33]">
+            {touch
+              ? 'Tu objetivo aparece arriba por un momento; para verlo otra vez, toca el botón de la diana en la barra de arriba. Esta ayuda vuelve con el botón «?».'
+              : 'Al cerrar esta ayuda, aquí abajo verás siempre tu objetivo. Si la necesitas otra vez, toca el botón «?» de arriba.'}
+          </p>
+        )}
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-3">
         <div className="flex gap-1.5" aria-hidden="true">

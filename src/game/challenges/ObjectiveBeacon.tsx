@@ -24,9 +24,10 @@ const FULL_AT = 24;
 // during a cinematic.
 export function ObjectiveBeacon() {
   // The line of the objective changes with every step: the place is read again only then.
-  const text = useProgressStore((state) => currentObjective(state.progress)?.text ?? null);
+  const region = useZoneStore((state) => state.region);
+  const text = useProgressStore((state) => currentObjective(state.progress, region)?.text ?? null);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `text` stands for the step: its place only changes with it.
-  const at = useMemo(() => currentObjective(useProgressStore.getState().progress)?.at ?? null, [text]);
+  const at = useMemo(() => currentObjective(useProgressStore.getState().progress, region)?.at ?? null, [text]);
   const hidden = useZoneStore((state) => state.interior !== null || state.region === 'tuneles');
   const cinematic = useUIStore((state) => state.cinematic);
   const group = useRef<Group>(null);

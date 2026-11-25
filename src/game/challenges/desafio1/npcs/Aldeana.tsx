@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Npc } from '@/game/engine/interaction/Npc';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { useVisibleFrom } from '@/game/world/visibility';
@@ -8,6 +7,7 @@ import { useToastStore } from '@/store/toastStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { DESAFIO1_MODELS } from '../assets';
 import { DIALOG } from '../dialogs';
+import { getAldeanaHint } from '../mission';
 import { VISIBLE_FROM } from '../visibility';
 
 const URL = DESAFIO1_MODELS.aldeana;
@@ -23,24 +23,15 @@ const RELATO = [
   'Anoche murió la anciana yerbatera. Los animales están débiles y las cosechas se quemaron bajo la nieve. Cada día hace más frío… a la villa no le queda mucho tiempo.',
 ];
 
-// What the village women tell by the well: old stories that point to the two bonuses of the journey.
-const HABLADURIAS = [
-  'Los habitantes del pueblo ven con recelo tu presencia por tu inexperiencia, pero hay susurros de esperanza en muchas voces. La aldeana deja el cántaro junto al pozo y te mira de arriba abajo.',
-  '«Mi abuela contaba que, donde termina el pantano, hay una choza vieja con una estatua de piedra. Decía que ayuda a quienes la mantienen en la luz y el calor. Si pasas por allí y no llevas prisa, límpiale el rostro y enciéndele un fuego».',
-  '«Y en el bosque, si ves una lucecita que parpadea entre los árboles, no es un fuego fatuo: las hadas piden ayuda así. Casi nadie se desvía a buscarla».',
-  '«No te lo digo para que pierdas tiempo, criatura. Te lo digo porque a la cumbre no se llega solo con fuerza».',
-];
-
 // The villager woman by the well of the Villa de Boj. Until her help is accepted she tells what happened and asks
-// whether the player needs help (AldeanaAyudaDialog): YES sends the player to Imeri; after a NO she only asks again
-// once the player walks away and comes back. Otherwise she tells the old tales that hint at Bonus 1 (the statue of
-// the hut) and Bonus 2 (the fairy's light), as often as wanted.
+// whether the player needs help (AldeanaAyudaDialog): YES sends the player to Imeri; after a NO she tells it all again
+// (it can be skipped by then). Once accepted she no longer tells the story: she says, in a few words, what to do now
+// (AldeanaDialog).
 export function Aldeana() {
   const visible = useVisibleFrom(VISIBLE_FROM.aldeana);
   const asking = useDialogOpen(DIALOG.aldeanaAyuda);
   const telling = useDialogOpen(DIALOG.aldeana);
   const accepted = useProgressStore((state) => state.progress.aldeanoHelp === 'accepted');
-  const [askedThisVisit, setAskedThisVisit] = useState(false);
   const talking = asking || telling;
 
   return (
@@ -53,15 +44,7 @@ export function Aldeana() {
       talk={{
         prompt: 'hablar con la aldeana',
         enabled: !talking,
-        onTalk: () => {
-          if (!accepted && !askedThisVisit) {
-            setAskedThisVisit(true);
-            useUIStore.getState().openDialog(DIALOG.aldeanaAyuda);
-          } else {
-            useUIStore.getState().openDialog(DIALOG.aldeana);
-          }
-        },
-        onLeave: () => setAskedThisVisit(false),
+        onTalk: () => useUIStore.getState().openDialog(accepted ? DIALOG.aldeana : DIALOG.aldeanaAyuda),
       }}
     />
   );
@@ -103,12 +86,19 @@ export function AldeanaAyudaDialog() {
   );
 }
 
+// With her help accepted: what to do now, in her own words and by how far the player got.
 export function AldeanaDialog() {
   const isOpen = useDialogOpen(DIALOG.aldeana);
+  const progress = useProgressStore((state) => state.progress);
   if (!isOpen) return null;
 
+  const close = () => useUIStore.getState().closeDialog();
+  const hint = getAldeanaHint(progress);
   return (
-    <ParchmentDialog title="Aldeana de la Villa de Boj" subtitle="Lo que se cuenta junto al pozo" paragraphs={HABLADURIAS} voice={['01_narrador_03', '01_aldeana_01']} onClose={() => useUIStore.getState().closeDialog()} />
+    <ParchmentDialog title="Aldeana de la Villa de Boj" subtitle="Qué hacer ahora" paragraphs={hint.paragraphs} voice={[hint.voice]} skippable onClose={close}>
+      <div className="flex justify-end">
+        <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+      </div>
+    </ParchmentDialog>
   );
 }
-

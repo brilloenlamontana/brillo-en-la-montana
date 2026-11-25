@@ -1,3 +1,4 @@
+import type { Region } from '@/game/world/regions';
 import { desafio1 } from './desafio1';
 import { desafio2 } from './desafio2';
 import { desafio3 } from './desafio3';
@@ -15,7 +16,8 @@ export function activeBackpack(progress: GameProgress): Backpack | undefined {
 }
 
 // What the player has to do now: the objective of the first challenge not finished yet (null once the game is over).
-export function currentObjective(progress: GameProgress): Objective | null {
+// `region`: where the player is, so the objective follows a player who went into the dangerous place of the challenge.
+export function currentObjective(progress: GameProgress, region?: Region): Objective | null {
   const current = CHALLENGES.find((challenge) => !challenge.isCompleted?.(progress));
-  return current?.objective?.(progress) ?? null;
+  return current?.objective?.(progress, region !== undefined && current.danger?.region === region) ?? null;
 }

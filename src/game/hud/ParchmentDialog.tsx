@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { followVoice, playSfx, voiceDurations } from '@/game/engine/audio/audio';
+import { markHeard, wasHeard } from './heardNarrations';
 
 type Tone = 'pergamino' | 'driada' | 'jugador';
 
@@ -13,6 +14,8 @@ type ParchmentDialogProps = {
   // Recorded voices that say it all aloud, in order (ids of docs/sonido/guion_voces.csv).
   voice?: readonly string[];
   tone?: Tone;
+  // A short indication, not a story: "Saltar" is offered from the first time.
+  skippable?: boolean;
   // Told once, when everything has been said.
   onDone?: () => void;
   // Closing it: an × in its top corner, shown once everything has been said.
@@ -29,6 +32,10 @@ const VOICE_WAIT = 1;
 const READING_CHARS_PER_SECOND = 17;
 // A breath after the last word, before the answers show up or the next speaker goes on.
 const PAUSE_SECONDS = 0.5;
+
+// A phone lying on its side is wide but short: there the scroll is narrower and its text smaller, so it does not cover
+// half the world.
+// (Tailwind needs the class names written out: `[@media(max-height:520px)]:…`.)
 
 // The box is the parchment scroll (public/sprites-2d/aseets/pergamino.png) stretched to the size of what it holds;
 // the padding keeps the text off its rollers and its curled edges. Each voice has its own colour for its name.
@@ -67,11 +74,12 @@ function paginate(paragraphs: readonly string[], question: string | undefined): 
 }
 
 // What the story characters and the narrator say, as in a visual novel: a text box along the bottom of the screen
-// where the words are written as their voice says them. Nothing can be skipped: the answers only show up once
-// everything has been said. It is a dialog for the game (the avatar stands still, the items wait) but it does not
+// where the words are written as their voice says them. The first time nothing can be skipped: the answers only show
+// up once everything has been said. A narration this player already heard to the end (heardNarrations) offers
+// "Saltar", which goes straight to its end. It is a dialog for the game (the avatar stands still, the items wait) but it does not
 // cover the canvas, so the camera can still be turned to look around. No backdrop blur: blurring a live 3D canvas
 // every frame is expensive on phones.
-export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, tone = 'pergamino', onDone, onClose, children }: ParchmentDialogProps) {
+export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, tone = 'pergamino', skippable = false, onDone, onClose, children }: ParchmentDialogProps) {
   const voiceKey = voice?.join('|') ?? '';
   // By its content: the dialogs build their paragraphs anew on every render.
   const textKey = JSON.stringify([paragraphs, question ?? '']);
@@ -84,6 +92,9 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
   const said = `${voiceKey}|${textKey}`;
   const [state, setState] = useState({ said, typed: 0, done: false });
   const { typed, done } = state.said === said ? state : { typed: 0, done: false };
+  // Heard before, to the end: it can be skipped. Read once per narration, so "Saltar" does not show up as it ends.
+  const canSkip = useMemo(() => skippable || wasHeard(said), [said, skippable]);
+  const skipRef = useRef<() => void>(() => {});
   // Read when the time comes: a new function on every render must not start the voice again.
   const onDoneRef = useRef(onDone);
   useEffect(() => {
@@ -130,15 +141,27 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
         frame = requestAnimationFrame(tick);
         return;
       }
-      pause = setTimeout(() => {
-        if (!alive) return;
-        setState({ said, typed: total, done: true });
-        onDoneRef.current?.();
-      }, PAUSE_SECONDS * 1000);
+      pause = setTimeout(finish, PAUSE_SECONDS * 1000);
+    };
+    // Everything has been said (or skipped): the answers show up.
+    let finished = false;
+    const finish = () => {
+      if (!alive || finished) return;
+      finished = true;
+      markHeard(said);
+      setState({ said, typed: total, done: true });
+      onDoneRef.current?.();
+    };
+    skipRef.current = () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(pause);
+      stop();
+      finish();
     };
     frame = requestAnimationFrame(tick);
 
     return () => {
+      skipRef.current = () => {};
       alive = false;
       cancelAnimationFrame(frame);
       clearTimeout(pause);
@@ -151,17 +174,23 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
   useEffect(() => {
     onCloseRef.current = onClose;
   });
+  // While a narration heard before is being told, the same keys skip it.
   useEffect(() => {
-    if (!done) return;
+    if (!done && !canSkip) return;
     const onKey = (event: KeyboardEvent) => {
-      if ((event.key === 'Escape' || event.key === 'Enter') && onCloseRef.current) {
+      if (event.key !== 'Escape' && event.key !== 'Enter') return;
+      if (event.repeat) return;
+      if (!done) {
+        event.preventDefault();
+        skipRef.current();
+      } else if (onCloseRef.current) {
         event.preventDefault();
         onCloseRef.current();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [done]);
+  }, [done, canSkip]);
 
   // The page being written: a page that is complete stays until the next word comes.
   const index = Math.max(0, pages.findLastIndex((each) => each.start < typed));
@@ -175,7 +204,7 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
         role="dialog"
         aria-label={title}
         style={{ backgroundImage: `url(${PERGAMINO})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
-        className="relative pointer-events-auto w-full max-w-5xl text-[#3e2723] drop-shadow-[0_6px_14px_rgba(0,0,0,0.45)] px-[7%] pt-6 pb-5 sm:pt-8 sm:pb-7 font-serif"
+        className="relative pointer-events-auto w-full max-w-5xl [@media(max-height:520px)]:max-w-2xl! text-[#3e2723] drop-shadow-[0_6px_14px_rgba(0,0,0,0.45)] px-[7%] pt-6 pb-5 sm:pt-8 sm:pb-7 [@media(max-height:520px)]:pt-5! [@media(max-height:520px)]:pb-4! font-serif"
       >
         {/* Shown once everything has been said, in the top corner of the paper by the right roller: it closes the scroll
             and the game goes on. */}
@@ -201,6 +230,20 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
             {subtitle && <span className="ml-2 text-[11px] sm:text-xs italic opacity-70">{subtitle}</span>}
           </p>
           <div className="flex shrink-0 items-center gap-2.5">
+            {canSkip && !done && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.currentTarget.blur();
+                  playSfx('ui_boton', { volume: 0.6 });
+                  skipRef.current();
+                }}
+                title="Ya lo escuchaste: saltar (Esc)"
+                className="rounded-lg border-2 border-[#5c3a21] bg-[#f4e4bc]/70 px-2.5 py-0.5 font-sans text-[11px] sm:text-xs font-bold text-[#5c3a21] hover:bg-[#5c3a21] hover:text-[#f4e4bc] active:scale-95 transition-colors cursor-pointer"
+              >
+                Saltar ▸▸
+              </button>
+            )}
             {pages.length > 1 && (
               <span className="text-[10px] sm:text-[11px] font-mono opacity-60">
                 {index + 1}/{pages.length}
@@ -209,7 +252,7 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
           </div>
         </div>
         {/* The words still to come are there, unseen: the box keeps its size and no word jumps to the next line. */}
-        <p className={`min-h-[3.9em] text-sm sm:text-lg leading-snug ${page.question ? 'font-bold' : ''}`}>
+        <p className={`min-h-[3.9em] text-sm sm:text-lg [@media(max-height:520px)]:text-[13px]! leading-snug ${page.question ? 'font-bold' : ''}`}>
           <span>{page.text.slice(0, written)}</span>
           <span className="opacity-0" aria-hidden="true">
             {page.text.slice(written)}
@@ -231,7 +274,7 @@ export function ParchmentButton({ onClick, tone = 'accept', children }: Parchmen
         playSfx('ui_boton', { volume: 0.6 });
         onClick();
       }}
-      className={`px-4 py-2 sm:px-5 sm:py-2.5 text-sm sm:text-base font-bold cursor-pointer rounded-lg bg-[#5c3a21] border-2 border-[#3e2723] shadow-md hover:scale-105 active:scale-95 transition-transform ${
+      className={`px-4 py-2 sm:px-5 sm:py-2.5 [@media(max-height:520px)]:px-3.5! [@media(max-height:520px)]:py-1.5! text-sm sm:text-base [@media(max-height:520px)]:text-xs! font-bold cursor-pointer rounded-lg bg-[#5c3a21] border-2 border-[#3e2723] shadow-md hover:scale-105 active:scale-95 transition-transform ${
         tone === 'accept' ? 'text-[#f4d03f]' : 'text-[#ff6b6b]'
       }`}
     >

@@ -11,7 +11,7 @@ import { useCameraColliderStore } from '@/game/engine/camera/cameraColliderStore
 import { isBodyNamed, LIMIT_BODY_NAME, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAuthStore } from '@/store/authStore';
-import { isGameplayPaused } from '@/store/uiStore';
+import { isGameplayPaused, useUIStore } from '@/store/uiStore';
 import type { Control } from './keyboardMap';
 import { usePlayerStore, type PlayerAction, type Point, type Spawn } from './playerStore';
 import { cameraAzimuthBehind, PLAYER_START, RESPAWN_POINT } from './spawn';
@@ -59,9 +59,8 @@ const seenByCamera = (collider: { parent: () => { userData?: unknown } | null })
 
 // The Death clip lasts 3.63 s; a short pause follows before respawning.
 const DEATH_RESPAWN_DELAY = 4.1;
-// A joystick pushed this far counts as moving; past RUN it runs (same speeds as walking and Shift on a keyboard).
+// A joystick pushed this far counts as moving.
 const JOYSTICK_DEADZONE = 0.05;
-const JOYSTICK_RUN = 0.75;
 // A guided walk (playerStore.guide) stops this close to its target (m).
 const GUIDE_ARRIVE = 0.18;
 // Guided and moving less than GUIDE_STUCK_METERS in GUIDE_STUCK_SECONDS: something low is in the way.
@@ -255,9 +254,10 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
     const joystickY = joystick?.active ? joystick.y : 0;
     const joystickPush = Math.hypot(joystickX, joystickY);
     const buttons = useButtonStore.getState().buttons;
-    // ecctrl ignores how far the joystick is pushed (it only takes its direction), so the push itself chooses between
-    // walking and running: a phone reaches exactly the keyboard's walking and running speeds.
-    const run = keys.run || Boolean(buttons['run']) || joystickPush > JOYSTICK_RUN;
+    // The joystick only walks, however far it is pushed (a thumb pushes it to the edge almost always). Running takes
+    // Shift held on a keyboard; on a touch screen the RUN button is tapped once and stays on (uiStore.running), so
+    // the thumbs are free for the joystick and the camera.
+    const run = keys.run || Boolean(buttons['run']) || useUIStore.getState().running;
 
     ecctrl.setMovement({
       forward: keys.forward,

@@ -1,5 +1,5 @@
 import { listText } from '@/game/challenges/listText';
-import type { ItemState, MissionStep, Objective } from '@/game/challenges/types';
+import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { POTION_IDS, type BackpackItemId } from './items';
 
@@ -41,15 +41,12 @@ export function getItemState(id: BackpackItemId, progress: Progress): ItemState 
 
 export const hasItem = (id: BackpackItemId, progress: Progress) => getItemState(id, progress) === 'owned';
 
-// What the player has to do now (shown in the backpack): first what is left to pick up in Imeri's house, then what
-// is left to defeat in the swamp.
+// What the player has to do now (shown in the backpack): first Imeri's house, then the swamp. It says what is to be
+// done, never how: finding out what each thing is for is the player's part.
 export function getGoal(progress: Progress): string {
   if (isDesafio1Completado(progress)) return '¡Atravesaste el pantano! Busca la casa del elfo, suspendida de un árbol al otro lado.';
-  const missing = missingItems(progress);
-  if (missing.length) {
-    return `Recoge en la casa de Imeri: ${listText(missing)}.${countPociones(progress) < POTION_IDS.length ? ' Con las pociones preparas el insecticida.' : ''}`;
-  }
-  return `En el Pantano de la Tristeza, ${listText(swampTasks(progress))}. Si caes en un pozo, usa la soga para salir.`;
+  if (missingItems(progress).length) return 'En la casa de Imeri te esperan la gema, la soga y las 5 pociones.';
+  return `Cruza el Pantano de la Tristeza: ${listText(swampTasks(progress))}.`;
 }
 
 // What is left to pick up in Imeri's house, as it reads in a sentence.
@@ -61,12 +58,12 @@ function missingItems(progress: Progress): string[] {
   return missing;
 }
 
-// What is left to defeat in the swamp.
+// What is left to defeat in the swamp (not how: no item is named).
 function swampTasks(progress: Progress): string[] {
   const zumbadores = ZUMBADOR_COUNT - defeatedZumbadores(progress);
   return [
-    ...(progress?.golemDefeated ? [] : ['apaga al Golem con la gema']),
-    ...(zumbadores > 0 ? [`acaba con ${zumbadores === ZUMBADOR_COUNT ? 'los zumbadores' : `los ${zumbadores} zumbadores que quedan`} con el insecticida`] : []),
+    ...(progress?.golemDefeated ? [] : ['vence al Golem']),
+    ...(zumbadores > 0 ? [`acaba con ${zumbadores === ZUMBADOR_COUNT ? 'los zumbadores' : `los ${zumbadores} zumbadores que quedan`}`] : []),
   ];
 }
 
@@ -79,7 +76,7 @@ const CASA_IMERI = { x: 16, y: 10.1, z: 44 };
 const PANTANO = { x: 62, y: 7.6, z: -8 };
 
 // The step of Challenge 1 the player is on, in one line, and where it happens.
-export function getObjective(progress: Progress): Objective {
+export function getObjective(progress: Progress, there = false): Objective {
   if (!progress?.openedMayorLetter) return { text: 'Lee el anuncio del alcalde en el tablón, junto al portón.', at: TABLON };
   if (progress.aldeanoHelp !== 'accepted') {
     const text = progress.aldeanoHelp === 'rejected' ? 'Vuelve con la aldeana y acepta su ayuda: sin ella, la casa de Imeri sigue cerrada.' : 'Habla con la aldeana, junto al pozo de la plaza.';
@@ -89,36 +86,65 @@ export function getObjective(progress: Progress): Objective {
     const text = progress.imeriHelp === 'rejected' ? 'Vuelve con Imeri y acepta su ayuda: sin sus objetos no cruzarás el pantano.' : 'Sigue el camino hasta la casa de Imeri y habla con ella.';
     return { text, at: IMERI };
   }
-  const missing = missingItems(progress);
-  if (missing.length) return { text: `Recoge en la casa de Imeri: ${listText(missing)}.`, at: CASA_IMERI };
+  // General on purpose: it names everything Imeri offers, not what this player still lacks. Whoever walks into the
+  // swamp without something has chosen to: from then on the objective is the swamp's.
+  if (missingItems(progress).length && !there) return { text: 'Entra a la casa de Imeri y recoge lo que te ofrece: la gema, la soga y las 5 pociones.', at: CASA_IMERI };
   return { text: `En el pantano: ${listText(swampTasks(progress))}.`, at: PANTANO };
 }
 
-// What the player still has to fetch before the swamp can be cleared, and from whom; null when nothing is missing.
-function swampLack(progress: Progress): string | null {
-  if (progress?.aldeanoHelp !== 'accepted') return 'vuelve a la Villa de Boj y acepta la ayuda de la aldeana, junto al pozo';
-  if (progress.imeriHelp !== 'accepted') return 'vuelve con Imeri y acepta su ayuda';
-  const items = collected(progress);
-  const missing = [
-    ...(!progress.golemDefeated && !items.includes('gema') ? ['la gema'] : []),
-    ...(!allZumbadoresDefeated(progress) && countPociones(progress) < POTION_IDS.length ? ['el insecticida (las 5 pociones)'] : []),
-    ...(items.includes('soga') ? [] : ['la soga']),
-  ];
-  return missing.length ? `vuelve a la casa de Imeri y recoge ${listText(missing)}` : null;
+// What the villager woman says, in a few words, to a player who already accepted her help: where to go now, never
+// how to use what they carry. Each one is
+// a fixed line, so her recorded voice says the same words.
+export function getAldeanaHint(progress: Progress): Hint {
+  if (isDesafio1Completado(progress)) {
+    return {
+      voice: '01_aldeana_10',
+      paragraphs: ['¡Cruzaste el Pantano de la Tristeza, criatura! En la villa ya se habla de ti. Al otro lado del pantano, al pie del árbol gigante, vive un elfo: búscalo, él conoce el Bosque de la Oscuridad.'],
+    };
+  }
+  if (progress?.imeriHelp === 'rejected') {
+    return { voice: '01_aldeana_07', paragraphs: ['Imeri me contó que no quisiste su ayuda. Vuelve con ella y acéptala: sin sus cosas nadie cruza el pantano.'] };
+  }
+  if (progress?.imeriHelp !== 'accepted') {
+    return {
+      voice: '01_aldeana_06',
+      paragraphs: ['Ve a la casa de Imeri, la cazadora que mejor conoce el pantano. Sal por el portón y sigue el camino: la columna de luz dorada te marca dónde está. Ella te espera frente a su casa.'],
+    };
+  }
+  if (missingItems(progress).length) {
+    return { voice: '01_aldeana_08', paragraphs: ['Imeri ya te abrió su puerta. Vuelve a su casa y recoge la gema, la soga y las cinco pociones: sin eso no cruzarás el pantano.'] };
+  }
+  return {
+    voice: '01_aldeana_09',
+    paragraphs: ['Ya llevas todo lo de Imeri. Ve al Pantano de la Tristeza: allí te esperan el Golem y los zumbadores. Cómo vencerlos tendrás que descubrirlo tú, criatura.'],
+  };
 }
 
-// Said at the shore on walking into the swamp without what it takes to cross it.
-export function getUnprepared(progress: Progress): string | null {
-  if (isDesafio1Completado(progress)) return null;
-  const lack = swampLack(progress);
-  return lack ? `¡Cuidado! No estás listo para el Pantano de la Tristeza: el Golem y los zumbadores te quitarán la vida. Antes, ${lack}.` : null;
+// What Imeri says, in a few words, to a player who already accepted her help: what to do now.
+export function getImeriHint(progress: Progress): Hint {
+  if (isDesafio1Completado(progress)) {
+    return {
+      voice: '01_imeri_07',
+      paragraphs: ['¡Cruzaste el pantano! Pocos lo han logrado. Ya no me necesitas: al otro lado, al pie del árbol gigante, vive un elfo. Búscalo, él conoce el Bosque de la Oscuridad.'],
+    };
+  }
+  if (missingItems(progress).length) {
+    return {
+      voice: '01_imeri_05',
+      paragraphs: ['Mi puerta está abierta. Entra y recoge la gema, la soga y las cinco pociones: con ellas se prepara el insecticida. Lo que recojas queda en tu mochila.'],
+    };
+  }
+  return {
+    voice: '01_imeri_06',
+    paragraphs: [
+      'Ya llevas todo. El pantano te espera, con su Golem, sus zumbadores y sus pozos. Lo que guardas en la mochila te servirá, pero cómo usarlo tendrás que descubrirlo tú.',
+    ],
+  };
 }
 
-// Said on walking out of the swamp with the Golem or the zumbadores still there.
+// Said on walking out of the swamp with the Golem or the zumbadores still there: only that it is not passed.
 export function getPending(progress: Progress): string | null {
-  if (isDesafio1Completado(progress)) return null;
-  const lack = swampLack(progress);
-  return `El Pantano de la Tristeza sigue pendiente: ${listText(swampTasks(progress))}. ${lack ? `Para eso, ${lack}. ` : ''}Hasta entonces el elfo no saldrá a tu encuentro.`;
+  return isDesafio1Completado(progress) ? null : 'Aún no has superado el Pantano de la Tristeza.';
 }
 
 const answerLabel =(help: string) => (help === 'accepted' ? 'Aceptó la ayuda' : help === 'rejected' ? 'Rechazó la ayuda' : 'Pendiente');

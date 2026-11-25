@@ -13,7 +13,7 @@ import { IntroVideo } from '@/game/hud/IntroVideo';
 import { QuickItemBar } from '@/game/hud/backpack/QuickItemBar';
 import { Minimap } from '@/game/hud/Minimap';
 import { MobileControls } from '@/game/hud/MobileControls';
-import { ObjectiveLine } from '@/game/hud/ObjectiveLine';
+import { ObjectiveButton, ObjectiveLine } from '@/game/hud/ObjectiveLine';
 import { LandscapeOnly } from '@/game/hud/LandscapeOnly';
 import { PlayerStatus } from '@/game/hud/PlayerStatus';
 import { RendererErrorScreen } from '@/game/hud/RendererErrorScreen';
@@ -55,6 +55,7 @@ export default function WorldPage() {
       <UserMenu
         leading={
           <>
+            {showTouchControls && <ObjectiveButton />}
             <TutorialButton />
             <SoundToggle />
             <BackpackButton />

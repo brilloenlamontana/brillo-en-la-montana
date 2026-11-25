@@ -11,15 +11,14 @@ import { CHALLENGES, currentObjective } from './registry';
 const REPEAT_AFTER = 40;
 
 // What to tell a player who walks from one region into another, if anything (see `danger` in each challenge):
-// - out of the dangerous place of the challenge being played, with it unfinished: what is left to do in there;
-// - into it without what it takes: what is missing and where to get it;
+// - out of the dangerous place of the challenge being played, with it unfinished: that it is not passed yet (nothing
+//   on the way in: going in unprepared is the player's own choice, and so is finding out what is missing);
 // - into the dangerous place of a later challenge: that it is not time yet, and what to do first.
 function warningFor(from: Region, to: Region, progress: GameProgress): string | null {
   const current = CHALLENGES.findIndex((challenge) => !challenge.isCompleted?.(progress));
   if (current < 0) return null;
   const { danger } = CHALLENGES[current];
   if (danger?.region === from) return danger.pending(progress);
-  if (danger?.region === to) return danger.unprepared(progress);
   if (CHALLENGES.some((challenge, index) => index > current && challenge.danger?.region === to)) {
     const first = currentObjective(progress)?.text;
     return `Todavía no es momento de entrar aquí.${first ? ` Primero: ${first}` : ''}`;
@@ -27,8 +26,8 @@ function warningFor(from: Region, to: Region, progress: GameProgress): string | 
   return null;
 }
 
-// Tells the player, at the edge of the swamp, the forest and the tunnels, what they lack to go in and, on the way out,
-// why the challenge is still not done. Only listens to changes of region.
+// Tells the player, on the way out of the swamp, the forest and the tunnels, that the challenge is still not done.
+// Only listens to changes of region.
 export function DangerWarnings() {
   useEffect(() => {
     let previous = useZoneStore.getState().region;

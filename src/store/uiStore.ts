@@ -15,7 +15,13 @@ interface UIState {
   tutorialOpen: boolean;
   tutorialRun: number;
   openTutorial: () => void;
+  // Counts the times the player asked to see the objective again (touch screens: hud/ObjectiveLine).
+  objectiveRun: number;
+  showObjective: () => void;
   closeTutorial: () => void;
+  // Touch screens: the RUN button was tapped and stays on, so the joystick runs until it is tapped again (MobileControls).
+  running: boolean;
+  toggleRunning: () => void;
   openDialog: (id: string) => void;
   closeDialog: () => void;
   setBackpackOpen: (open: boolean) => void;
@@ -32,6 +38,10 @@ export const useUIStore = create<UIState>((set) => ({
   tutorialRun: 0,
   openTutorial: () => set((state) => ({ tutorialOpen: true, tutorialRun: state.tutorialRun + 1 })),
   closeTutorial: () => set({ tutorialOpen: false }),
+  objectiveRun: 0,
+  showObjective: () => set((state) => ({ objectiveRun: state.objectiveRun + 1 })),
+  running: false,
+  toggleRunning: () => set((state) => ({ running: !state.running })),
   openDialog: (dialog) => set({ dialog }),
   closeDialog: () => set({ dialog: null }),
   setBackpackOpen: (backpackOpen) => set({ backpackOpen }),

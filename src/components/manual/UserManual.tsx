@@ -210,7 +210,7 @@ const SECTIONS: Section[] = [
           rows={[
             ['Palanca de la izquierda', 'Caminar; llévala hasta el borde para ir más rápido'],
             ['Deslizar el dedo por la pantalla', 'Girar la cámara'],
-            [<strong>CORRER</strong>, 'Correr mientras lo mantienes presionado'],
+            [<strong>CORRER</strong>, 'Tócalo una vez para correr; cambia a CAMINAR y, al tocarlo otra vez, vuelves a caminar'],
             [<strong>SALTAR</strong>, 'Saltar'],
             ['Botón de acción', 'Aparece cuando hay algo con qué interactuar; hace lo mismo que la tecla E'],
             ['Casillas de la barra rápida', 'Tocar una casilla usa ese objeto'],
@@ -342,7 +342,7 @@ const SECTIONS: Section[] = [
         <h3 className={H3}>Desafío 1: Villa de Boj y Pantano de la Tristeza</h3>
         <ol className={OL}>
           <li>Lee el <strong>anuncio del alcalde</strong> en el tablón junto al portón de la villa.</li>
-          <li>Habla con la <strong>aldeana</strong> junto al pozo de la plaza. Si vuelves a hablarle después de aceptar su ayuda, te cuenta las habladurías del pozo.</li>
+          <li>Habla con la <strong>aldeana</strong> junto al pozo de la plaza. Si vuelves a hablarle después de aceptar su ayuda, te dice qué hacer ahora. Lo mismo hacen Imeri, el elfo y Hedrig: una vez aceptas su ayuda, al volver te indican el siguiente paso.</li>
           <li>Sigue el camino hasta la casa de <strong>Imeri</strong>, la cazadora. Dentro hay siete cosas para recoger.</li>
           <li>Cruza el pantano. Allí hay un gigante de piedra, mosquitos enormes y pozos de lodo: cada objeto de la mochila sirve para uno de ellos.</li>
         </ol>
@@ -365,7 +365,7 @@ const SECTIONS: Section[] = [
         <h3 className={H3}>Dos tareas opcionales</h3>
         <p className={P}>
           A la salida del pantano y a la salida del bosque hay dos encuentros escondidos que no son obligatorios. Cada uno se resuelve con paciencia,
-          en tres pasos, y entrega una <strong>estrella extra</strong> que te protege de un bajo rendimiento. Las pistas las da la aldeana.
+          en tres pasos, y entrega una <strong>estrella extra</strong> que te protege de un bajo rendimiento.
         </p>
       </>
     ),

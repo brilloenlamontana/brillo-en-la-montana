@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { DIALOG } from '../dialogs';
+import { getImeriHint } from '../mission';
 
 // "Audio explicación de Imeri", from the scene schedule.
 const EXPLICACION = [
@@ -14,13 +16,29 @@ const EXPLICACION = [
 ];
 
 // Imeri explains the dangers of the swamp and offers help: only if the player accepts does her door unlock (gem,
-// rope and potions inside) and the backpack become active.
+// rope and potions inside) and the backpack become active. Until then she explains it all again each time (it can be
+// skipped by then). Once accepted she says, in a few words, what to do now, and explains the dangers again only if asked.
 export function ImeriDialog() {
   const isOpen = useDialogOpen(DIALOG.imeri);
-  const accepted = useProgressStore((state) => state.progress.imeriHelp === 'accepted');
+  const progress = useProgressStore((state) => state.progress);
+  const [again, setAgain] = useState(false);
   if (!isOpen) return null;
 
-  const close = () => useUIStore.getState().closeDialog();
+  const accepted = progress.imeriHelp === 'accepted';
+  const close = () => {
+    setAgain(false);
+    useUIStore.getState().closeDialog();
+  };
+  if (accepted && !again) {
+    return (
+      <ParchmentDialog title="Imeri" subtitle="Qué hacer ahora" paragraphs={getImeriHint(progress).paragraphs} voice={[getImeriHint(progress).voice]} skippable onClose={close}>
+        <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+          <ParchmentButton onClick={() => setAgain(true)}>Cuéntame otra vez los peligros</ParchmentButton>
+          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+        </div>
+      </ParchmentDialog>
+    );
+  }
   const answer = (help: 'accepted' | 'rejected') => {
     saveProgress({ interactedWithImeri: true, imeriHelp: help });
     close();
