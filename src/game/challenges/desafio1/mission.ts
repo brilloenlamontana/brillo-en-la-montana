@@ -73,7 +73,7 @@ const TABLON = { x: -51.4, y: 10.6, z: 19.9 };
 const ALDEANA = { x: -77.6, y: 10.9, z: 20.4 };
 const IMERI = { x: 10.5, y: 10.3, z: 41.5 };
 const CASA_IMERI = { x: 16, y: 10.1, z: 44 };
-const PANTANO = { x: 62, y: 7.6, z: -8 };
+const PANTANO = { x: 26, y: 7.5, z: -47.5 };
 
 // The step of Challenge 1 the player is on, in one line, and where it happens.
 export function getObjective(progress: Progress, there = false): Objective {

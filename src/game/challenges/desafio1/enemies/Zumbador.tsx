@@ -32,8 +32,8 @@ const DEATH_GRAVITY = 12
 const DEATH_SPIN = 9
 const DEATH_SECONDS = 1.8
 
-// Same as the golem: hidden in a well until the player enters the swamp; when they leave, it keeps hovering where
-// it is and chases them again if they return. `index` spreads the swarm across different wells (two per well)
+// Same as the golem: it hovers around it in the middle of the swamp; once the player treads on the mud it goes after
+// them wherever they run, out of the swamp too, and when it loses them it flies back to its place. `index` spreads the swarm across different wells (two per well)
 // and offsets each one's wing flapping. The backpack insecticide kills them: they fall spinning and disappear forever
 // (they are stored in the saved progress, so they do not come back on reload either).
 export function Zumbador({ index, activo }: { index: number; activo: boolean }) {
@@ -93,7 +93,8 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
     const brainState = brain.current
     const p = position.current
     const player = usePlayerStore.getState().position
-    const playerInPantano = usePantanoStore.getState().playerOnMud
+    // After the player: from the moment they tread on the mud, in or out of the swamp (see MudTracker).
+    const playerInPantano = usePantanoStore.getState().alerted
     const wobble = Math.sin(now * 15 + flapOffset) * 0.8
     const enemies = usePantanoStore.getState()
     // Far from the swamp it waits under the map: mounted and ready, doing nothing.
@@ -153,11 +154,19 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
         if (p.y >= brainState.hoverY) brainState.state = playerInPantano ? 'chasing' : 'hovering'
         break
 
-      case 'hovering':
+      case 'hovering': {
         if (playerInPantano) { brainState.state = 'chasing'; break }
-        p.y += Math.sin(now * 5 + flapOffset) * 0.3 * delta
+        // It lost the player away from its place: it flies back.
+        const puesto = puestoDelZumbador(index, ZUMBADOR_COUNT, wells)
+        if (Math.hypot(puesto.x - p.x, puesto.z - p.z) > 0.5) {
+          const ground = terrainHeight(p.x, p.z, p.y + 5, 15)
+          flyTowards(puesto.x, ground !== null ? ground + puesto.height : p.y, puesto.z, RETREAT_SPEED * speedFactor, delta, wobble)
+        } else {
+          p.y += Math.sin(now * 5 + flapOffset) * 0.3 * delta
+        }
         keepAboveGround()
         break
+      }
 
       case 'chasing': {
         if (!playerInPantano) { brainState.state = 'hovering'; break }

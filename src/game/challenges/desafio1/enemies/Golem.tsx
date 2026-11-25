@@ -34,8 +34,8 @@ const UP = new THREE.Vector3(0, 1, 0)
 const STRIDE = 2.1
 const EARSHOT = 34
 
-// Hidden in a swamp well until the player enters: it climbs out of the well closest to the player and chases them.
-// When the player leaves the swamp it stays still where it is (Idle) and resumes the chase if they come back.
+// It waits standing in the middle of the swamp. Once the player treads on the mud it goes after them wherever they
+// run, out of the swamp too; when it loses them (they fell, or got very far) it walks back to its place.
 // The backpack gem deactivates it: it falls with the Knock animation and stays down. If it was already deactivated in
 // a previous session (saved progress), it never leaves its well again.
 export function Golem({ activo }: { activo: boolean }) {
@@ -101,7 +101,8 @@ export function Golem({ activo }: { activo: boolean }) {
     const brainState = brain.current
     const p = position.current
     const player = usePlayerStore.getState().position
-    const playerInPantano = usePantanoStore.getState().playerOnMud
+    // After the player: from the moment they tread on the mud, in or out of the swamp (see MudTracker).
+    const playerInPantano = usePantanoStore.getState().alerted
     let action: GolemAction | null = 'Walking'
     const enemies = usePantanoStore.getState()
     // Far from the swamp it waits under the map: mounted and ready, doing nothing.
@@ -159,6 +160,10 @@ export function Golem({ activo }: { activo: boolean }) {
         if (playerInPantano) {
           brainState.state = 'chasing'
           playSfxAt('d1_golem_rugido', p, EARSHOT)
+        } else if (Math.hypot(home.x - p.x, home.z - p.z) > 0.5) {
+          // It lost the player away from its place: it walks back.
+          action = 'Walking'
+          walkTowards(home.x, home.z, delta)
         }
         break
 

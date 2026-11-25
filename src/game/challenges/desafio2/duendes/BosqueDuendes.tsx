@@ -16,7 +16,7 @@ function Pack() {
   return alive.map((i) => <Duende key={i} index={i} home={HOMES[i]} />);
 }
 
-// The goblins of the Dark Forest. They only exist in the forest and its valley: anywhere else they are unmounted (no
+// The goblins of the Dark Forest. They only exist in the forest, its valley and Hedrig's town: anywhere else they are unmounted (no
 // logic, no draw calls, no bodies). The pack remounts each time the player comes back, so after a story restart
 // every goblin is there again.
 export function BosqueDuendes() {

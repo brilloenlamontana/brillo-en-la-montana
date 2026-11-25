@@ -6,8 +6,9 @@ export const VISIBLE_FROM = {
   casaElfoExterior: visibleFrom(['pantano', 'valle', 'bosque'], ['elfo']),
   casaElfoInterior: visibleFrom(['valle'], ['elfo']),
   elfo: visibleFrom(['pantano', 'valle']),
-  // The goblins only exist in the forest and its valley; far away they are unmounted.
-  duendes: visibleFrom(['valle', 'bosque']),
+  // The goblins exist in the forest and where they can follow the player out of it (its valley and Hedrig's town);
+  // farther away, and with the player indoors, they are unmounted.
+  duendes: visibleFrom(['valle', 'bosque', 'pueblo']),
   muroOculto: visibleFrom(['valle', 'bosque', 'pueblo']),
   // The trail the map reveals runs from the forest entrance to past the wall, at the edge of Hedrig's town.
   sendero: visibleFrom(['valle', 'bosque', 'pueblo']),
