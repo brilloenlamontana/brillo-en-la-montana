@@ -1,6 +1,6 @@
 // The goblins of the Dark Forest wait in packs along the way through it, from the valley pass to the hidden wall. A
 // pack attacks together when the player comes near any of its goblins, so each stretch of the forest has its ambush
-// (and the first one is right at the way in).
+// (and the first one is right at the way in). They only attack inside the forest.
 
 // Where each goblin waits (world x, z): two per pack.
 export const HOMES: readonly (readonly [number, number])[] = [

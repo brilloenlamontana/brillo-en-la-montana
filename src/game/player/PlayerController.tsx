@@ -11,7 +11,7 @@ import { useCameraColliderStore } from '@/game/engine/camera/cameraColliderStore
 import { isBodyNamed, LIMIT_BODY_NAME, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAuthStore } from '@/store/authStore';
-import { isGameplayPaused } from '@/store/uiStore';
+import { isGameplayPaused, useUIStore } from '@/store/uiStore';
 import type { Control } from './keyboardMap';
 import { usePlayerStore, type PlayerAction, type Point, type Spawn } from './playerStore';
 import { cameraAzimuthBehind, PLAYER_START, RESPAWN_POINT } from './spawn';
@@ -59,9 +59,8 @@ const seenByCamera = (collider: { parent: () => { userData?: unknown } | null })
 
 // The Death clip lasts 3.63 s; a short pause follows before respawning.
 const DEATH_RESPAWN_DELAY = 4.1;
-// A joystick pushed this far counts as moving; past RUN it runs (same speeds as walking and Shift on a keyboard).
+// A joystick pushed this far counts as moving.
 const JOYSTICK_DEADZONE = 0.05;
-const JOYSTICK_RUN = 0.75;
 // A guided walk (playerStore.guide) stops this close to its target (m).
 const GUIDE_ARRIVE = 0.18;
 // Guided and moving less than GUIDE_STUCK_METERS in GUIDE_STUCK_SECONDS: something low is in the way.
@@ -123,8 +122,9 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
     body.setLinvel({ x: 0, y: 0, z: 0 }, true);
   };
 
-  // How far behind the avatar's head the camera can be without anything solid in between, up to `wanted` (m).
-  const clearCameraDistance = (wanted: number) => {
+  // How far behind the avatar's head the camera can be without anything solid in between, up to `wanted` (m). In a
+  // `room` (playerStore.cameraRoom) nothing solid counts: the camera only stays within the room's radius.
+  const clearCameraDistance = (wanted: number, room: { x: number; z: number; radius: number } | null) => {
     const controls = cameraControls.current;
     if (!controls) return wanted;
     const { target, back, right, above, to } = sight.current;
@@ -133,6 +133,17 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
     const polar = controls.polarAngle;
     const azimuth = controls.azimuthAngle;
     back.set(Math.sin(polar) * Math.sin(azimuth), Math.cos(polar), Math.sin(polar) * Math.cos(azimuth));
+    if (room) {
+      // Where the line from the head toward the camera leaves the circle of the room (seen from above).
+      const ox = target.x - room.x, oz = target.z - room.z;
+      const a = back.x * back.x + back.z * back.z;
+      const b = 2 * (ox * back.x + oz * back.z);
+      const c = ox * ox + oz * oz - room.radius * room.radius;
+      const inside = b * b - 4 * a * c;
+      if (a < 1e-6 || c >= 0 || inside <= 0) return wanted;
+      const leave = (-b + Math.sqrt(inside)) / (2 * a);
+      return Math.max(Math.min(CAMERA_NEAREST, wanted), Math.min(wanted, leave - CAMERA_SKIN));
+    }
     right.set(Math.cos(azimuth), 0, -Math.sin(azimuth));
     above.crossVectors(back, right);
     const flags = rapier.QueryFilterFlags.ONLY_FIXED | rapier.QueryFilterFlags.EXCLUDE_SENSORS;
@@ -150,11 +161,11 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
 
   // Keeps the camera at the distance asked for (playerStore.cameraDistance, or the usual one), or nearer when
   // something solid is in the way: it comes in at once and goes back out smoothly.
-  const applyCameraDistance = (wanted: number, delta: number) => {
+  const applyCameraDistance = (wanted: number, room: { x: number; z: number; radius: number } | null, delta: number) => {
     const controls = cameraControls.current;
     if (!controls) return;
     const view = sight.current;
-    const clear = clearCameraDistance(wanted);
+    const clear = clearCameraDistance(wanted, room);
     view.distance = clear < view.distance ? clear : MathUtils.damp(view.distance, clear, CAMERA_EASE_OUT, delta);
     if (Math.abs(view.distance - view.applied) < 0.002) return;
     view.applied = view.distance;
@@ -190,7 +201,7 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
       teleport(player.teleportRequest);
       player.clearTeleportRequest();
     }
-    if (cameraPlaced.current) applyCameraDistance(player.cameraDistance ?? CAMERA_DISTANCE, Math.min(delta, 0.1));
+    if (cameraPlaced.current) applyCameraDistance(player.cameraDistance ?? CAMERA_DISTANCE, player.cameraDistance === null ? null : player.cameraRoom, Math.min(delta, 0.1));
 
     // Death: frozen while the Death clip plays, then back at the respawn point with full health.
     if (player.health <= 0) {
@@ -255,9 +266,10 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
     const joystickY = joystick?.active ? joystick.y : 0;
     const joystickPush = Math.hypot(joystickX, joystickY);
     const buttons = useButtonStore.getState().buttons;
-    // ecctrl ignores how far the joystick is pushed (it only takes its direction), so the push itself chooses between
-    // walking and running: a phone reaches exactly the keyboard's walking and running speeds.
-    const run = keys.run || Boolean(buttons['run']) || joystickPush > JOYSTICK_RUN;
+    // The joystick only walks, however far it is pushed (a thumb pushes it to the edge almost always). Running takes
+    // Shift held on a keyboard; on a touch screen the RUN button is tapped once and stays on (uiStore.running), so
+    // the thumbs are free for the joystick and the camera.
+    const run = keys.run || Boolean(buttons['run']) || useUIStore.getState().running;
 
     ecctrl.setMovement({
       forward: keys.forward,

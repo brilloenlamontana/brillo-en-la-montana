@@ -12,7 +12,7 @@ import { DESAFIO1_MODELS } from '../assets'
 import { usePantanoStore } from '../pantanoStore'
 import { usePantanoWells } from '../pantanoTristeza/wells'
 import { ZUMBADOR_COUNT } from '../mission'
-import { puestoDelZumbador } from './guarida'
+import { pasoEnElPantano, puestoDelZumbador } from './guarida'
 
 type ZumbadorState = 'hidden' | 'emerging' | 'chasing' | 'retreating' | 'hovering' | 'dying' | 'dead'
 
@@ -25,15 +25,22 @@ const CHASE_SPEED = 4
 const RETREAT_SPEED = 5
 const CLIMB_SPEED = 3
 const MIN_HEIGHT_ABOVE_GROUND = 0.5
-const STING_RANGE = 1.5
+// It stings on touching the avatar: this close to the point of the body it aims at (m).
+const STING_RANGE = 0.45
+// The last stretch is a dart: within DART_DISTANCE it flies this much faster, straight at the body.
+const DART_DISTANCE = 3
+const DART_BOOST = 1.8
+// Where on the body each one aims (m over the feet): from the thighs to the chest, also on the short characters, so
+// the swarm does not pile on one spot.
+const AIM_HEIGHTS = [0.6, 0.85, 1.1, 1.3] as const
 const STING_DAMAGE = 2 // 10 stings empty the 100 health points
 const STING_COOLDOWN = 2
 const DEATH_GRAVITY = 12
 const DEATH_SPIN = 9
 const DEATH_SECONDS = 1.8
 
-// Same as the golem: hidden in a well until the player enters the swamp; when they leave, it keeps hovering where
-// it is and chases them again if they return. `index` spreads the swarm across different wells (two per well)
+// Same as the golem: it hovers around it in the middle of the swamp; while the player treads on the mud it goes after
+// them, and when they step off it (or fall) it flies back to its place. It never leaves the swamp. `index` spreads the swarm across different wells (two per well)
 // and offsets each one's wing flapping. The backpack insecticide kills them: they fall spinning and disappear forever
 // (they are stored in the saved progress, so they do not come back on reload either).
 export function Zumbador({ index, activo }: { index: number; activo: boolean }) {
@@ -66,7 +73,14 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
     target.current.set(tx, ty, tz)
     const toTarget = direction.current.subVectors(target.current, p)
     const distance = toTarget.length()
-    if (distance > 1e-3) p.addScaledVector(toTarget.divideScalar(distance), Math.min(distance, speed * delta))
+    if (distance > 1e-3) {
+      toTarget.multiplyScalar(Math.min(distance, speed * delta) / distance)
+      // It never leaves the swamp: at the shore it slides along it.
+      const [sx, sz] = pasoEnElPantano(p.x, p.z, toTarget.x, toTarget.z)
+      p.x += sx
+      p.y += toTarget.y
+      p.z += sz
+    }
     p.y += wobble * delta
     lookAt(target.current, delta)
     return distance
@@ -93,7 +107,8 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
     const brainState = brain.current
     const p = position.current
     const player = usePlayerStore.getState().position
-    const playerInPantano = usePantanoStore.getState().playerOnMud
+    // After the player: only while they tread on the mud, alive (see MudTracker).
+    const playerInPantano = usePantanoStore.getState().alerted
     const wobble = Math.sin(now * 15 + flapOffset) * 0.8
     const enemies = usePantanoStore.getState()
     // Far from the swamp it waits under the map: mounted and ready, doing nothing.
@@ -153,15 +168,26 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
         if (p.y >= brainState.hoverY) brainState.state = playerInPantano ? 'chasing' : 'hovering'
         break
 
-      case 'hovering':
+      case 'hovering': {
         if (playerInPantano) { brainState.state = 'chasing'; break }
-        p.y += Math.sin(now * 5 + flapOffset) * 0.3 * delta
+        // The player is off the mud (or fell): it flies back to its place.
+        const puesto = puestoDelZumbador(index, ZUMBADOR_COUNT, wells)
+        if (Math.hypot(puesto.x - p.x, puesto.z - p.z) > 0.5) {
+          const ground = terrainHeight(p.x, p.z, p.y + 5, 15)
+          flyTowards(puesto.x, ground !== null ? ground + puesto.height : p.y, puesto.z, RETREAT_SPEED * speedFactor, delta, wobble)
+        } else {
+          p.y += Math.sin(now * 5 + flapOffset) * 0.3 * delta
+        }
         keepAboveGround()
         break
+      }
 
       case 'chasing': {
         if (!playerInPantano) { brainState.state = 'hovering'; break }
-        const distance = flyTowards(player.x, player.y + 1.5, player.z, CHASE_SPEED * speedFactor, delta, wobble)
+        // It flies at the avatar's body and stings on reaching it; near, it darts in without wobbling off its aim.
+        const aimY = player.y + AIM_HEIGHTS[index % AIM_HEIGHTS.length]
+        const near = Math.hypot(player.x - p.x, aimY - p.y, player.z - p.z) < DART_DISTANCE
+        const distance = flyTowards(player.x, aimY, player.z, CHASE_SPEED * speedFactor * (near ? DART_BOOST : 1), delta, near ? 0 : wobble)
         if (distance < STING_RANGE) {
           if (now - brainState.lastSting > STING_COOLDOWN) {
             playSfx('d1_zumbon_picadura')
@@ -180,7 +206,13 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
 
       case 'retreating':
         if (!playerInPantano) { brainState.state = 'hovering'; break }
-        p.addScaledVector(retreatDir.current, RETREAT_SPEED * speedFactor * delta)
+        {
+          const back = RETREAT_SPEED * speedFactor * delta
+          const [sx, sz] = pasoEnElPantano(p.x, p.z, retreatDir.current.x * back, retreatDir.current.z * back)
+          p.x += sx
+          p.y += retreatDir.current.y * back
+          p.z += sz
+        }
         p.y += Math.sin(now * 20 + flapOffset) * 0.5 * delta
         target.current.copy(p).add(retreatDir.current)
         lookAt(target.current, delta)
@@ -199,7 +231,8 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
   })
 
   return (
-    <RigidBody ref={rb} type="kinematicPosition" colliders="cuboid" includeInvisible position={[0, HIDDEN_Y, 0]} scale={BODY_SCALE}>
+    // A sensor: it reaches the avatar's body to sting it without shoving the avatar around.
+    <RigidBody ref={rb} type="kinematicPosition" colliders="cuboid" sensor includeInvisible position={[0, HIDDEN_Y, 0]} scale={BODY_SCALE}>
       <group ref={group} dispose={null} scale={MESH_SCALE} visible={false}>
         <mesh
           geometry={(nodes.Zumbador as THREE.Mesh).geometry}

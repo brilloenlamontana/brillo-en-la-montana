@@ -1,5 +1,4 @@
-import { listText } from '@/game/challenges/listText';
-import type { ItemState, MissionStep } from '@/game/challenges/types';
+import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { isDesafio1Completado } from '../desafio1/mission';
 import { ELFO_COLLECTIBLES, type ElfoItemId } from './items';
@@ -49,33 +48,56 @@ export function getItemState(id: ElfoItemId, progress: Progress): ItemState {
   return collected(progress).includes(id) ? 'owned' : 'missing';
 }
 
-// How each tool is named in a sentence.
-const ITEM_LABEL: Record<ElfoItemId, string> = { espada: 'la espada élfica', lente: 'el lente revelador', mapa: 'el mapa del bosque' };
+// Where each step of Challenge 2 happens (the ground there): the elf at the foot of his tree and the way into the forest.
+const ELFO = { x: -36.4, y: 10.2, z: -126.4 };
+const BOSQUE = { x: -25, y: 12, z: -182 };
 
-// What the player has to do now (shown in the backpack).
+// The step of Challenge 2 the player is on, in one line, and where it happens.
+export function getObjective(progress: Progress, there = false): Objective {
+  if (!isElfoHouseUnlocked(progress)) {
+    const text =
+      progress?.elfoHelp === 'rejected'
+        ? 'Vuelve con el elfo y acepta su ayuda: sin sus herramientas no saldrás del bosque.'
+        : 'Busca al elfo al pie del árbol gigante, al otro lado del pantano, y habla con él.';
+    return { text, at: ELFO };
+  }
+  // General on purpose: it names everything the elf offers, not what this player still lacks. Whoever walks into the
+  // forest without something has chosen to: from then on the objective is the forest's.
+  if (ELFO_COLLECTIBLES.some(({ id }) => !collected(progress).includes(id)) && !there) {
+    return { text: 'Sube a la casa del elfo, en la copa del árbol, y recoge lo que te ofrece: la espada, el lente y el mapa.', at: ELFO };
+  }
+  return { text: 'Cruza el Bosque de la Oscuridad.', at: BOSQUE };
+}
+
+// What the elf says, in a few words, to a player who already accepted his help and has not crossed the forest yet:
+// what to do now. Each one is a fixed line, so his recorded voice says the same words.
+export function getElfoHint(progress: Progress): Hint {
+  if (ELFO_COLLECTIBLES.some(({ id }) => !collected(progress).includes(id))) {
+    return {
+      voice: '02_elfo_06',
+      paragraphs: ['Mi casa está abierta. Sube por la escalera que rodea el árbol y recoge la espada, el lente y el mapa. Lo que tomes queda en tu mochila.'],
+    };
+  }
+  return {
+    voice: '02_elfo_07',
+    paragraphs: [
+      'Ya llevas mis herramientas. En el Bosque de la Oscuridad te esperan los duendes, el hambre y los senderos que cambian. Para qué sirve cada herramienta tendrás que descubrirlo tú.',
+    ],
+  };
+}
+
+// Said on walking out of the forest with something still to do in it: only that it is not passed.
+export function getPending(progress: Progress): string | null {
+  return isDesafio2Completado(progress) ? null : 'Aún no has superado el Bosque de la Oscuridad.';
+}
+
+// What the player has to do now (shown in the backpack): what, never how.
 export function getGoal(progress: Progress): string {
   if (isDesafio2Completado(progress)) {
     return '¡Superaste el Bosque de la Oscuridad! Tu vida está recuperada y el sendero hacia la cumbre está despejado: sigue las flechas doradas del suelo hasta la salida del bosque.';
   }
-  const missing = ELFO_COLLECTIBLES.filter(({ id }) => !collected(progress).includes(id)).map(({ id }) => ITEM_LABEL[id]);
-  if (missing.length) return `Sube a la casa del elfo, en la copa del árbol gigante, y recoge ${listText(missing)}.`;
-  const tasks: string[] = [];
-  const duendes = DUENDE_COUNT - defeatedDuendes(progress);
-  if (duendes > 0) {
-    tasks.push(
-      `${duendes === DUENDE_COUNT ? 'Los duendes salvajes' : `Los ${duendes} duendes que quedan`} te perseguirán: acaba con ellos usando la espada cuando estén cerca.`,
-    );
-  }
-  const frutos = FRUTOS_NEEDED - frutosEaten(progress);
-  if (frutos > 0) {
-    tasks.push(
-      `El hambre te obligará a comer: mira por el lente y come ${frutos === 1 ? 'una fruta amarilla más' : `${frutos} frutas amarillas`}; las que siguen rojas son venenosas.`,
-    );
-  }
-  if (!isMapaActivado(progress)) {
-    tasks.push('Usa el mapa del bosque para hacer descender el muro oculto y despejar el sendero.');
-  }
-  if (tasks.length) return `Adéntrate en el Bosque de la Oscuridad. ${tasks.join(' ')}`;
+  if (ELFO_COLLECTIBLES.some(({ id }) => !collected(progress).includes(id))) return 'En la casa del elfo, en la copa del árbol gigante, te esperan la espada, el lente y el mapa.';
+  if (!isDesafio2Completado(progress) && !(allDuendesDefeated(progress) && isFed(progress) && isMapaActivado(progress))) return 'Cruza el Bosque de la Oscuridad.';
   return 'Acabaste con los duendes, saciaste tu hambre y despejaste el sendero oculto. Sigue las flechas doradas del suelo hasta la salida del bosque.';
 }
 

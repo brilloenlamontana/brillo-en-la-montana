@@ -19,12 +19,13 @@ const CAP: CSSProperties = {
 };
 
 // Touch controls (phones and tablets, played lying on their side): the joystick under the left thumb; under the right
-// one, RUN at the bottom (the one held most) and JUMP over it, smaller and fainter. When there is something to do with
-// what is in reach (what the E key does: eat a fruit, talk, pick up), a labelled button for it shows beside them, in the
-// same place every time, so the thumb learns where it is.
+// one, RUN at the bottom (tapped once it stays on and reads WALK; tapped again it walks) and JUMP over it, smaller and fainter. When there is something to do with
+// what is in reach (what the E key does: eat a fruit, talk, pick up), a labelled button for it shows beside RUN, in the
+// same place every time, so the thumb learns where it is (the objective shows at the top on a touch screen).
 export function MobileControls({ show = true }: { show?: boolean }) {
   const offer = useInteractionStore((state) => state.offers[state.offers.length - 1]);
   // Nothing to tap behind a dialog, a cinematic or the open backpack.
+  const running = useUIStore((state) => state.running);
   const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen);
   if (!show) return null;
 
@@ -62,27 +63,48 @@ export function MobileControls({ show = true }: { show?: boolean }) {
       </div>
 
       <div className="pointer-events-auto">
-        <VirtualButton
-          id="run"
-          label="CORRER"
-          buttonWrapperStyle={{
+        {/* Tapped, not held: it stays on (sunk, and now offering to walk) until it is tapped again. */}
+        <button
+          type="button"
+          aria-pressed={running}
+          aria-label={running ? 'Caminar' : 'Correr'}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            useUIStore.getState().toggleRunning();
+          }}
+          style={{
             ...FIXED,
             bottom: 'max(18px, env(safe-area-inset-bottom, 18px))',
             right: 'max(24px, env(safe-area-inset-right, 24px))',
             width: '78px',
             height: '78px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'transparent',
+            border: 'none',
+            padding: 0,
           }}
-          buttonCapStyle={{
-            ...CAP,
-            width: '66px',
-            height: '66px',
-            background: `radial-gradient(circle at 35% 35%, rgba(248, 224, 138, 0.9) 0%, rgba(${GOLD}, 0.82) 70%)`,
-            border: `2px solid rgba(${WOOD}, 0.9)`,
-            boxShadow: '0 4px 12px rgba(42, 26, 18, 0.4)',
-            color: '#3e2723',
-            fontSize: '11px',
-          }}
-        />
+        >
+          <span
+            style={{
+              ...CAP,
+              width: '66px',
+              height: '66px',
+              background: running
+                ? `radial-gradient(circle at 35% 35%, rgba(141, 110, 99, 0.95) 0%, rgba(${WOOD}, 0.95) 75%)`
+                : `radial-gradient(circle at 35% 35%, rgba(248, 224, 138, 0.9) 0%, rgba(${GOLD}, 0.82) 70%)`,
+              border: `2px solid rgba(${running ? GOLD : WOOD}, 0.9)`,
+              boxShadow: running ? 'inset 0 3px 8px rgba(0, 0, 0, 0.55)' : '0 4px 12px rgba(42, 26, 18, 0.4)',
+              transform: running ? 'scale(0.94)' : 'none',
+              color: running ? `rgb(${GOLD})` : '#3e2723',
+              fontSize: running ? '10px' : '11px',
+              transition: 'transform 0.12s, box-shadow 0.12s',
+            }}
+          >
+            {running ? 'CAMINAR' : 'CORRER'}
+          </span>
+        </button>
 
         <VirtualButton
           id="jump"

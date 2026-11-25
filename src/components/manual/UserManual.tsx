@@ -201,15 +201,16 @@ const SECTIONS: Section[] = [
         />
         <h3 className={H3}>En celular</h3>
         <p className={P}>
-          El juego se usa con el teléfono <strong>en horizontal</strong>. Si ves el aviso «Gira tu celular», gíralo; si no cambia, desactiva el bloqueo
-          de rotación en los ajustes rápidos de tu teléfono.
+          El juego se usa con el teléfono <strong>en horizontal</strong>. Si ves el aviso «Gira tu celular», gíralo; si no cambia, tu teléfono tiene
+          bloqueado el giro de la pantalla: el mismo aviso muestra, paso a paso, cómo quitarlo en iPhone y en Android. El video introductorio se puede ver con el
+          teléfono en cualquier posición.
         </p>
         <Tabla
           head={['Control en pantalla', 'Qué hace']}
           rows={[
             ['Palanca de la izquierda', 'Caminar; llévala hasta el borde para ir más rápido'],
             ['Deslizar el dedo por la pantalla', 'Girar la cámara'],
-            [<strong>CORRER</strong>, 'Correr mientras lo mantienes presionado'],
+            [<strong>CORRER</strong>, 'Tócalo una vez para correr; cambia a CAMINAR y, al tocarlo otra vez, vuelves a caminar'],
             [<strong>SALTAR</strong>, 'Saltar'],
             ['Botón de acción', 'Aparece cuando hay algo con qué interactuar; hace lo mismo que la tecla E'],
             ['Casillas de la barra rápida', 'Tocar una casilla usa ese objeto'],
@@ -274,9 +275,9 @@ const SECTIONS: Section[] = [
           </li>
           <li>
             Para <strong>usarlo</strong>, presiona su número (<Tecla>1</Tecla>, <Tecla>2</Tecla> o <Tecla>3</Tecla>) o toca su casilla en la barra rápida.
-            Cada objeto sirve contra un peligro concreto: úsalo cerca de ese peligro.
+            Para qué sirve cada uno no te lo dice nadie: descubrirlo es parte del reto.
           </li>
-          <li>Después de usar un objeto, el juego te dice en un aviso qué pasó. Léelo: suele decirte qué falta.</li>
+          <li>Después de usar un objeto, el juego te dice en un aviso qué pasó.</li>
         </ul>
         <Nota title="Sin objetos no hay cómo defenderse">
           Los objetos se consiguen en la casa de quien te ofrece ayuda. Si rechazas la ayuda, la casa queda cerrada. Siempre puedes volver a hablar
@@ -337,34 +338,34 @@ const SECTIONS: Section[] = [
     title: '10. La aventura paso a paso',
     body: (
       <>
-        <p className={P}>Esta guía te orienta sin contarte las soluciones. En todos los desafíos el orden es el mismo: hablar, aceptar la ayuda, recoger los objetos y usarlos.</p>
+        <p className={P}>Esta guía te orienta sin contarte las soluciones. En todos los desafíos el orden es el mismo: hablar, aceptar la ayuda, recoger los objetos y descubrir para qué sirven.</p>
         <h3 className={H3}>Desafío 1: Villa de Boj y Pantano de la Tristeza</h3>
         <ol className={OL}>
           <li>Lee el <strong>anuncio del alcalde</strong> en el tablón junto al portón de la villa.</li>
-          <li>Habla con la <strong>aldeana</strong> junto al pozo de la plaza. Si vuelves a hablarle después de aceptar su ayuda, te cuenta las habladurías del pozo.</li>
+          <li>Habla con la <strong>aldeana</strong> junto al pozo de la plaza. Si vuelves a hablarle después de aceptar su ayuda, te dice qué hacer ahora. Lo mismo hacen Imeri, el elfo y Hedrig: una vez aceptas su ayuda, al volver te indican el siguiente paso.</li>
           <li>Sigue el camino hasta la casa de <strong>Imeri</strong>, la cazadora. Dentro hay siete cosas para recoger.</li>
-          <li>Cruza el pantano. Allí hay un gigante de piedra, mosquitos enormes y pozos de lodo: cada objeto de la mochila sirve para uno de ellos.</li>
+          <li>Cruza el pantano. Allí hay un gigante de piedra, mosquitos enormes y pozos de lodo.</li>
         </ol>
         <h3 className={H3}>Desafío 2: Valle del Elfo y Bosque de la Oscuridad</h3>
         <ol className={OL}>
           <li>Al pie del árbol gigante te espera el <strong>elfo</strong>. Su casa está en la copa: sube por la escalera.</li>
           <li>En el bosque hay duendes que atacan en grupo. Además te da <strong>hambre</strong>: la barra baja con el tiempo.</li>
-          <li>No todas las frutas del bosque son buenas. Uno de los objetos te deja ver cuáles puedes comer.</li>
-          <li>Para salir del bosque necesitas encontrar el sendero: otro objeto te lo muestra.</li>
+          <li>No todas las frutas del bosque son buenas.</li>
+          <li>Para salir del bosque necesitas encontrar el sendero.</li>
         </ol>
         <h3 className={H3}>Desafío 3: Pueblo de Hedrig y Túneles de la Cumbre</h3>
         <ol className={OL}>
-          <li>En el pueblo minero vive <strong>Hedrig</strong>. Escucha su historia: te dice para qué sirve cada cosa.</li>
-          <li>Dentro de la mina las galerías se cruzan. Uno de los objetos te marca el camino.</li>
-          <li>En los túneles hay alguien que no quiere pelear: quiere recuperar algo que perdió.</li>
-          <li>Al final un guardián cuida la escalera. Se le gana en un juego de fuerza, haciendo clic muy rápido, y con la mano bien protegida.</li>
+          <li>En el pueblo minero vive <strong>Hedrig</strong>. Escucha su historia con atención.</li>
+          <li>Dentro de la mina las galerías se cruzan y es fácil perderse.</li>
+          <li>En los túneles hay alguien que llora y persigue a quien entra.</li>
+          <li>Al final un guardián cuida la escalera y reta a quien quiera subir.</li>
         </ol>
         <h3 className={H3}>Cierre: la Cumbre y el Santuario</h3>
         <p className={P}>En la cumbre te recibe la guardiana del santuario. Escúchala, entra y toma el cáliz del altar. El juego termina con una escena final y un resumen de tu recorrido.</p>
         <h3 className={H3}>Dos tareas opcionales</h3>
         <p className={P}>
           A la salida del pantano y a la salida del bosque hay dos encuentros escondidos que no son obligatorios. Cada uno se resuelve con paciencia,
-          en tres pasos, y entrega una <strong>estrella extra</strong> que te protege de un bajo rendimiento. Las pistas las da la aldeana.
+          en tres pasos, y entrega una <strong>estrella extra</strong> que te protege de un bajo rendimiento.
         </p>
       </>
     ),
@@ -400,12 +401,12 @@ const SECTIONS: Section[] = [
           rows={[
             ['No puedo iniciar sesión', 'Verifica que estés usando la cuenta @correounivalle.edu.co y que el navegador permita ventanas emergentes para este sitio.'],
             ['La carga se queda quieta', 'Espera un momento: en celular puede tardar un par de minutos la primera vez. Si no avanza, recarga la página; tu avance no se pierde.'],
-            ['Veo «Gira tu celular» y no cambia', 'Desactiva el bloqueo de rotación del teléfono y gíralo a horizontal.'],
+            ['Veo «Gira tu celular» y no cambia', 'Tu teléfono tiene bloqueado el giro de la pantalla. Sigue los pasos que muestra el aviso (iPhone o Android) y gíralo a horizontal.'],
             ['El juego va lento', 'Cierra otras pestañas y aplicaciones. En computador, usa Chrome o Edge actualizados.'],
             ['No escucho nada', 'Revisa el panel de sonido del juego (ícono del parlante) y el volumen del equipo. En celular, quita el modo silencio.'],
             ['No sé a dónde ir', 'Abre la mochila para leer tu objetivo y mira el punto dorado del minimapa.'],
             ['Una puerta no abre', 'Esa casa se abre cuando aceptas la ayuda de su dueño. Vuelve a hablar con el personaje que te envió.'],
-            ['Quedé atrapado en un pozo', 'Se sale con uno de los objetos del primer desafío. Si no lo llevas, no hay salida: por eso conviene recogerlos todos.'],
+            ['Quedé atrapado en un pozo', 'Revisa lo que llevas en la mochila. Si no llevas lo necesario, no hay salida: por eso conviene recoger todo antes de entrar.'],
             ['La pantalla quedó en negro o con un error gráfico', 'Recarga la página. El juego recuerda el problema y la próxima vez usa un modo gráfico más compatible.'],
           ]}
         />

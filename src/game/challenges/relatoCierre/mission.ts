@@ -1,4 +1,4 @@
-import type { MissionStep } from '@/game/challenges/types';
+import type { MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 
 // Rules of the closing story, as pure functions of the saved progress (shared with the admin dashboard). From the
@@ -13,6 +13,15 @@ export const isUnlocked = (progress: Progress) => progress?.mision3Completada ==
 export const isSantuarioAbierto = (progress: Progress) => progress?.interactedWithDriada === true;
 export const isCalizTomado = (progress: Progress) => progress?.calizTomado === true;
 export const isJuegoCompletado = (progress: Progress) => progress?.juegoCompletado === true;
+
+// The plaza in front of the sanctuary doors (the ground there), where the dryad comes out.
+const SANTUARIO = { x: 148, y: 52, z: -153 };
+
+// The step of the closing story the player is on, in one line, and where it happens.
+export function getObjective(progress: Progress): Objective {
+  if (!isSantuarioAbierto(progress)) return { text: 'Sigue la avenida hasta el santuario del resplandor verde y habla con la dríada.', at: SANTUARIO };
+  return { text: 'Entra al santuario y toma el cáliz del altar.', at: SANTUARIO };
+}
 
 // Total defeats ("bajos") suffered along the whole game.
 export const countDerrotas = (progress: Progress) => Object.values(progress?.derrotas ?? {}).reduce((sum, count) => sum + (Number(count) || 0), 0);

@@ -1,5 +1,4 @@
-import { listText } from '@/game/challenges/listText';
-import type { ItemState, MissionStep } from '@/game/challenges/types';
+import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { isDesafio2Completado } from '../desafio2/mission';
 import { HEDRIG_COLLECTIBLES, type HedrigItemId } from './items';
@@ -39,8 +38,60 @@ export function getItemState(id: HedrigItemId, progress: Progress): ItemState {
   return hasCollected(id, progress) ? 'owned' : 'missing';
 }
 
-// How each item is named in a sentence.
-const ITEM_LABEL: Record<HedrigItemId, string> = { guante: 'el guante de minero', brujula: 'la brújula', muneca: 'la muñeca de trapo' };
+// Where each step of Challenge 3 happens (the ground there): Hedrig by her bonfire and the mouth of the mine.
+const HEDRIG = { x: 82.6, y: 23.8, z: -206.3 };
+const MINA = { x: 99, y: 24, z: -194 };
+
+// The step of Challenge 3 the player is on, in one line, and where it happens (inside the tunnels the compass guides).
+export function getObjective(progress: Progress, there = false): Objective {
+  if (!hasArrived(progress)) return { text: 'Sigue las flechas doradas del suelo hasta el pueblo minero.', at: HEDRIG };
+  if (!isHedrigHouseUnlocked(progress)) {
+    const text =
+      progress?.hedrigHelp === 'rejected'
+        ? 'Vuelve con Hedrig y acepta su ayuda: sin sus objetos no pasarás los túneles.'
+        : 'Habla con Hedrig, la enana minera, junto a la fogata de su casa.';
+    return { text, at: HEDRIG };
+  }
+  // General on purpose: it names everything Hedrig offers, not what this player still lacks. Whoever walks into the
+  // tunnels without something has chosen to: from then on the objective is the tunnels'.
+  if (HEDRIG_COLLECTIBLES.some(({ id }) => !hasCollected(id, progress)) && !there) {
+    return { text: 'Entra a la casa de Hedrig y recoge lo que te ofrece: el guante de minero, la brújula y la muñeca de trapo.', at: HEDRIG };
+  }
+  if (!isOgroVencido(progress)) return { text: 'Cruza los Túneles de la Cumbre.', at: MINA };
+  return { text: 'El ogro te dejó pasar: sube la escalera de piedra hasta la cumbre.' };
+}
+
+// What Hedrig says, in a few words, to a player who already accepted her help: what to do now. Each one is a fixed
+// line, so her recorded voice says the same words.
+export function getHedrigHint(progress: Progress): Hint {
+  if (isDesafio3Completado(progress)) {
+    return {
+      voice: '03_hedrig_08',
+      paragraphs: ['¡Llegaste a la cumbre y volviste para contarlo! Sube otra vez y sigue la avenida hasta el santuario del resplandor verde: allí está lo que buscas.'],
+    };
+  }
+  if (HEDRIG_COLLECTIBLES.some(({ id }) => !hasCollected(id, progress))) {
+    return {
+      voice: '03_hedrig_05',
+      paragraphs: ['Mi casa está abierta. Entra y recoge el guante de minero, la brújula y la muñeca de trapo. Lo que tomes queda en tu mochila.'],
+    };
+  }
+  if (isOgroVencido(progress)) {
+    return { voice: '03_hedrig_07', paragraphs: ['¡Le ganaste al ogro! Ya nada te cierra el paso: vuelve a su sala y sube la escalera de piedra hasta la cumbre.'] };
+  }
+  return {
+    voice: '03_hedrig_06',
+    paragraphs: [
+      'Ya llevas todo. Entra a los túneles por la boca de la mina: allá adentro te esperan la oscuridad, el espectro de la niña y el ogro. Para qué sirve cada cosa tendrás que descubrirlo tú.',
+    ],
+  };
+}
+
+// Said on walking back out of the tunnels with the spectre or the Ogre still in the way: only that they are not
+// passed (nothing once the Ogre is beaten: the way up is open).
+export function getPending(progress: Progress): string | null {
+  return isDesafio3Completado(progress) || isOgroVencido(progress) ? null : 'Aún no has superado los Túneles de la Cumbre.';
+}
 
 // What the player has to do now (shown in the backpack).
 export function getGoal(progress: Progress): string {
@@ -50,12 +101,8 @@ export function getGoal(progress: Progress): string {
   if (!isHedrigHouseUnlocked(progress)) {
     return 'Llegaste al pueblo minero, al pie de la Cumbre de la Desolación. Habla con Hedrig, la enana minera, junto a la fogata de su casa, y acepta su ayuda.';
   }
-  const missing = HEDRIG_COLLECTIBLES.filter(({ id }) => !hasCollected(id, progress)).map(({ id }) => ITEM_LABEL[id]);
-  if (missing.length) return `Entra a la casa de Hedrig y recoge ${listText(missing)}.`;
-  const tasks: string[] = [];
-  if (!isEspectroCalmado(progress)) tasks.push('entrégale la muñeca al espectro de la niña cuando te alcance');
-  if (!isOgroVencido(progress)) tasks.push('vence al ogro en la mesa de pulso con el guante');
-  if (tasks.length) return `Entra a los túneles por la boca de la mina y usa la brújula para no perderte; ${listText(tasks)}.`;
+  if (HEDRIG_COLLECTIBLES.some(({ id }) => !hasCollected(id, progress))) return 'En la casa de Hedrig te esperan el guante de minero, la brújula y la muñeca de trapo.';
+  if (!isOgroVencido(progress)) return 'Cruza los Túneles de la Cumbre.';
   return 'El ogro te dejó pasar: sube la escalera de piedra hasta la cumbre.';
 }
 

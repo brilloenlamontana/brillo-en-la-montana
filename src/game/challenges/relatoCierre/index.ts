@@ -1,6 +1,6 @@
 import type { Challenge } from '@/game/challenges/types';
 import type { Spawn } from '@/game/player/playerStore';
-import { isJuegoCompletado } from './mission';
+import { getObjective, isJuegoCompletado } from './mission';
 import { RelatoCierreDialogs } from './RelatoCierreDialogs';
 import { RelatoCierreWorld } from './RelatoCierreWorld';
 
@@ -15,6 +15,7 @@ export const relatoCierre: Challenge = {
   title: 'Cumbre de la Desolación',
   World: RelatoCierreWorld,
   Dialogs: RelatoCierreDialogs,
+  objective: getObjective,
   regions: ['cumbre'],
   startPoint: SALIDA_CUMBRE,
   resumeAt: () => SALIDA_CUMBRE,

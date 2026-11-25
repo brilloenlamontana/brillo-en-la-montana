@@ -25,6 +25,8 @@ export interface GameProgress {
   reinicios: Record<string, number>;
   // The introduction video was already shown: it plays once, before the world opens for the first time.
   introVista: boolean;
+  // The tutorial of the controls was already shown: it starts by itself once, the first time the world opens.
+  tutorialVisto: boolean;
 
   // --- Story ---
   // Items picked up in any house.
@@ -130,7 +132,7 @@ export const STORY_START = {
   calizTomado: false,
   juegoCompletado: false,
   juegoCompletadoEn: undefined,
-} as const satisfies Omit<GameProgress, 'estrellas' | 'vidasExtra' | 'vidasExtraPerdidas' | 'derrotas' | 'reinicios' | 'introVista'>;
+} as const satisfies Omit<GameProgress, 'estrellas' | 'vidasExtra' | 'vidasExtraPerdidas' | 'derrotas' | 'reinicios' | 'introVista' | 'tutorialVisto'>;
 
 const DEFAULT_PROGRESS: GameProgress = {
   estrellas: STARS,
@@ -139,6 +141,7 @@ const DEFAULT_PROGRESS: GameProgress = {
   derrotas: {},
   reinicios: {},
   introVista: false,
+  tutorialVisto: false,
   ...STORY_START,
   collectedItems: [],
   historiasContadas: [],
@@ -184,6 +187,8 @@ export function normalizeProgress(saved: Partial<GameProgress> | undefined): Gam
   progress.reinicios = isRecord(progress.reinicios) ? progress.reinicios : {};
   // Whoever was already playing before the introduction existed is not sent back to watch it.
   progress.introVista = progress.introVista === true || (saved?.introVista === undefined && progress.openedMayorLetter === true);
+  // Nor is the tutorial of the controls forced on whoever was already playing before it existed.
+  progress.tutorialVisto = progress.tutorialVisto === true || (saved?.tutorialVisto === undefined && progress.openedMayorLetter === true);
   progress.collectedItems = list(progress.collectedItems);
   progress.historiasContadas = list(progress.historiasContadas);
   progress.zumbadoresDefeated = list(progress.zumbadoresDefeated);

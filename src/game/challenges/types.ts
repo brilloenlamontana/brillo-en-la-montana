@@ -5,6 +5,26 @@ import type { Point, Spawn } from '@/game/player/playerStore';
 import type { Region } from '@/game/world/regions';
 import type { GameProgress } from '@/store/progressStore';
 
+// What the story asks of the player right now: one short line that stays on screen (ObjectiveLine) and, when it
+// happens at a place, where that place is (its ground), which a beacon of light marks in the world (ObjectiveBeacon).
+export type Objective = { text: string; at?: Point };
+
+// The dangerous place of a challenge (the swamp, the forest, the tunnels) and what the game tells the player at its
+// edge (DangerWarnings): nobody walks in unprepared, or out with the challenge half done, without being told why.
+// What a character who already helped says on being spoken to again: a few words on what to do now, and the recorded
+// voice that says exactly that (id of docs/sonido/guion_voces.csv).
+export interface Hint {
+  voice: string;
+  paragraphs: string[];
+}
+
+export interface Danger {
+  region: Region;
+  // Said on walking out of it with the challenge unfinished: only that it is not passed yet. Nothing is said on
+  // walking in, and never what is missing or where to get it: finding that out is the player's part.
+  pending: (progress: GameProgress) => string | null;
+}
+
 // A step of a mission as the admin dashboard lists it.
 export type MissionStep = { id: string; label: string; detail: string; done: boolean; status?: string };
 
@@ -53,6 +73,12 @@ export interface Challenge {
   // Its own HUD pieces (bars, screen effects), drawn over the canvas under the game's HUD.
   Hud?: ComponentType;
   backpack?: Backpack;
+  // What to do now while this is the challenge being played (see Objective). `there`: the player is already inside its
+  // dangerous place (danger.region); having walked in, even without everything offered, the objective is what is to
+  // be done in there: fetching things is offered, never demanded.
+  objective?: (progress: GameProgress, there?: boolean) => Objective;
+  // Its dangerous place and the warnings at its edge (see Danger).
+  danger?: Danger;
   // Map regions it takes place in: a defeat there is a defeat in this challenge.
   regions: readonly Region[];
   // Where the player comes back after a first "bajo" in this challenge.

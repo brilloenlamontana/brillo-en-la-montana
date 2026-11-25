@@ -13,12 +13,15 @@ import { IntroVideo } from '@/game/hud/IntroVideo';
 import { QuickItemBar } from '@/game/hud/backpack/QuickItemBar';
 import { Minimap } from '@/game/hud/Minimap';
 import { MobileControls } from '@/game/hud/MobileControls';
+import { ObjectiveButton, ObjectiveLine } from '@/game/hud/ObjectiveLine';
 import { LandscapeOnly } from '@/game/hud/LandscapeOnly';
 import { PlayerStatus } from '@/game/hud/PlayerStatus';
 import { RendererErrorScreen } from '@/game/hud/RendererErrorScreen';
 import { SoundToggle } from '@/game/hud/SoundToggle';
+import { Tutorial, TutorialButton } from '@/game/hud/Tutorial';
 import { WorldLoadingScreen } from '@/game/hud/WorldLoadingScreen';
 import { GameSound } from '@/game/sound/GameSound';
+import { DangerWarnings } from '@/game/challenges/DangerWarnings';
 import { StoryFlags } from '@/game/challenges/StoryFlags';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { saveProgress } from '@/services/progressService';
@@ -38,25 +41,22 @@ export default function WorldPage() {
   if (step !== 'mundo') return null;
   if (backend === 'none') return <RendererErrorScreen error="unsupported" />;
   if (rendererError) return <RendererErrorScreen error={rendererError} />;
-  // First visit: the introduction plays before anything of the world is mounted; the world loads when it ends.
-  if (!introVista) {
-    return (
-      <>
-        <IntroVideo onDone={() => void saveProgress({ introVista: true })} />
-        <LandscapeOnly />
-      </>
-    );
-  }
+  // First visit: the introduction plays before anything of the world is mounted; the world loads when it ends. The
+  // video is square and is watched with the phone held either way: turning it is only asked for the world.
+  if (!introVista) return <IntroVideo onDone={() => void saveProgress({ introVista: true })} />;
 
   return (
     <main className="w-screen h-dvh relative overflow-hidden select-none">
       {backend !== 'checking' && <GameCanvas />}
       <GameSound />
       <StoryFlags />
+      <DangerWarnings />
       {CHALLENGES.map(({ id, Hud }) => Hud && <Hud key={id} />)}
       <UserMenu
         leading={
           <>
+            <ObjectiveButton />
+            <TutorialButton />
             <SoundToggle />
             <BackpackButton />
           </>
@@ -66,6 +66,8 @@ export default function WorldPage() {
       <QuickItemBar touch={showTouchControls} />
       <PlayerStatus />
       <Minimap touch={showTouchControls} />
+      <ObjectiveLine />
+      <Tutorial touch={showTouchControls} />
       <Toast />
       {CHALLENGES.map(({ id, Dialogs }) => Dialogs && <Dialogs key={id} />)}
       <BajoDialog />

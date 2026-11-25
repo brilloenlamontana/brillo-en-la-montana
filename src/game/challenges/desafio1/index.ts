@@ -5,7 +5,7 @@ import { DESAFIO1_BACKPACK } from './backpack';
 import { Desafio1Dialogs } from './Desafio1Dialogs';
 import { Desafio1Hud } from './Desafio1Hud';
 import { Desafio1World } from './Desafio1World';
-import { isDesafio1Completado } from './mission';
+import { getObjective, getPending, isDesafio1Completado } from './mission';
 
 // In front of Imeri's house, between her and the door, facing the door (ground at 10.1).
 const FRENTE_CASA_IMERI: Spawn = { x: 14.5, y: 11.8, z: 41, yaw: Math.atan2(3.5, 3) };
@@ -19,6 +19,8 @@ export const desafio1: Challenge = {
   Dialogs: Desafio1Dialogs,
   Hud: Desafio1Hud,
   backpack: DESAFIO1_BACKPACK,
+  objective: getObjective,
+  danger: { region: 'pantano', pending: getPending },
   regions: ['villa', 'camino', 'casa', 'pantano'],
   // The Villa Boj square.
   startPoint: RESPAWN_POINT,

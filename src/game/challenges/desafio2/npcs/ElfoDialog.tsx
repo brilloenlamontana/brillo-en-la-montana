@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
@@ -5,7 +6,7 @@ import { useToastStore } from '@/store/toastStore';
 import { useDialogOpen, useUIStore } from '@/store/uiStore';
 import { DIALOG } from '../dialogs';
 
-import { isDesafio2Completado } from '../mission';
+import { getElfoHint, isDesafio2Completado } from '../mission';
 
 // "Audio explicación del Elfo", from the scene schedule.
 const EXPLICACION = [
@@ -24,19 +25,34 @@ const FELICITACION = [
 
 // The elf explains the dangers of the forest and offers his tools. Accepting opens his house (sword, lens and map
 // inside) and switches the backpack to Challenge 2. Refusing keeps the door closed; he can be asked again.
+// Once accepted he says, in a few words, what to do now, and explains the dangers again only if asked.
 // Once Challenge 2 is completed, he congratulates the player and points the way to Hedrig.
 export function ElfoDialog() {
   const isOpen = useDialogOpen(DIALOG.elfo);
   const progress = useProgressStore((state) => state.progress);
+  const [again, setAgain] = useState(false);
   if (!isOpen) return null;
 
-  const close = () => useUIStore.getState().closeDialog();
+  const close = () => {
+    setAgain(false);
+    useUIStore.getState().closeDialog();
+  };
   const completed = isDesafio2Completado(progress);
   const accepted = progress.elfoHelp === 'accepted';
 
   if (completed) {
     return (
       <ParchmentDialog title="El elfo del bosque" subtitle="Mago protector del bosque" paragraphs={FELICITACION} voice={['02_elfo_03']} onClose={close} />
+    );
+  }
+  if (accepted && !again) {
+    return (
+      <ParchmentDialog title="El elfo del bosque" subtitle="Qué hacer ahora" paragraphs={getElfoHint(progress).paragraphs} voice={[getElfoHint(progress).voice]} skippable onClose={close}>
+        <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
+          <ParchmentButton onClick={() => setAgain(true)}>Cuéntame otra vez los peligros</ParchmentButton>
+          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+        </div>
+      </ParchmentDialog>
     );
   }
   const answer = (help: 'accepted' | 'rejected') => {

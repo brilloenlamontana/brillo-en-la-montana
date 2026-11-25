@@ -112,7 +112,7 @@ export function retarAlOgro() {
   const player = usePlayerStore.getState();
   if (isOgroVencido(progress)) return toast('El ogro ya te dejó pasar: sube la escalera de piedra hacia la cumbre.');
   if (tunel.pulso !== null || player.health <= 0) return;
-  if (!isAtMesaPulso()) return toast('El guante de minero es para el pulso con el ogro: acércate a su mesa, al final de los túneles.');
+  if (!isAtMesaPulso()) return toast('Te pones el guante de minero, pero aquí no pasa nada.');
   pulsoVivo.fuerza = 0.5;
   // From the far side of the table there is no straight way to the near one: the avatar starts from its first point.
   if (player.position.x > PULSO_CAMINO[1][0] + 0.2) {

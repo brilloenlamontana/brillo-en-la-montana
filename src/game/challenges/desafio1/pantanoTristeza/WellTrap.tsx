@@ -1,6 +1,7 @@
 import { playSfx } from '@/game/engine/audio/audio';
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useTerrainHeight } from '@/game/engine/physics/useTerrainHeight';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useProgressStore } from '@/store/progressStore';
 import { areWellsSafe, hasItem } from '../mission';
@@ -9,14 +10,18 @@ import { findWellExit, findWellUnder, isInsideWell, usePantanoWells, type Well }
 
 // The feet this far below a rim means the player fell in (the capsule center is then 1.5 m below it).
 const FALL_DEPTH = 2.5;
-// Inside the well the camera comes close to the avatar, so it does not show the world through the walls.
-const WELL_CAMERA_DISTANCE = 1.1;
+// Inside the well the camera keeps its usual distance from the avatar and ignores the walls of the well: the black
+// shell under the ground (PantanoPozosOscuridad) reaches 1.2 m past them, so within WELL_CAMERA_ROOM of the walls the
+// camera still sees nothing but dark, and never ends up against the avatar's face.
+const WELL_CAMERA_DISTANCE = 2;
+const WELL_CAMERA_ROOM = 0.8;
 
 // Every swamp well is a trap. Falling in without the rope is death (Death, then respawn). With the rope the player
 // waits at the bottom until using it from the backpack, and climbs out beside the well. Once the golem and every
 // zumbador are defeated the wells get lids; if that happens while trapped, the player climbs out too.
 export function WellTrap() {
   const wells = usePantanoWells();
+  const terrainHeight = useTerrainHeight();
   const fallen = useRef<Well | null>(null);
   const climbing = useRef(false);
 
@@ -32,7 +37,7 @@ export function WellTrap() {
       if (!well) return;
       fallen.current = well;
       playSfx('d1_hundirse');
-      player.setCameraDistance(WELL_CAMERA_DISTANCE);
+      player.setCameraDistance(WELL_CAMERA_DISTANCE, { x: well.x, z: well.z, radius: well.outerRadius + WELL_CAMERA_ROOM });
       if (hasItem('soga', progress)) pantano.setTrappedInWell(true);
       else player.takeDamage(player.maxHealth);
       return;
@@ -49,7 +54,9 @@ export function WellTrap() {
     if (!climbing.current && (pantano.climbRequested || areWellsSafe(progress))) {
       climbing.current = true;
       player.setCameraDistance(null);
-      player.requestTeleport(findWellExit(fallen.current, wells));
+      const well = fallen.current;
+      // The ground as it really is beside the well (looked for from well above its rim).
+      player.requestTeleport(findWellExit(well, wells, (px, pz) => terrainHeight(px, pz, well.rimY + 12, 24)));
     }
   });
 

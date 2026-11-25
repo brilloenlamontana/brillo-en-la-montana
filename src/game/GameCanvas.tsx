@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { useProgressStore } from '@/store/progressStore';
+import { ObjectiveBeacon } from './challenges/ObjectiveBeacon';
 import { handleDefeat, resumeSpawn } from './challenges/progression';
 import { CHALLENGES } from './challenges/registry';
 import type { Challenge } from './challenges/types';
@@ -85,6 +86,7 @@ export function GameCanvas() {
       <Ambience />
       <MundoRecuperado />
       <GlowMaterials />
+      <ObjectiveBeacon />
       <ZoneTracker />
       <Suspense fallback={null}>
         <Physics>

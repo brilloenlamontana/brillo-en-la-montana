@@ -10,6 +10,9 @@ type EnemyTracker = { position: Vector3; active: boolean };
 interface PantanoState {
   // The player treads on the mud: this is what wakes the golem and the zumbadores.
   playerOnMud: boolean;
+  // The golem and the zumbadores are after the player: only while a living player treads on the mud (MudTracker).
+  // They never leave the swamp after anyone.
+  alerted: boolean;
   golem: EnemyTracker;
   zumbadores: EnemyTracker[];
   // Moment of the last insecticide spray (drives SprayEffect).
@@ -18,6 +21,7 @@ interface PantanoState {
   trappedInWell: boolean;
   climbRequested: boolean;
   setPlayerOnMud: (onMud: boolean) => void;
+  setAlerted: (alerted: boolean) => void;
   spray: () => void;
   setTrappedInWell: (trapped: boolean) => void;
   requestClimb: () => void;
@@ -25,12 +29,14 @@ interface PantanoState {
 
 export const usePantanoStore = create<PantanoState>((set) => ({
   playerOnMud: false,
+  alerted: false,
   golem: { position: new Vector3(), active: false },
   zumbadores: Array.from({ length: ZUMBADOR_COUNT }, () => ({ position: new Vector3(), active: false })),
   sprayAt: null,
   trappedInWell: false,
   climbRequested: false,
   setPlayerOnMud: (playerOnMud) => set({ playerOnMud }),
+  setAlerted: (alerted) => set({ alerted }),
   spray: () => set({ sprayAt: performance.now() }),
   setTrappedInWell: (trappedInWell) => set({ trappedInWell, climbRequested: false }),
   requestClimb: () => set({ climbRequested: true }),

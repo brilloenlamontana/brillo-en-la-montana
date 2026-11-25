@@ -3,7 +3,7 @@ import { DESAFIO3_BACKPACK } from './backpack';
 import { Desafio3Dialogs } from './Desafio3Dialogs';
 import { Desafio3Hud } from './Desafio3Hud';
 import { Desafio3World } from './Desafio3World';
-import { isDesafio3Completado } from './mission';
+import { getObjective, getPending, isDesafio3Completado } from './mission';
 
 // Challenge 3 — Summit of Desolation tunnels. Hedrig the dwarf miner and her house (glove, compass and doll), the
 // maze of tunnels where the compass shows the way, the spectre of the girl who wants her doll back, and the Ogre who
@@ -15,6 +15,8 @@ export const desafio3: Challenge = {
   Dialogs: Desafio3Dialogs,
   Hud: Desafio3Hud,
   backpack: DESAFIO3_BACKPACK,
+  objective: getObjective,
+  danger: { region: 'tuneles', pending: getPending },
   regions: ['pueblo', 'tuneles'],
   // In front of Hedrig's house, by the mine mouth where the tunnels start (ground at 23.9).
   startPoint: { x: 97, y: 25.4, z: -196 },

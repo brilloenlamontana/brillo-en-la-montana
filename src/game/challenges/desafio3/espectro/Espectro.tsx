@@ -156,8 +156,8 @@ function Fantasma() {
               .getState()
               .showToast(
                 b.warned
-                  ? 'El frío del espectro te quita la vida: entrégale la muñeca para que deje de perseguirte.'
-                  : 'El espectro de la niña te alcanza entre llantos: «¡Devuélvanme a Simona!». Su frío te quita la vida: entrégale la muñeca.',
+                  ? 'El frío del espectro te quita la vida.'
+                  : 'El espectro de la niña te alcanza entre llantos: «¡Devuélvanme a Simona!». Su frío te quita la vida.',
               );
             // Her line is part of that narration: she waits for it to end before crying out again.
             if (!b.warned) b.nextCry = now + 11;
