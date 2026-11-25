@@ -2,9 +2,10 @@ import type { GameProgress } from '@/store/progressStore';
 import { BOSQUE_POLYGON, CASA_IMERI_ZONE, CUMBRE_REGION, PANTANO_POLYGON, PANTANO_REGION_MARGIN, PUEBLO_HEDRIG_ZONE, VALLE_POLYGON, VILLA_BOJ_ZONE } from './geography';
 import type { Region } from './regions';
 
-// The whole world seen from above, as the minimap draws it (public/sprites-2d/minimapa.jpg, rendered from Map.blend
-// with the top of the picture to the north, game -z): the stretch of the map the picture covers, in metres.
-export const MAP_PICTURE = { url: '/sprites-2d/minimapa.jpg', x: [-152, 174], z: [-268, 88] } as const;
+// The whole world seen from above, as the minimap draws it (public/sprites-2d/minimapa.webp, 2608 x 2848 px, 8 px per
+// metre, so the whole map can be zoomed; rendered from Map.blend with scripts/minimapa, with the top of the picture to
+// the north, game -z): the stretch of the map the picture covers, in metres.
+export const MAP_PICTURE = { url: '/sprites-2d/minimapa.webp', x: [-152, 174], z: [-268, 88] } as const;
 
 // Where a point of the world falls on that picture, as fractions (0..1) from its left and from its top.
 export const onMapPicture = (x: number, z: number) => ({

@@ -18,18 +18,33 @@ export async function turnScreen(): Promise<void> {
   await lock.call(screen.orientation, 'landscape');
 }
 
-// On a phone or tablet the game is played full screen with the screen lying on its side. Browsers only allow both after
-// a tap, so the first tap anywhere asks for them (where the browser offers neither, the turn stays with the player, see
-// LandscapeOnly). Once granted, nothing else is asked.
+// On a phone or tablet the game is played full screen (no address bar, no tabs) with the screen lying on its side.
+// Browsers only allow both right after the player touches the page, so every tap asks for them while the page is not
+// full screen: the first one grants it, and it is asked again if the player leaves full screen. Chrome on Android
+// grants both; an iPad grants full screen only; Safari on iPhone offers neither to a web page (there the only way to
+// lose the bars is adding the game to the home screen: see the manifest and the meta tags of index.html).
+// The tap is listened to as it ends (pointerup, touchend, click): with a finger, a browser does not count the start of
+// a touch (pointerdown) as the player's action, so asking then is refused.
 export function useImmersiveOnTouch() {
   useEffect(() => {
-    if (!isTouchDevice() || !canTurnScreen()) return;
-    const onFirstTap = () => {
-      turnScreen()
-        .then(() => window.removeEventListener('pointerdown', onFirstTap))
-        .catch(() => {});
+    const page = document.documentElement;
+    if (!isTouchDevice() || !page.requestFullscreen) return;
+    let asking = false;
+    const onTap = () => {
+      if (document.fullscreenElement || asking) return;
+      asking = true;
+      page
+        .requestFullscreen({ navigationUI: 'hide' })
+        .then(() => lockable()?.lock?.call(screen.orientation, 'landscape'))
+        .catch(() => {})
+        .finally(() => {
+          asking = false;
+        });
     };
-    window.addEventListener('pointerdown', onFirstTap);
-    return () => window.removeEventListener('pointerdown', onFirstTap);
+    const events = ['pointerup', 'touchend', 'click'] as const;
+    for (const event of events) window.addEventListener(event, onTap, true);
+    return () => {
+      for (const event of events) window.removeEventListener(event, onTap, true);
+    };
   }, []);
 }

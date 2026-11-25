@@ -226,13 +226,14 @@ button:focus-visible {
   }
 }
 
-/* The map of the journey (Minimap): the picture keeps its shape; on a phone lying on its side it takes the height of
-   the screen and the title and legend go beside it. --map-aspect is the picture's width / height. */
+/* The map of the journey (Minimap): the picture keeps its shape, with the title over it and the legend under it; on a
+   touch screen lying on its side (map-frame-side) it takes the height of the screen and the title and legend go
+   beside it. --map-aspect is the picture's width / height. */
 .map-frame {
-  height: min(68dvh, calc((100vw - 4rem) / var(--map-aspect)));
+  height: min(72dvh, calc((100vw - 4rem) / var(--map-aspect)));
 }
 @media (orientation: landscape) {
-  .map-frame {
+  .map-frame.map-frame-side {
     height: min(78dvh, calc((100vw - 13rem) / var(--map-aspect)));
   }
 }

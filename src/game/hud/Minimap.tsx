@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { playSfx } from '@/game/engine/audio/audio';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
@@ -93,7 +93,8 @@ function Places({ next, names, stage }: { next: string | null; names: boolean; s
             tabIndex={names ? 0 : undefined}
             aria-label={names ? `${landmark.name} (${KINDS[landmark.kind].label})` : undefined}
             className={`group absolute outline-none ${names ? 'z-0 hover:z-10 focus:z-10' : ''}`}
-            style={{ left: percent(at.left), top: percent(at.top) }}
+            // Its size on screen does not grow with the zoom of the whole map (--map-inv, see ZoomFrame).
+            style={{ left: percent(at.left), top: percent(at.top), transform: 'scale(var(--map-inv, 1))', transformOrigin: '0 0' }}
           >
             {isNext && <span className="absolute -translate-x-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-[#f4d03f]/70 animate-ping pointer-events-none" />}
             {/* A generous area around the dot, easy to point at. */}
@@ -121,11 +122,131 @@ function Places({ next, names, stage }: { next: string | null; names: boolean; s
   );
 }
 
+// How far the whole map can be brought closer.
+const MAX_ZOOM = 6;
+const ZOOM_STEP = 1.6;
+
+// The frame of the whole map: what it holds can be brought closer and moved around inside it. Wheel (or the + and −
+// buttons) to zoom toward the pointer, drag to move; on a touch screen, one finger moves it and two fingers pinch.
+// Zoomed all the way out it shows the whole picture, as when it opens; the picture never leaves the frame empty.
+// The state lives outside React (it is written straight into the style): moving the map re-renders nothing.
+function ZoomFrame({ className, style, children }: { className: string; style: CSSProperties; children: ReactNode }) {
+  const frame = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const view = useRef({ k: 1, x: 0, y: 0 });
+  const fingers = useRef(new Map<number, { x: number; y: number }>());
+  const [zoomed, setZoomed] = useState(false);
+
+  const apply = () => {
+    const box = frame.current, content = inner.current;
+    if (!box || !content) return;
+    const v = view.current;
+    v.k = Math.min(MAX_ZOOM, Math.max(1, v.k));
+    v.x = Math.min(0, Math.max(box.clientWidth * (1 - v.k), v.x));
+    v.y = Math.min(0, Math.max(box.clientHeight * (1 - v.k), v.y));
+    content.style.transform = `translate(${v.x.toFixed(1)}px, ${v.y.toFixed(1)}px) scale(${v.k.toFixed(4)})`;
+    content.style.setProperty('--map-inv', (1 / v.k).toFixed(4));
+    setZoomed(v.k > 1.001);
+  };
+  // Zooms by `factor` keeping the point (px, py) of the frame under the pointer.
+  const zoomAt = (factor: number, px: number, py: number) => {
+    const v = view.current;
+    const k = Math.min(MAX_ZOOM, Math.max(1, v.k * factor));
+    v.x = px - ((px - v.x) * k) / v.k;
+    v.y = py - ((py - v.y) * k) / v.k;
+    v.k = k;
+    apply();
+  };
+  const zoomCentre = (factor: number) => {
+    const box = frame.current;
+    if (box) zoomAt(factor, box.clientWidth / 2, box.clientHeight / 2);
+  };
+  const local = (event: { clientX: number; clientY: number }) => {
+    const rect = frame.current!.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  };
+
+  // The wheel must not scroll the page behind: a listener that may cancel it.
+  useEffect(() => {
+    const box = frame.current;
+    if (!box) return;
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const at = local(event);
+      zoomAt(Math.exp(-event.deltaY * 0.0016), at.x, at.y);
+    };
+    box.addEventListener('wheel', onWheel, { passive: false });
+    return () => box.removeEventListener('wheel', onWheel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the handlers only read refs.
+  }, []);
+
+  const onDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest('button')) return;
+    fingers.current.set(event.pointerId, local(event));
+  };
+  const onMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const before = fingers.current.get(event.pointerId);
+    if (!before) return;
+    const now = local(event);
+    // Held only once it moves: a plain tap on a place still reaches it (its name shows).
+    if ((now.x !== before.x || now.y !== before.y) && !event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
+    const all = fingers.current;
+    if (all.size === 1) {
+      view.current.x += now.x - before.x;
+      view.current.y += now.y - before.y;
+      all.set(event.pointerId, now);
+      apply();
+      return;
+    }
+    // Two fingers: the distance between them zooms, their middle point moves.
+    const other = [...all.entries()].find(([id]) => id !== event.pointerId)?.[1];
+    all.set(event.pointerId, now);
+    if (!other) return;
+    const was = Math.hypot(before.x - other.x, before.y - other.y);
+    const is = Math.hypot(now.x - other.x, now.y - other.y);
+    view.current.x += (now.x - before.x) / 2;
+    view.current.y += (now.y - before.y) / 2;
+    if (was > 4) zoomAt(is / was, (now.x + other.x) / 2, (now.y + other.y) / 2);
+    else apply();
+  };
+  const onUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    fingers.current.delete(event.pointerId);
+  };
+
+  const button =
+    'flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#5c3a21] bg-[#f4e4bc] font-sans text-lg font-bold leading-none text-[#5c3a21] shadow-md hover:bg-[#5c3a21] hover:text-[#f4e4bc] active:scale-95 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default';
+
+  return (
+    <div
+      ref={frame}
+      className={`${className} touch-none ${zoomed ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      style={style}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+    >
+      <div ref={inner} className="absolute inset-0 origin-top-left will-change-transform">
+        {children}
+      </div>
+      <div className="absolute bottom-1.5 right-1.5 z-10 flex flex-col gap-1.5">
+        <button type="button" className={button} onClick={() => zoomCentre(ZOOM_STEP)} aria-label="Acercar el mapa" title="Acercar">
+          +
+        </button>
+        <button type="button" className={button} onClick={() => zoomCentre(1 / ZOOM_STEP)} disabled={!zoomed} aria-label="Alejar el mapa" title="Alejar">
+          −
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // The map of the journey. It starts dark and the story uncovers it step by step (Fog, mapStage): the player only sees
 // the parts they have been sent to. At the bottom left, a small round-cornered panel like the rest of the HUD shows what is
 // around the avatar: the map slides under an arrow that stays in the middle and turns to where the avatar walks, and
 // a gold pointer on its edge tells which way the next place of the story is when it is out of sight. A click (or the M
-// key) opens the whole map over the screen, with the name of every place, a legend and where the avatar is; its ×, a
+// key) opens the whole map over the screen, with the name of every place, a legend and where the avatar is, and it can
+// be zoomed and dragged (ZoomFrame); its ×, a
 // click outside it, M or Escape close it. The small map steps aside while a narration, a cinematic or the backpack
 // fills the screen. With the touch controls on, the joystick has that corner and the map goes under the health bar.
 export function Minimap({ touch = false }: { touch?: boolean }) {
@@ -203,7 +324,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
       if (whole.current) {
         whole.current.style.left = percent(at.left);
         whole.current.style.top = percent(at.top);
-        whole.current.style.transform = `translate(-50%, -50%) ${turn}`;
+        whole.current.style.transform = `translate(-50%, -50%) ${turn} scale(var(--map-inv, 1))`;
       }
       frame = requestAnimationFrame(tick);
     };
@@ -254,27 +375,35 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
             aria-modal="true"
             aria-label="Mapa del viaje"
           >
-            {/* Phones lying on their side: the title and legend sit at the left and the map takes the height of the screen. */}
-            <div className={`relative flex max-h-full flex-col landscape:flex-row gap-2 landscape:gap-3 p-3 sm:p-4 ${PANEL}`} onClick={(event) => event.stopPropagation()}>
-              <div className="flex min-w-0 flex-col gap-2 landscape:w-44 landscape:shrink-0">
-              <div className="flex items-center justify-between gap-3">
+            {/* With a keyboard: the title with the × at its right, the map under it and the legend below the map. On a
+                touch screen (a phone lying on its side) the title and the legend sit at the left and the map takes the
+                height of the screen. */}
+            <div className={`relative flex max-h-full ${touch ? 'flex-row gap-3' : 'flex-col gap-2'} p-3 sm:p-4 ${PANEL}`} onClick={(event) => event.stopPropagation()}>
+              <div className={touch ? 'flex min-w-0 w-44 shrink-0 flex-col gap-2' : 'contents'}>
+              <div className="order-1 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="font-serif text-base sm:text-lg font-bold leading-tight text-[#3e2723]">Mapa del viaje</h2>
-                  <p className="truncate font-serif text-[11px] sm:text-xs text-[#5c3a21]">Estás en: {REGION_NAMES[region]}</p>
+                  {/* Whole, on two lines if the column is narrow (a touch screen): never cut short. */}
+                  <p className="font-serif text-[11px] sm:text-xs leading-snug text-[#5c3a21]">
+                    Estás en: <span className="font-bold">{REGION_NAMES[region]}</span>
+                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => toggle(false)}
                   aria-label="Cerrar el mapa"
                   title="Cerrar el mapa (Esc)"
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#5c3a21] bg-[#f4e4bc] text-[#5c3a21] hover:bg-[#5c3a21] hover:text-[#f4e4bc] active:scale-95 transition-colors cursor-pointer"
+                  // Always at the top right corner of the panel: on a touch screen that is over the corner of the map.
+                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#5c3a21] bg-[#f4e4bc] text-[#5c3a21] hover:bg-[#5c3a21] hover:text-[#f4e4bc] active:scale-95 transition-colors cursor-pointer ${
+                    touch ? 'absolute right-1.5 top-1.5 z-10 shadow-md' : ''
+                  }`}
                 >
                   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
                     <path d="M6 6l12 12M18 6 6 18" />
                   </svg>
                 </button>
               </div>
-              <p className="flex flex-wrap landscape:flex-col gap-x-3 gap-y-0.5 font-serif text-[10px] sm:text-xs text-[#3e2723]">
+              <p className={`order-3 flex gap-y-0.5 font-serif text-[10px] sm:text-xs text-[#3e2723] ${touch ? 'flex-col' : 'flex-wrap justify-center gap-x-4'}`}>
                 <span className="inline-flex items-center gap-1">
                   <Arrow className="h-3 w-3" />
                   Tú
@@ -291,8 +420,8 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
                 </span>
               </p>
               </div>
-              <div
-                className="map-frame relative overflow-hidden rounded-lg sm:rounded-xl border-2 border-[#5c3a21]"
+              <ZoomFrame
+                className={`map-frame ${touch ? 'map-frame-side' : ''} order-2 relative overflow-hidden rounded-lg sm:rounded-xl border-2 border-[#5c3a21]`}
                 style={{ aspectRatio: ASPECT, '--map-aspect': ASPECT } as CSSProperties}
               >
                 <img src={MAP_PICTURE.url} alt="El mundo visto desde arriba" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
@@ -301,7 +430,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
                 <div ref={whole} className="absolute h-5 w-5">
                   <Arrow className="h-full w-full" />
                 </div>
-              </div>
+              </ZoomFrame>
             </div>
           </div>,
           document.body,
