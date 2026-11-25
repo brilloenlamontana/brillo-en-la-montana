@@ -13,7 +13,7 @@ import { usePlayerStore } from '@/game/player/playerStore'
 import { DESAFIO1_MODELS } from '../assets'
 import { usePantanoStore } from '../pantanoStore'
 import { usePantanoWells, type Well } from '../pantanoTristeza/wells'
-import { guaridaDelPantano } from './guarida'
+import { guaridaDelPantano, pasoEnElPantano } from './guarida'
 
 type GolemState = 'hidden' | 'emerging' | 'chasing' | 'idle' | 'defeated'
 type GolemAction = 'Walking' | 'Attack' | 'Knock' | "Idle"
@@ -34,8 +34,8 @@ const UP = new THREE.Vector3(0, 1, 0)
 const STRIDE = 2.1
 const EARSHOT = 34
 
-// It waits standing in the middle of the swamp. Once the player treads on the mud it goes after them wherever they
-// run, out of the swamp too; when it loses them (they fell, or got very far) it walks back to its place.
+// It waits standing in the middle of the swamp. While the player treads on the mud it goes after them; it never
+// leaves the swamp: when the player steps off the mud, or falls, it walks back to its place.
 // The backpack gem deactivates it: it falls with the Knock animation and stays down. If it was already deactivated in
 // a previous session (saved progress), it never leaves its well again.
 export function Golem({ activo }: { activo: boolean }) {
@@ -85,9 +85,11 @@ export function Golem({ activo }: { activo: boolean }) {
     const distance = Math.hypot(dx, dz)
     const step = Math.min(distance, WALK_SPEED * delta)
     if (distance > 1e-3) {
-      p.x += (dx / distance) * step
-      p.z += (dz / distance) * step
-      footsteps(step, p)
+      // It never leaves the mud: at the shore it slides along it.
+      const [sx, sz] = pasoEnElPantano(p.x, p.z, (dx / distance) * step, (dz / distance) * step)
+      p.x += sx
+      p.z += sz
+      footsteps(Math.hypot(sx, sz), p)
     }
     const ground = terrainHeight(p.x, p.z, p.y + 3, 8)
     if (ground !== null) p.y = THREE.MathUtils.damp(p.y, ground, 10, delta)
@@ -101,7 +103,7 @@ export function Golem({ activo }: { activo: boolean }) {
     const brainState = brain.current
     const p = position.current
     const player = usePlayerStore.getState().position
-    // After the player: from the moment they tread on the mud, in or out of the swamp (see MudTracker).
+    // After the player: only while they tread on the mud, alive (see MudTracker).
     const playerInPantano = usePantanoStore.getState().alerted
     let action: GolemAction | null = 'Walking'
     const enemies = usePantanoStore.getState()
@@ -161,7 +163,7 @@ export function Golem({ activo }: { activo: boolean }) {
           brainState.state = 'chasing'
           playSfxAt('d1_golem_rugido', p, EARSHOT)
         } else if (Math.hypot(home.x - p.x, home.z - p.z) > 0.5) {
-          // It lost the player away from its place: it walks back.
+          // The player is off the mud (or fell): it walks back to its place.
           action = 'Walking'
           walkTowards(home.x, home.z, delta)
         }

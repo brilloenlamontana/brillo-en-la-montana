@@ -41,6 +41,10 @@ interface PlayerState {
   position: Vector3;
   // Camera distance override (e.g. zoomed in at the bottom of a well); null keeps the default third-person distance.
   cameraDistance: number | null;
+  // While `cameraDistance` is set: a round room (world x, z and radius) the camera may move freely in, whatever is
+  // solid inside it; it only stays within its radius. Used at the bottom of a swamp well, where a black shell wider
+  // than the well's walls hides the world.
+  cameraRoom: { x: number; z: number; radius: number } | null;
   // Optional one-shot spawn override (used by ?dev=... presets); consumed once when GameCanvas mounts.
   initialSpawn: Spawn | null;
   // Teleport applied by PlayerController on the next frame.
@@ -62,7 +66,7 @@ interface PlayerState {
   // Gives back health (up to the maximum) while alive.
   heal: (amount: number) => void;
   restoreHealth: () => void;
-  setCameraDistance: (distance: number | null) => void;
+  setCameraDistance: (distance: number | null, room?: { x: number; z: number; radius: number } | null) => void;
   setInitialSpawn: (spawn: Spawn | null) => void;
   consumeInitialSpawn: () => Spawn | null;
   requestTeleport: (point: Point) => void;
@@ -76,6 +80,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   maxHealth: MAX_HEALTH,
   position: new Vector3(),
   cameraDistance: null,
+  cameraRoom: null,
   initialSpawn: null,
   teleportRequest: null,
   guide: null,
@@ -93,7 +98,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }),
   heal: (amount) => set((state) => (state.health <= 0 ? {} : { health: Math.min(state.maxHealth, state.health + amount) })),
   restoreHealth: () => set((state) => ({ health: state.maxHealth })),
-  setCameraDistance: (cameraDistance) => set({ cameraDistance }),
+  setCameraDistance: (cameraDistance, room = null) => set({ cameraDistance, cameraRoom: cameraDistance === null ? null : room }),
   setInitialSpawn: (initialSpawn) => set({ initialSpawn }),
   consumeInitialSpawn: () => {
     const spawn = get().initialSpawn;
@@ -102,5 +107,5 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   requestTeleport: (teleportRequest) => set({ teleportRequest }),
   clearTeleportRequest: () => set({ teleportRequest: null }),
-  reset: () => set({ action: 'Idle', health: MAX_HEALTH, cameraDistance: null, initialSpawn: null, teleportRequest: null, guide: null, pose: null, wear: null }),
+  reset: () => set({ action: 'Idle', health: MAX_HEALTH, cameraDistance: null, cameraRoom: null, initialSpawn: null, teleportRequest: null, guide: null, pose: null, wear: null }),
 }));

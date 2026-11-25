@@ -1,3 +1,5 @@
+import { isPointInPolygon } from '@/game/engine/geometry/polygon';
+import { PANTANO_POLYGON } from '@/game/world/geography';
 import type { Well } from '../pantanoTristeza/wells';
 
 // Where the enemies of the swamp wait: out in the open, in the middle of the mud, from before the player gets there
@@ -10,6 +12,18 @@ import type { Well } from '../pantanoTristeza/wells';
 const MIDDLE = { x: 26, z: -47.5 };
 // The golem keeps this far from the rim of any well (m).
 const CLEAR = 3;
+
+// The enemies of the swamp never leave it: a step from (x, z) by (dx, dz) that would take one out of the mud is cut
+// down to the part of it that stays inside (along x, along z, or nothing), so it slides along the shore instead of
+// walking through the hills around the swamp. Returns the step to take.
+export function pasoEnElPantano(x: number, z: number, dx: number, dz: number): [number, number] {
+  if (isPointInPolygon(x + dx, z + dz, PANTANO_POLYGON)) return [dx, dz];
+  // Already outside (it should not happen): any step is allowed, so it can come back in.
+  if (!isPointInPolygon(x, z, PANTANO_POLYGON)) return [dx, dz];
+  if (isPointInPolygon(x + dx, z, PANTANO_POLYGON)) return [dx, 0];
+  if (isPointInPolygon(x, z + dz, PANTANO_POLYGON)) return [0, dz];
+  return [0, 0];
+}
 
 let found: { wells: readonly Well[]; x: number; z: number } | null = null;
 

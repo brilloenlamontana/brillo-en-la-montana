@@ -55,7 +55,7 @@ export default function WorldPage() {
       <UserMenu
         leading={
           <>
-            {showTouchControls && <ObjectiveButton />}
+            <ObjectiveButton />
             <TutorialButton />
             <SoundToggle />
             <BackpackButton />
@@ -66,7 +66,7 @@ export default function WorldPage() {
       <QuickItemBar touch={showTouchControls} />
       <PlayerStatus />
       <Minimap touch={showTouchControls} />
-      <ObjectiveLine touch={showTouchControls} />
+      <ObjectiveLine />
       <Tutorial touch={showTouchControls} />
       <Toast />
       {CHALLENGES.map(({ id, Dialogs }) => Dialogs && <Dialogs key={id} />)}

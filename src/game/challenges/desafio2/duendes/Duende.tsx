@@ -45,8 +45,7 @@ type DuendeAction = 'Idle' | 'Running' | 'Double_Combo_Attack' | 'Dead';
 const between = ([min, max]: readonly [number, number]) => min + Math.random() * (max - min);
 
 // A wild goblin of the Dark Forest. It waits at its spot; when the player comes near its pack (manadas.ts) it chases
-// them wherever they run, out of the forest too, and attacks when close; when it loses them (they fell, or got very
-// far from the forest) it walks back. The elven sword defeats it (saved in progress): it falls
+// them and attacks when close, only inside the forest; when the player leaves it (or falls) it walks back. The elven sword defeats it (saved in progress): it falls
 // with the Dead animation and disappears.
 export function Duende({ index, home }: { index: number; home: readonly [number, number] }) {
   const { scene, animations } = useGLTF(URL);
@@ -79,8 +78,7 @@ export function Duende({ index, home }: { index: number; home: readonly [number,
     if (actions.Dead) playOnceAndHold(actions.Dead);
   }, [actions]);
 
-  // Unmounted (the player went far away, or into a house): it no longer counts for the sword, and its pack has lost
-  // the player.
+  // Unmounted (the player went far away): it no longer counts for the sword, and its pack has lost the player.
   useEffect(
     () => () => {
       const tracker = useBosqueStore.getState().duendes[index];
@@ -154,13 +152,11 @@ export function Duende({ index, home }: { index: number; home: readonly [number,
       p.set(home[0], p.y, home[1]);
     }
 
-    // Its pack goes after the player once they come near one of its goblins in the forest, and follows them out of it
-    // (the goblins exist as far as the valley and Hedrig's town: see VISIBLE_FROM.duendes); all calm down when the
-    // player falls.
-    const alive = player.health > 0;
-    const inForest = useZoneStore.getState().region === 'bosque';
-    if (!alive) calmPacks();
-    const chase = alive && packAwake(index, player.position.x, player.position.z, inForest);
+    // Its pack goes after the player once they come near one of its goblins; they only attack in the forest: out of it
+    // (or fallen) all calm down and walk back, and wake again the next time the player comes near.
+    const inForest = useZoneStore.getState().region === 'bosque' && player.health > 0;
+    if (!inForest) calmPacks();
+    const chase = inForest && packAwake(index, player.position.x, player.position.z);
     const toPlayerX = player.position.x - p.x, toPlayerZ = player.position.z - p.z;
     const playerDistance = Math.hypot(toPlayerX, toPlayerZ);
     let action: DuendeAction = 'Idle';

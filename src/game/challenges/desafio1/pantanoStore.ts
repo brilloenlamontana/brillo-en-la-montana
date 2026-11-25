@@ -10,8 +10,8 @@ type EnemyTracker = { position: Vector3; active: boolean };
 interface PantanoState {
   // The player treads on the mud: this is what wakes the golem and the zumbadores.
   playerOnMud: boolean;
-  // The golem and the zumbadores know of the player (they trod on the mud): they go after them wherever they run,
-  // out of the swamp too, until the player falls or gets too far away (MudTracker).
+  // The golem and the zumbadores are after the player: only while a living player treads on the mud (MudTracker).
+  // They never leave the swamp after anyone.
   alerted: boolean;
   golem: EnemyTracker;
   zumbadores: EnemyTracker[];

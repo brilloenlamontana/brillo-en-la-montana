@@ -6,19 +6,16 @@ import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
 import { useUIStore } from '@/store/uiStore';
 
-// On a touch screen the objective stays this long (s), and longer for a long one, so it can be read.
-const TOUCH_SECONDS = 6;
-const READING_CHARS_PER_SECOND = 14;
+// The objective stays on screen this long (s) each time it shows.
+const SECONDS = 5;
 
 // What the story asks of the player right now, in one line (each challenge writes it: see `objective` in
-// challenges/types.ts). It changes by itself when a step is done, and the beacon of light in the world
-// (ObjectiveBeacon) marks the same place. It steps aside while a narration, a cinematic or the backpack fills the
-// screen, and while the tutorial of the controls is showing.
-// - With a keyboard it stays at the bottom centre and never goes away on its own.
-// - `touch`: a phone has no room for it among the thumbs, so it comes in at the top centre, stays a moment and goes;
-//   it comes back whenever it changes and whenever the player asks for it with the button of the top bar
-//   (ObjectiveButton).
-export function ObjectiveLine({ touch = false }: { touch?: boolean }) {
+// challenges/types.ts): where to go, never what is left to do there. The beacon of light in the world
+// (ObjectiveBeacon) marks the same place. It comes in at the top centre, under the bars, stays 5 seconds and goes; it
+// comes back whenever it changes and whenever the player asks for it with the button of the top bar
+// (ObjectiveButton). The same with a keyboard and on a touch screen. It waits while a narration, a cinematic, the
+// backpack, the tutorial or a notice has the screen.
+export function ObjectiveLine() {
   const ready = useWorldStore((state) => state.ready);
   const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen || state.tutorialOpen);
   const asked = useUIStore((state) => state.objectiveRun);
@@ -26,30 +23,25 @@ export function ObjectiveLine({ touch = false }: { touch?: boolean }) {
   const text = useProgressStore((state) => currentObjective(state.progress, region)?.text ?? null);
   // A notice (Toast) uses the same place at the top: the objective waits behind it.
   const noticed = useToastStore((state) => state.message !== null && state.message !== '');
-  // Which showing is still on screen (touch): the objective and the time it was asked for.
+  // Which showing is still on screen: the objective and the time it was asked for.
   const showing = `${text}|${asked}`;
   const [gone, setGone] = useState<string | null>(null);
 
   // Counted only while it can be seen: a dialog or a notice over it does not use up its time.
-  const hidden = !ready || busy || !text || (touch && noticed);
+  const hidden = !ready || busy || !text || noticed;
   useEffect(() => {
-    if (!touch || hidden || !text) return;
-    const seconds = Math.max(TOUCH_SECONDS, text.length / READING_CHARS_PER_SECOND);
-    const timer = setTimeout(() => setGone(showing), seconds * 1000);
+    if (hidden) return;
+    const timer = setTimeout(() => setGone(showing), SECONDS * 1000);
     return () => clearTimeout(timer);
-  }, [touch, hidden, text, showing]);
+  }, [hidden, showing]);
 
-  if (hidden || (touch && gone === showing)) return null;
+  if (hidden || gone === showing) return null;
 
   return (
     <div
       role="status"
       aria-live="polite"
-      className={`absolute left-1/2 -translate-x-1/2 w-max min-w-[12rem] flex items-start gap-2 bg-[#f4e4bc]/95 border-2 border-[#5c3a21] rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 shadow-[0_4px_12px_rgba(62,39,35,0.35)] pointer-events-none select-none ${
-        touch
-          ? 'top-[max(68px,calc(env(safe-area-inset-top,0px)+68px))] z-30 max-w-[min(30rem,calc(100vw-2rem))]'
-          : 'bottom-[max(12px,env(safe-area-inset-bottom,12px))] z-2 max-w-[min(34rem,calc(100vw-26rem))]'
-      }`}
+      className="absolute left-1/2 -translate-x-1/2 top-[max(68px,calc(env(safe-area-inset-top,0px)+68px))] sm:top-[max(84px,calc(env(safe-area-inset-top,0px)+84px))] z-30 w-max min-w-[12rem] max-w-[min(30rem,calc(100vw-2rem))] flex items-start gap-2 bg-[#f4e4bc]/95 border-2 border-[#5c3a21] rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 shadow-[0_4px_12px_rgba(62,39,35,0.35)] pointer-events-none select-none"
     >
       {/* The same gold as the beacon and as the next place on the minimap. */}
       <span className="relative mt-[3px] sm:mt-1 flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
@@ -65,7 +57,7 @@ export function ObjectiveLine({ touch = false }: { touch?: boolean }) {
   );
 }
 
-// Touch screens only: the button of the top bar that shows the objective again for a moment.
+// The button of the top bar that shows the objective again for a moment.
 export function ObjectiveButton() {
   const label = 'Ver mi objetivo';
   return (

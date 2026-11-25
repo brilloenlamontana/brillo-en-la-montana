@@ -1,4 +1,3 @@
-import { listText } from '@/game/challenges/listText';
 import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { POTION_IDS, type BackpackItemId } from './items';
@@ -46,7 +45,7 @@ export const hasItem = (id: BackpackItemId, progress: Progress) => getItemState(
 export function getGoal(progress: Progress): string {
   if (isDesafio1Completado(progress)) return '¡Atravesaste el pantano! Busca la casa del elfo, suspendida de un árbol al otro lado.';
   if (missingItems(progress).length) return 'En la casa de Imeri te esperan la gema, la soga y las 5 pociones.';
-  return `Cruza el Pantano de la Tristeza: ${listText(swampTasks(progress))}.`;
+  return 'Cruza el Pantano de la Tristeza.';
 }
 
 // What is left to pick up in Imeri's house, as it reads in a sentence.
@@ -58,15 +57,6 @@ function missingItems(progress: Progress): string[] {
   return missing;
 }
 
-// What is left to defeat in the swamp (not how: no item is named).
-function swampTasks(progress: Progress): string[] {
-  const zumbadores = ZUMBADOR_COUNT - defeatedZumbadores(progress);
-  return [
-    ...(progress?.golemDefeated ? [] : ['vence al Golem']),
-    ...(zumbadores > 0 ? [`acaba con ${zumbadores === ZUMBADOR_COUNT ? 'los zumbadores' : `los ${zumbadores} zumbadores que quedan`}`] : []),
-  ];
-}
-
 // Where each step of Challenge 1 happens (the ground there): the notice board by the gate, the villager woman by the
 // well, Imeri in front of her house, the house itself and the middle of the swamp.
 const TABLON = { x: -51.4, y: 10.6, z: 19.9 };
@@ -75,7 +65,8 @@ const IMERI = { x: 10.5, y: 10.3, z: 41.5 };
 const CASA_IMERI = { x: 16, y: 10.1, z: 44 };
 const PANTANO = { x: 26, y: 7.5, z: -47.5 };
 
-// The step of Challenge 1 the player is on, in one line, and where it happens.
+// The step of Challenge 1 the player is on, in one line, and where it happens. It names the place to go, never what
+// is left to do there nor how many enemies remain: finding that out is the player's part.
 export function getObjective(progress: Progress, there = false): Objective {
   if (!progress?.openedMayorLetter) return { text: 'Lee el anuncio del alcalde en el tablón, junto al portón.', at: TABLON };
   if (progress.aldeanoHelp !== 'accepted') {
@@ -89,7 +80,7 @@ export function getObjective(progress: Progress, there = false): Objective {
   // General on purpose: it names everything Imeri offers, not what this player still lacks. Whoever walks into the
   // swamp without something has chosen to: from then on the objective is the swamp's.
   if (missingItems(progress).length && !there) return { text: 'Entra a la casa de Imeri y recoge lo que te ofrece: la gema, la soga y las 5 pociones.', at: CASA_IMERI };
-  return { text: `En el pantano: ${listText(swampTasks(progress))}.`, at: PANTANO };
+  return { text: 'Cruza el Pantano de la Tristeza.', at: PANTANO };
 }
 
 // What the villager woman says, in a few words, to a player who already accepted her help: where to go now, never

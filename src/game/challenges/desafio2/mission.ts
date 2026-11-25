@@ -1,4 +1,3 @@
-import { listText } from '@/game/challenges/listText';
 import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { isDesafio1Completado } from '../desafio1/mission';
@@ -67,18 +66,7 @@ export function getObjective(progress: Progress, there = false): Objective {
   if (ELFO_COLLECTIBLES.some(({ id }) => !collected(progress).includes(id)) && !there) {
     return { text: 'Sube a la casa del elfo, en la copa del árbol, y recoge lo que te ofrece: la espada, el lente y el mapa.', at: ELFO };
   }
-  return { text: `En el Bosque de la Oscuridad: ${listText(forestTasks(progress))}.`, at: BOSQUE };
-}
-
-// What is left to do in the forest (not how: no tool is named).
-function forestTasks(progress: Progress): string[] {
-  const duendes = DUENDE_COUNT - defeatedDuendes(progress);
-  const frutos = FRUTOS_NEEDED - frutosEaten(progress);
-  return [
-    ...(duendes > 0 ? [duendes === 1 ? 'vence al último duende' : `vence a los ${duendes} duendes`] : []),
-    ...(frutos > 0 ? [`sacia tu hambre con ${frutos === 1 ? 'una fruta buena más' : `${frutos} frutas buenas`}`] : []),
-    ...(isMapaActivado(progress) ? [] : ['encuentra la salida']),
-  ];
+  return { text: 'Cruza el Bosque de la Oscuridad.', at: BOSQUE };
 }
 
 // What the elf says, in a few words, to a player who already accepted his help and has not crossed the forest yet:
@@ -109,8 +97,7 @@ export function getGoal(progress: Progress): string {
     return '¡Superaste el Bosque de la Oscuridad! Tu vida está recuperada y el sendero hacia la cumbre está despejado: sigue las flechas doradas del suelo hasta la salida del bosque.';
   }
   if (ELFO_COLLECTIBLES.some(({ id }) => !collected(progress).includes(id))) return 'En la casa del elfo, en la copa del árbol gigante, te esperan la espada, el lente y el mapa.';
-  const tasks = forestTasks(progress);
-  if (tasks.length) return `Cruza el Bosque de la Oscuridad: ${listText(tasks)}.`;
+  if (!isDesafio2Completado(progress) && !(allDuendesDefeated(progress) && isFed(progress) && isMapaActivado(progress))) return 'Cruza el Bosque de la Oscuridad.';
   return 'Acabaste con los duendes, saciaste tu hambre y despejaste el sendero oculto. Sigue las flechas doradas del suelo hasta la salida del bosque.';
 }
 

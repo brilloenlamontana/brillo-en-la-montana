@@ -2,14 +2,13 @@ import { useLayoutEffect, useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { CylinderCollider } from '@react-three/rapier';
 import { MeshBasicMaterial, type Mesh } from 'three';
-import { CameraColliderBoxes } from '@/game/engine/camera/CameraColliderBoxes';
 import { freeze } from '@/game/engine/models/sceneUtils';
 import type { ColliderBox } from '@/game/engine/physics/colliderBoxes';
 import { CuboidColliders } from '@/game/engine/physics/CuboidColliders';
 import { useVisibleFrom } from '@/game/world/visibility';
 import { useProgressStore } from '@/store/progressStore';
 import { areWellsSafe } from '../mission';
-import { CAMERA_BLOCKS_IN, VISIBLE_FROM } from '../visibility';
+import { VISIBLE_FROM } from '../visibility';
 import { DESAFIO1_MODELS } from '../assets';
 import { usePantanoWells } from './wells';
 
@@ -23,8 +22,7 @@ const LID_TOP_BELOW_RIM = 0.12;
 const NO_BOXES: ColliderBox[] = [];
 
 // Each well is a trap hidden under the ground: the terrain is drawn whole, but its physics has an opening over each
-// well. The wells themselves are not drawn: physical walls and a floor stop the fall, camera walls keep the camera
-// inside, and a black shell under the ground (PantanoPozosOscuridad in Map.blend: the underside of the terrain around
+// well. The wells themselves are not drawn: physical walls and a floor stop the fall, and a black shell under the ground (PantanoPozosOscuridad in Map.blend: the underside of the terrain around
 // each well, walls and a floor) makes everything seen from down there dark. Once the golem and every zumbador are
 // defeated a solid lid closes each opening for good, and nothing of the wells is drawn or simulated.
 export function PantanoPozos() {
@@ -37,10 +35,8 @@ export function PantanoPozos() {
     freeze(darkness);
   }, [darkness]);
   const visible = useVisibleFrom(VISIBLE_FROM.pozos);
-  const cameraActive = useVisibleFrom(CAMERA_BLOCKS_IN.pozos);
   const wells = usePantanoWells();
   const physicsBoxes = useMemo(() => wells.flatMap((well) => well.physicsBoxes), [wells]);
-  const cameraBoxes = useMemo(() => wells.flatMap((well) => well.cameraBoxes), [wells]);
   const wellsSafe = useProgressStore((state) => areWellsSafe(state.progress));
 
   return (
@@ -56,7 +52,6 @@ export function PantanoPozos() {
             />
           ))}
       </CuboidColliders>
-      <CameraColliderBoxes boxes={cameraBoxes} active={cameraActive && !wellsSafe} />
     </>
   );
 }

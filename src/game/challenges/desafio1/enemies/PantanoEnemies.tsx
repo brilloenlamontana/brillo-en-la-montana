@@ -1,7 +1,6 @@
-import { useInterior, useRegion, useVisibleFrom } from '@/game/world/visibility';
+import { useRegion, useVisibleFrom } from '@/game/world/visibility';
 import { useProgressStore } from '@/store/progressStore';
 import { ZUMBADOR_COUNT } from '../mission';
-import { usePantanoStore } from '../pantanoStore';
 import { VISIBLE_FROM } from '../visibility';
 import { Golem } from './Golem';
 import { SprayEffect } from './SprayEffect';
@@ -13,14 +12,11 @@ const ZUMBADORES = Array.from({ length: ZUMBADOR_COUNT }, (_, i) => i);
 // The enemies of the swamp are mounted from the start, so that meeting them never stops the game to load them: far
 // from the swamp (the village, Imeri's house, the forest...) they wait under the map doing nothing (no logic, no draw
 // calls), and near it they are already out in the middle of the mud, the golem standing and the zumbadores hovering
-// around it, until the player treads on the mud and they come for them. From then on they follow the player wherever
-// they run, out of the swamp too (pantanoStore.alerted), so they stay awake far from it while the chase lasts. The
-// defeated ones stay out of sight; the fallen golem stays on the ground until the player leaves the swamp.
+// around it, until the player treads on the mud and they come for them. They only attack on the mud: off it they let
+// go and return to their place. The defeated ones stay out of sight; the fallen golem stays on the ground until the
+// player leaves the swamp.
 export function PantanoEnemies() {
-  const alerted = usePantanoStore((state) => state.alerted);
-  // Indoors the player is out of their reach (they cannot come in): they go back to their place meanwhile.
-  const outdoors = useInterior() === null;
-  const nearPantano = useVisibleFrom(VISIBLE_FROM.enemigos) || (alerted && outdoors);
+  const nearPantano = useVisibleFrom(VISIBLE_FROM.enemigos);
   const inPantano = useRegion() === 'pantano';
   const golemDefeated = useProgressStore((state) => state.progress.golemDefeated);
 

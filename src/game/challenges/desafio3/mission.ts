@@ -1,4 +1,3 @@
-import { listText } from '@/game/challenges/listText';
 import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { isDesafio2Completado } from '../desafio2/mission';
@@ -58,8 +57,7 @@ export function getObjective(progress: Progress, there = false): Objective {
   if (HEDRIG_COLLECTIBLES.some(({ id }) => !hasCollected(id, progress)) && !there) {
     return { text: 'Entra a la casa de Hedrig y recoge lo que te ofrece: el guante de minero, la brújula y la muñeca de trapo.', at: HEDRIG };
   }
-  if (!isEspectroCalmado(progress)) return { text: 'Entra a los túneles por la boca de la mina y calma al espectro de la niña.', at: MINA };
-  if (!isOgroVencido(progress)) return { text: 'Encuentra en los túneles la sala del ogro y demuéstrale que eres más fuerte.', at: MINA };
+  if (!isOgroVencido(progress)) return { text: 'Cruza los Túneles de la Cumbre.', at: MINA };
   return { text: 'El ogro te dejó pasar: sube la escalera de piedra hasta la cumbre.' };
 }
 
@@ -104,10 +102,7 @@ export function getGoal(progress: Progress): string {
     return 'Llegaste al pueblo minero, al pie de la Cumbre de la Desolación. Habla con Hedrig, la enana minera, junto a la fogata de su casa, y acepta su ayuda.';
   }
   if (HEDRIG_COLLECTIBLES.some(({ id }) => !hasCollected(id, progress))) return 'En la casa de Hedrig te esperan el guante de minero, la brújula y la muñeca de trapo.';
-  const tasks: string[] = [];
-  if (!isEspectroCalmado(progress)) tasks.push('calma al espectro de la niña');
-  if (!isOgroVencido(progress)) tasks.push('demuéstrale al ogro que eres más fuerte');
-  if (tasks.length) return `Entra a los túneles por la boca de la mina: ${listText(tasks)}.`;
+  if (!isOgroVencido(progress)) return 'Cruza los Túneles de la Cumbre.';
   return 'El ogro te dejó pasar: sube la escalera de piedra hasta la cumbre.';
 }
 

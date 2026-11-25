@@ -9,8 +9,11 @@ import { findWellExit, findWellUnder, isInsideWell, usePantanoWells, type Well }
 
 // The feet this far below a rim means the player fell in (the capsule center is then 1.5 m below it).
 const FALL_DEPTH = 2.5;
-// Inside the well the camera comes close to the avatar, so it does not show the world through the walls.
-const WELL_CAMERA_DISTANCE = 1.1;
+// Inside the well the camera keeps its usual distance from the avatar and ignores the walls of the well: the black
+// shell under the ground (PantanoPozosOscuridad) reaches 1.2 m past them, so within WELL_CAMERA_ROOM of the walls the
+// camera still sees nothing but dark, and never ends up against the avatar's face.
+const WELL_CAMERA_DISTANCE = 2;
+const WELL_CAMERA_ROOM = 0.8;
 
 // Every swamp well is a trap. Falling in without the rope is death (Death, then respawn). With the rope the player
 // waits at the bottom until using it from the backpack, and climbs out beside the well. Once the golem and every
@@ -32,7 +35,7 @@ export function WellTrap() {
       if (!well) return;
       fallen.current = well;
       playSfx('d1_hundirse');
-      player.setCameraDistance(WELL_CAMERA_DISTANCE);
+      player.setCameraDistance(WELL_CAMERA_DISTANCE, { x: well.x, z: well.z, radius: well.outerRadius + WELL_CAMERA_ROOM });
       if (hasItem('soga', progress)) pantano.setTrappedInWell(true);
       else player.takeDamage(player.maxHealth);
       return;

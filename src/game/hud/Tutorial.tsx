@@ -202,9 +202,7 @@ function TutorialCard({ touch }: { touch: boolean }) {
         <p className="mt-0.5 text-[11px] sm:text-sm leading-snug">{touch ? text.touch : text.keyboard}</p>
         {last && (
           <p className="mt-1 text-[10px] sm:text-xs leading-snug italic text-[#6d4c33]">
-            {touch
-              ? 'Tu objetivo aparece arriba por un momento; para verlo otra vez, toca el botón de la diana en la barra de arriba. Esta ayuda vuelve con el botón «?».'
-              : 'Al cerrar esta ayuda, aquí abajo verás siempre tu objetivo. Si la necesitas otra vez, toca el botón «?» de arriba.'}
+            Tu objetivo aparece arriba por unos segundos; para verlo otra vez, usa el botón de la diana de la barra de arriba. Esta ayuda vuelve con el botón «?».
           </p>
         )}
       </div>
