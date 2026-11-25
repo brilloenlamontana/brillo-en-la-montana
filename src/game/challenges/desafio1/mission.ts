@@ -58,12 +58,12 @@ function missingItems(progress: Progress): string[] {
 }
 
 // Where each step of Challenge 1 happens (the ground there): the notice board by the gate, the villager woman by the
-// well, Imeri in front of her house, the house itself and the middle of the swamp.
+// well, Imeri in front of her house, the house itself and the way into the swamp (where the road meets the mud).
 const TABLON = { x: -51.4, y: 10.6, z: 19.9 };
 const ALDEANA = { x: -77.6, y: 10.9, z: 20.4 };
 const IMERI = { x: 10.5, y: 10.3, z: 41.5 };
 const CASA_IMERI = { x: 16, y: 10.1, z: 44 };
-const PANTANO = { x: 26, y: 7.5, z: -47.5 };
+const PANTANO = { x: 60, y: 7.8, z: 8 };
 
 // The step of Challenge 1 the player is on, in one line, and where it happens. It names the place to go, never what
 // is left to do there nor how many enemies remain: finding that out is the player's part.

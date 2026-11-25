@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { inCurrentDanger } from '@/game/challenges/registry';
 import { playSfx } from '@/game/engine/audio/audio';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
@@ -253,7 +254,8 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
   const ready = useWorldStore((state) => state.ready);
   const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen);
   const region = useZoneStore((state) => state.region);
-  const next = useProgressStore((state) => nextLandmark(state.progress));
+  // Inside the swamp, the forest or the tunnels being played nothing is marked as the next place any more.
+  const next = useProgressStore((state) => (inCurrentDanger(state.progress, region) ? null : nextLandmark(state.progress)));
   const stage = useProgressStore((state) => mapStage(state.progress));
   const [open, setOpen] = useState(false);
   const ground = useRef<HTMLDivElement>(null);

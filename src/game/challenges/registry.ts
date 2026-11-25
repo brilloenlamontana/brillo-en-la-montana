@@ -16,8 +16,19 @@ export function activeBackpack(progress: GameProgress): Backpack | undefined {
 }
 
 // What the player has to do now: the objective of the first challenge not finished yet (null once the game is over).
+// Whether the player, in `region`, is inside the dangerous place of the challenge being played (its swamp, forest or
+// tunnels).
+export function inCurrentDanger(progress: GameProgress, region: Region | undefined): boolean {
+  const current = CHALLENGES.find((challenge) => !challenge.isCompleted?.(progress));
+  return region !== undefined && current?.danger?.region === region;
+}
+
 // `region`: where the player is, so the objective follows a player who went into the dangerous place of the challenge.
+// The place of an objective is the way into that dangerous place: once the player is inside, it is no longer marked
+// (no beacon, no dot on the map) and finding the way through is theirs.
 export function currentObjective(progress: GameProgress, region?: Region): Objective | null {
   const current = CHALLENGES.find((challenge) => !challenge.isCompleted?.(progress));
-  return current?.objective?.(progress, region !== undefined && current.danger?.region === region) ?? null;
+  const there = inCurrentDanger(progress, region);
+  const objective = current?.objective?.(progress, there) ?? null;
+  return objective && there ? { text: objective.text } : objective;
 }

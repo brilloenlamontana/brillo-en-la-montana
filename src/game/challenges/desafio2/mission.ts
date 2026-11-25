@@ -48,9 +48,9 @@ export function getItemState(id: ElfoItemId, progress: Progress): ItemState {
   return collected(progress).includes(id) ? 'owned' : 'missing';
 }
 
-// Where each step of Challenge 2 happens (the ground there): the elf at the foot of his tree and the heart of the forest.
+// Where each step of Challenge 2 happens (the ground there): the elf at the foot of his tree and the way into the forest.
 const ELFO = { x: -36.4, y: 10.2, z: -126.4 };
-const BOSQUE = { x: -24, y: 13, z: -214 };
+const BOSQUE = { x: -25, y: 12, z: -182 };
 
 // The step of Challenge 2 the player is on, in one line, and where it happens.
 export function getObjective(progress: Progress, there = false): Objective {

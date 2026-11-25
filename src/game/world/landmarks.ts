@@ -19,13 +19,14 @@ export type LandmarkKind = 'casa' | 'desafio' | 'meta';
 // `stage` is the step of the story (see mapStage) from which the place is drawn on the map.
 export type Landmark = { id: string; name: string; kind: LandmarkKind; x: number; z: number; stage: number };
 
-// The places that matter along the story, in its order.
+// The places that matter along the story, in its order. A challenge is marked at its way in (the same spot as its
+// beacon of light: see the `objective` of each challenge), not in its middle.
 export const LANDMARKS: readonly Landmark[] = [
   { id: 'villa', name: 'Villa de Boj', kind: 'casa', x: -80, z: 18, stage: 0 },
   { id: 'imeri', name: 'Casa de Imeri', kind: 'casa', x: 16, z: 44, stage: 1 },
-  { id: 'pantano', name: 'Pantano de la Tristeza', kind: 'desafio', x: 62, z: -8, stage: 2 },
+  { id: 'pantano', name: 'Pantano de la Tristeza', kind: 'desafio', x: 60, z: 8, stage: 2 },
   { id: 'elfo', name: 'Árbol del elfo', kind: 'casa', x: -37, z: -126, stage: 3 },
-  { id: 'bosque', name: 'Bosque de la Oscuridad', kind: 'desafio', x: -24, z: -214, stage: 4 },
+  { id: 'bosque', name: 'Bosque de la Oscuridad', kind: 'desafio', x: -25, z: -182, stage: 4 },
   { id: 'hedrig', name: 'Pueblo de Hedrig', kind: 'casa', x: 86, z: -210, stage: 5 },
   { id: 'mina', name: 'Túneles de la Cumbre', kind: 'desafio', x: 99, z: -194, stage: 6 },
   { id: 'santuario', name: 'Santuario del cáliz', kind: 'meta', x: 156, z: -153, stage: 7 },

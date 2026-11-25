@@ -1,6 +1,7 @@
 import { playSfx } from '@/game/engine/audio/audio';
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useTerrainHeight } from '@/game/engine/physics/useTerrainHeight';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useProgressStore } from '@/store/progressStore';
 import { areWellsSafe, hasItem } from '../mission';
@@ -20,6 +21,7 @@ const WELL_CAMERA_ROOM = 0.8;
 // zumbador are defeated the wells get lids; if that happens while trapped, the player climbs out too.
 export function WellTrap() {
   const wells = usePantanoWells();
+  const terrainHeight = useTerrainHeight();
   const fallen = useRef<Well | null>(null);
   const climbing = useRef(false);
 
@@ -52,7 +54,9 @@ export function WellTrap() {
     if (!climbing.current && (pantano.climbRequested || areWellsSafe(progress))) {
       climbing.current = true;
       player.setCameraDistance(null);
-      player.requestTeleport(findWellExit(fallen.current, wells));
+      const well = fallen.current;
+      // The ground as it really is beside the well (looked for from well above its rim).
+      player.requestTeleport(findWellExit(well, wells, (px, pz) => terrainHeight(px, pz, well.rimY + 12, 24)));
     }
   });
 
