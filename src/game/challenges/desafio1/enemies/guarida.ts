@@ -4,7 +4,8 @@ import type { Well } from '../pantanoTristeza/wells';
 // (they no longer come out of a well under the player's nose). The golem stands at the middle and the zumbadores
 // hover around it.
 
-// Middle of the mud (world x, z), away from the way in from Imeri's house and from the way out to the valley.
+// Where the golem waits (world x, z): in the mud, a few steps north of the way in from Imeri's house. Map.blend keeps
+// 10 m around (60, -4) free of wells for it and for the zumbadores that hover around it.
 const MIDDLE = { x: 58, z: -4 };
 // The golem keeps this far from the rim of any well (m).
 const CLEAR = 3;
