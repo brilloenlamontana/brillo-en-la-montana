@@ -28,7 +28,7 @@ export function entregarMuneca() {
   const { espectro, setDespedida } = useTunelStore.getState();
   const player = usePlayerStore.getState().position;
   if (!espectro.active || espectro.position.distanceTo(player) > ENTREGA_RANGE) {
-    return toast('La muñeca se llama Simona: el espectro de la niña la busca en los túneles. Úsala cuando esté cerca de ti.');
+    return toast('Sacas la muñeca de trapo. Lleva bordado un nombre: Simona.');
   }
   setDespedida({ x: espectro.position.x, y: player.y, z: espectro.position.z });
   playSfx('d3_muneca');

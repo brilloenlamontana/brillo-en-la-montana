@@ -25,7 +25,7 @@ function toggleBrujula() {
   toast(
     useZoneStore.getState().region === 'tuneles'
       ? 'La aguja de la brújula tiembla y un sendero de luz azul marca el camino hacia la salida de la cumbre.'
-      : 'Sacas la brújula: dentro de los túneles su luz te marcará el camino correcto en cada cruce.',
+      : 'Sacas la brújula, pero aquí su aguja no se mueve.',
   );
 }
 

@@ -31,7 +31,7 @@ export function comerFruto(index: number): boolean {
     toast(
       lethal
         ? '¡Esa fruta estaba envenenada! El veneno consumió tus últimas fuerzas.'
-        : `¡Esa fruta estaba envenenada! Perdiste vida (-${BAD_FRUIT_DAMAGE}). Usa el lente revelador para ver cuáles son buenas.`,
+        : `¡Esa fruta estaba envenenada! Perdiste vida (-${BAD_FRUIT_DAMAGE}).`,
     );
     player.takeDamage(BAD_FRUIT_DAMAGE);
     return false;

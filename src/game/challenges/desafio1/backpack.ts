@@ -31,7 +31,7 @@ function saveVictory(changes: Partial<GameProgress>): boolean {
 
 function applySoga() {
   const pantano = usePantanoStore.getState();
-  if (!pantano.trappedInWell) return toast('La soga solo sirve para salir de un pozo.');
+  if (!pantano.trappedInWell) return toast('Sacas la soga, pero aquí no pasa nada.');
   pantano.requestClimb();
   playSfx('d1_soga');
   toast('Usaste la soga y saliste del pozo.');
@@ -39,8 +39,8 @@ function applySoga() {
 
 function applyGema() {
   const { golem } = usePantanoStore.getState();
-  if (!golem.active) return toast('No hay ningún Golem cerca.');
-  if (golem.position.distanceTo(usePlayerStore.getState().position) > GEMA_RANGE) return toast('Acércate más al Golem para usar la gema.');
+  if (!golem.active) return toast('Alzas la gema, pero aquí no pasa nada.');
+  if (golem.position.distanceTo(usePlayerStore.getState().position) > GEMA_RANGE) return toast('Alzas la gema, pero desde aquí no pasa nada.');
   playSfx('d1_golem_apagado');
   if (!saveVictory({ golemDefeated: true })) toast('La gema apagó la luz azul del pecho del Golem.');
 }
@@ -54,7 +54,7 @@ function applyInsecticida() {
   );
   pantano.spray();
   playSfx('d1_spray');
-  if (inRange.length === 0) return toast('No hay zumbadores cerca para rociar.');
+  if (inRange.length === 0) return toast('Rocías el insecticida, pero aquí no pasa nada.');
   playSfx('d1_zumbon_huye');
   const zumbadoresDefeated = [...new Set([...defeated, ...inRange])];
   if (saveVictory({ zumbadoresDefeated })) return;

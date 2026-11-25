@@ -24,7 +24,7 @@ function BrujulaActiva() {
   if (!activa || !owned) return null;
   return (
     <div className="absolute top-[max(58px,calc(env(safe-area-inset-top,12px)+46px))] left-[max(12px,env(safe-area-inset-left,12px))] z-2 pointer-events-none select-none bg-slate-900/85 text-sky-200 border border-sky-300/50 rounded-xl px-3 py-1 text-xs sm:text-sm font-semibold shadow-md">
-      Brújula activa · sigue la luz azul
+      Brújula activa
     </div>
   );
 }

@@ -35,7 +35,7 @@ function toggleLente() {
   const { lente, toggleLente } = useBosqueStore.getState();
   toggleLente();
   playSfx('d2_lente', { volume: 0.8 });
-  toast(lente ? 'Guardas el lente revelador.' : 'Miras a través del lente: las frutas buenas se ven amarillas y las venenosas siguen rojas.');
+  toast(lente ? 'Guardas el lente revelador.' : 'Miras a través del lente revelador.');
 }
 
 // A sword swing (click or hotkey, like the insecticide): every live goblin within reach falls.
@@ -48,7 +48,7 @@ function swingSword() {
     .getState()
     .duendes.flatMap((duende, i) => (duende.active && duende.position.distanceTo(player) <= SWORD_RANGE ? [i] : []));
   if (!hit.length) {
-    toast('Ningún duende está a tu alcance. Espera a que se acerquen.');
+    toast('Blandes la espada, pero no alcanza a nadie.');
     return;
   }
   playSfx('d2_espada_impacto');
