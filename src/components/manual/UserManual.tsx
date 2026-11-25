@@ -201,8 +201,9 @@ const SECTIONS: Section[] = [
         />
         <h3 className={H3}>En celular</h3>
         <p className={P}>
-          El juego se usa con el teléfono <strong>en horizontal</strong>. Si ves el aviso «Gira tu celular», gíralo; si no cambia, desactiva el bloqueo
-          de rotación en los ajustes rápidos de tu teléfono.
+          El juego se usa con el teléfono <strong>en horizontal</strong>. Si ves el aviso «Gira tu celular», gíralo; si no cambia, tu teléfono tiene
+          bloqueado el giro de la pantalla: el mismo aviso muestra, paso a paso, cómo quitarlo en iPhone y en Android. El video introductorio se puede ver con el
+          teléfono en cualquier posición.
         </p>
         <Tabla
           head={['Control en pantalla', 'Qué hace']}
@@ -400,7 +401,7 @@ const SECTIONS: Section[] = [
           rows={[
             ['No puedo iniciar sesión', 'Verifica que estés usando la cuenta @correounivalle.edu.co y que el navegador permita ventanas emergentes para este sitio.'],
             ['La carga se queda quieta', 'Espera un momento: en celular puede tardar un par de minutos la primera vez. Si no avanza, recarga la página; tu avance no se pierde.'],
-            ['Veo «Gira tu celular» y no cambia', 'Desactiva el bloqueo de rotación del teléfono y gíralo a horizontal.'],
+            ['Veo «Gira tu celular» y no cambia', 'Tu teléfono tiene bloqueado el giro de la pantalla. Sigue los pasos que muestra el aviso (iPhone o Android) y gíralo a horizontal.'],
             ['El juego va lento', 'Cierra otras pestañas y aplicaciones. En computador, usa Chrome o Edge actualizados.'],
             ['No escucho nada', 'Revisa el panel de sonido del juego (ícono del parlante) y el volumen del equipo. En celular, quita el modo silencio.'],
             ['No sé a dónde ir', 'Abre la mochila para leer tu objetivo y mira el punto dorado del minimapa.'],

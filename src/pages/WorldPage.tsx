@@ -41,15 +41,9 @@ export default function WorldPage() {
   if (step !== 'mundo') return null;
   if (backend === 'none') return <RendererErrorScreen error="unsupported" />;
   if (rendererError) return <RendererErrorScreen error={rendererError} />;
-  // First visit: the introduction plays before anything of the world is mounted; the world loads when it ends.
-  if (!introVista) {
-    return (
-      <>
-        <IntroVideo onDone={() => void saveProgress({ introVista: true })} />
-        <LandscapeOnly />
-      </>
-    );
-  }
+  // First visit: the introduction plays before anything of the world is mounted; the world loads when it ends. The
+  // video is square and is watched with the phone held either way: turning it is only asked for the world.
+  if (!introVista) return <IntroVideo onDone={() => void saveProgress({ introVista: true })} />;
 
   return (
     <main className="w-screen h-dvh relative overflow-hidden select-none">
