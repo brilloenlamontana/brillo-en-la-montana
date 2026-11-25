@@ -49,9 +49,6 @@ export function getItemState(id: ElfoItemId, progress: Progress): ItemState {
   return collected(progress).includes(id) ? 'owned' : 'missing';
 }
 
-// How each tool is named in a sentence.
-const ITEM_LABEL: Record<ElfoItemId, string> = { espada: 'la espada élfica', lente: 'el lente revelador', mapa: 'el mapa del bosque' };
-
 // Where each step of Challenge 2 happens (the ground there): the elf at the foot of his tree and the heart of the forest.
 const ELFO = { x: -36.4, y: 10.2, z: -126.4 };
 const BOSQUE = { x: -24, y: 13, z: -214 };

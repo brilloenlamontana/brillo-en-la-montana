@@ -39,9 +39,6 @@ export function getItemState(id: HedrigItemId, progress: Progress): ItemState {
   return hasCollected(id, progress) ? 'owned' : 'missing';
 }
 
-// How each item is named in a sentence.
-const ITEM_LABEL: Record<HedrigItemId, string> = { guante: 'el guante de minero', brujula: 'la brújula', muneca: 'la muñeca de trapo' };
-
 // Where each step of Challenge 3 happens (the ground there): Hedrig by her bonfire and the mouth of the mine.
 const HEDRIG = { x: 82.6, y: 23.8, z: -206.3 };
 const MINA = { x: 99, y: 24, z: -194 };
