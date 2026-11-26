@@ -12,7 +12,7 @@ export const SALIDA_CUMBRE: Spawn = { x: 107.7, y: 53.6, z: -161.85, yaw: 1.26 }
 // altar, whose taking ends the game. Rules in mission.ts.
 export const relatoCierre: Challenge = {
   id: 'relatoCierre',
-  title: 'Cumbre de la Desolación',
+  title: 'Cumbre de la Desesperación',
   World: RelatoCierreWorld,
   Dialogs: RelatoCierreDialogs,
   objective: getObjective,

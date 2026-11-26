@@ -153,7 +153,7 @@ El motor requiere **Google Chrome real con soporte WebGPU** sobre `http://localh
      - `http://localhost:5174/mundo?dev=ogroSinGuante` — Sala del Ogro **sin el guante de minero**, para probar cómo el Ogro te golpea (20 PV por golpe, sin teletransporte ni aviso) al acercarte a la escalera, y cómo te gana las vencidas (te dobla el brazo hacia tu derecha y pierdes una estrella) si lo retas sin guante.
      - `http://localhost:5174/mundo?dev=ogroVencido` — Ogro vencido en el pulso (`ogroVencido: true`), diálogo `desafio3.ogroVencido` abierto y escalera en espiral despejada.
      - `http://localhost:5174/mundo?dev=escaleraCumbre` — Últimos peldaños antes de salir a la Cumbre (`x: 106.75, y: 53.0, z: -164.7`, `mision3Completada: false`), para subir y disparar en vivo la llegada a la Cumbre.
-   - **Relato de Cierre — Cumbre de la Desolación, Santuario, Dríada, Cáliz y Cinemática Final:**
+   - **Relato de Cierre — Cumbre de la Desesperación, Santuario, Dríada, Cáliz y Cinemática Final:**
      - `http://localhost:5174/mundo?dev=cumbre` (alias: `http://localhost:5174/mundo?dev=relatoCierre`) — Salida de los túneles en la Cumbre (`x: 107.7, y: 53.6, z: -161.85`), Desafío 3 completado.
      - `http://localhost:5174/mundo?dev=cumbreDialogo` — Salida de los túneles con el pergamino y narración de llegada a la Cumbre abierto (`desafio3.cumbre`).
      - `http://localhost:5174/mundo?dev=santuario` — Plaza frente a las puertas del Santuario (`x: 147, y: 53.4, z: -153`), donde la **Dríada** sale a recibirte.

@@ -42,7 +42,7 @@ const FEEDBACK_URL = String(import.meta.env.VITE_FEEDBACK_FORM_URL ?? '').trim()
 const TITULO ='¡Fin del juego: el cáliz brilla para todos!';
 const RELATO = [
   'Sobre el altar, bajo la torre, la dríada posa su mano sobre el cáliz de madera con grabados de hojas de sauce y runas en el borde: brilla más de lo que jamás imaginaste. Su resplandor verde sube por la aguja del santuario, señala el camino de regreso a quienes tuvieron que abandonar su hogar y lleva su calor hasta la Villa de Boj.',
-  'El frío cede y la tierra vuelve a ser fértil: todo vuelve a estar bien. Atravesaste el Pantano de la Tristeza, el Bosque de la Oscuridad y los túneles de la Cumbre de la Desolación; el juego ha terminado y este es el resumen de tu aventura.',
+  'El frío cede y la tierra vuelve a ser fértil: todo vuelve a estar bien. Atravesaste el Pantano de la Tristeza, el Bosque de la Oscuridad y los túneles de la Cumbre de la Desesperación; el juego ha terminado y este es el resumen de tu aventura.',
 ];
 const BONOS = {
   todos: 'Encontraste los dos bonos ocultos: nada quedó por descubrir.',

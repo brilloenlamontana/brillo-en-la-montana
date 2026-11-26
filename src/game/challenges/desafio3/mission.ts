@@ -96,10 +96,10 @@ export function getPending(progress: Progress): string | null {
 // What the player has to do now (shown in the backpack).
 export function getGoal(progress: Progress): string {
   if (isDesafio3Completado(progress)) {
-    return '¡Llegaste a la Cumbre de la Desolación! Sigue la avenida hasta el santuario del resplandor verde.';
+    return '¡Llegaste a la Cumbre de la Desesperación! Sigue la avenida hasta el santuario del resplandor verde.';
   }
   if (!isHedrigHouseUnlocked(progress)) {
-    return 'Llegaste al pueblo minero, al pie de la Cumbre de la Desolación. Habla con Hedrig, la enana minera, junto a la fogata de su casa, y acepta su ayuda.';
+    return 'Llegaste al pueblo minero, al pie de la Cumbre de la Desesperación. Habla con Hedrig, la enana minera, junto a la fogata de su casa, y acepta su ayuda.';
   }
   if (HEDRIG_COLLECTIBLES.some(({ id }) => !hasCollected(id, progress))) return 'En la casa de Hedrig te esperan el guante de minero, la brújula y la muñeca de trapo.';
   if (!isOgroVencido(progress)) return 'Cruza los Túneles de la Cumbre.';
@@ -113,7 +113,7 @@ export function getDesafio3Summary(progress: Progress) {
   const hedrig = progress?.hedrigHelp ?? 'pending';
   const completed = isDesafio3Completado(progress);
   const steps: MissionStep[] = [
-    { id: 'pueblo', label: 'Llegar al pueblo minero', detail: 'Al pie de la Cumbre de la Desolación, tras el bosque', done: hasArrived(progress) },
+    { id: 'pueblo', label: 'Llegar al pueblo minero', detail: 'Al pie de la Cumbre de la Desesperación, tras el bosque', done: hasArrived(progress) },
     {
       id: 'hedrig',
       label: 'Aceptar la ayuda de Hedrig',

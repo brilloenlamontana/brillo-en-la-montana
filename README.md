@@ -1,7 +1,7 @@
 # Brillo en la montaña
 
 Juego 3D educativo de la Universidad del Valle. El jugador recorre Villa de Boj y atraviesa tres desafíos (Pantano de la
-Tristeza, Bosque de la Oscuridad, Túneles de la Cumbre) hasta el relato de cierre en la Cumbre de la Desolación.
+Tristeza, Bosque de la Oscuridad, Túneles de la Cumbre) hasta el relato de cierre en la Cumbre de la Desesperación.
 
 **Stack:** React 19 · React Three Fiber 9 + drei · three.js 0.185 con **WebGPU** · Rapier (física) · ecctrl (personaje) ·
 zustand (estado) · Firebase (Auth con Google, Firestore) · Vite 8 · TypeScript estricto · Tailwind 4 · oxlint.

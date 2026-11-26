@@ -678,7 +678,7 @@ export default function AdminPage() {
                       summary={cierre}
                       unlocked={cierre.unlocked}
                       note={cierre.completed ? `Juego completado el ${date(record.progress?.juegoCompletadoEn)}` : 'La dríada abre el santuario; el cáliz está sobre el altar'}
-                      locked="Se habilita al llegar a la Cumbre de la Desolación (Misión 3 completada)."
+                      locked="Se habilita al llegar a la Cumbre de la Desesperación (Misión 3 completada)."
                     />
                     <MissionSection title="Bonos: La Estatua y el Hada" summary={bonos} unlocked note={`${bonos.bonos} de ${bonos.totalBonos} bonos obtenidos (opcionales)`} locked="" />
                   </>

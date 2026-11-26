@@ -4,7 +4,7 @@ import { DIALOG } from './dialogs';
 
 // Challenge 3 completed: the player came out of the tunnels onto the summit (health back to full).
 // Only a short cheer: the story of the way there is told on arriving at the next house (see challenges/llegada.ts).
-const GRITO = ['¡Llegaste a la Cumbre de la Desolación!'];
+const GRITO = ['¡Llegaste a la Cumbre de la Desesperación!'];
 
 export function CumbreAlcanzadaDialog() {
   const isOpen = useDialogOpen(DIALOG.cumbre);
