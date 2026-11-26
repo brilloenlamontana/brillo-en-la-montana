@@ -8,6 +8,10 @@ const VOLUMES_KEY = 'brillo.volumenes';
 export type VolumeChannel = 'general' | 'voces' | 'musica' | 'ambiente' | 'efectos';
 export type Volumes = Record<VolumeChannel, number>;
 export const DEFAULT_VOLUMES: Volumes = { general: 1, voces: 1, musica: 1, ambiente: 1, efectos: 1 };
+// The narrator and the characters are always heard, even with everything else silenced: what they say is how the game
+// is played. Their volume never goes under this.
+export const MIN_VOICE = 0.5;
+const floor = (channel: VolumeChannel, level: number) => (channel === 'voces' ? Math.max(MIN_VOICE, level) : level);
 
 function readMuted() {
   try {
@@ -23,7 +27,7 @@ function readVolumes(): Volumes {
     const volumes = { ...DEFAULT_VOLUMES };
     for (const channel of Object.keys(DEFAULT_VOLUMES) as VolumeChannel[]) {
       const value = Number(saved[channel]);
-      if (Number.isFinite(value)) volumes[channel] = Math.min(1, Math.max(0, value));
+      if (Number.isFinite(value)) volumes[channel] = floor(channel, Math.min(1, Math.max(0, value)));
     }
     return volumes;
   } catch {
@@ -39,7 +43,8 @@ function remember(key: string, value: string) {
   }
 }
 
-// Whether the player silenced the game and how loud each kind of sound plays; remembered on this device.
+// Whether the player silenced the game (music, ambience and effects: the voices still speak) and how loud each kind
+// of sound plays; remembered on this device.
 interface AudioState {
   muted: boolean;
   volumes: Volumes;
@@ -58,11 +63,11 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   },
   setVolume: (channel, volume) => {
     const level = Math.min(1, Math.max(0, volume));
-    const volumes = { ...get().volumes, [channel]: level };
+    const volumes = { ...get().volumes, [channel]: floor(channel, level) };
     // The general volume sets every kind of sound to its own level: all the bars end up where it is. Each kind can
     // then be set apart on its own.
     if (channel === 'general') {
-      for (const other of Object.keys(DEFAULT_VOLUMES) as VolumeChannel[]) volumes[other] = level;
+      for (const other of Object.keys(DEFAULT_VOLUMES) as VolumeChannel[]) volumes[other] = other === 'general' ? level : floor(other, level);
     }
     remember(VOLUMES_KEY, JSON.stringify(volumes));
     // Turning a sound up brings the game out of silence.

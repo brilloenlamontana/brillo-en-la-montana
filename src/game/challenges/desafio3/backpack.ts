@@ -1,5 +1,5 @@
 import { playSfx } from '@/game/engine/audio/audio';
-import type { Backpack } from '@/game/challenges/types';
+import { pickupNotice, type Backpack, type BackpackItem } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useZoneStore } from '@/game/world/zoneStore';
 import { saveProgress } from '@/services/progressService';
@@ -31,21 +31,32 @@ function toggleBrujula() {
 
 const EFFECTS: Record<HedrigItemId, () => void> = { guante: retarAlOgro, brujula: toggleBrujula, muneca: entregarMuneca };
 
-// Picking up one of Hedrig's items.
+const ITEMS: readonly BackpackItem[] = [
+  { id: 'guante', name: 'Guante de minero', model: MODEL.guante, Icon: GuanteIcon, hotkey: '1', gesture: 'UseGlove', purpose: 'Te da la fuerza para ganarle las vencidas al Ogro: úsalo junto a su mesa.' },
+  { id: 'brujula', name: 'Brújula', model: MODEL.brujula, Icon: BrujulaIcon, hotkey: '2', gesture: 'UseCompass', purpose: 'Dentro de los túneles marca con luz azul el camino hasta la salida de la cumbre.' },
+  {
+    id: 'muneca',
+    name: 'Muñeca de trapo',
+    model: MODEL.muneca,
+    Icon: MunecaIcon,
+    hotkey: '3',
+    gesture: 'UseOffer',
+    aim: quienRecibeMuneca,
+    purpose: 'Calma al espectro de la niña: ofrécesela cuando la tengas cerca.',
+  },
+];
+
+// Picking up one of Hedrig's items: the player is told what it is for.
 export function collectHedrigItem(id: string) {
   const { progress } = useProgressStore.getState();
   saveProgress({ collectedItems: [...progress.collectedItems, id] });
-  const item = HEDRIG_COLLECTIBLES.find((candidate) => candidate.id === id);
-  if (item) toast(`Guardaste en tu mochila: ${item.name}.`);
+  const item = ITEMS.find((candidate) => candidate.id === id);
+  if (item) toast(pickupNotice(item));
 }
 
 // Backpack of Challenge 3: replaces the elf's once the player arrives at Hedrig's mining town.
 export const DESAFIO3_BACKPACK: Backpack = {
-  items: [
-    { id: 'guante', name: 'Guante de minero', model: MODEL.guante, Icon: GuanteIcon, hotkey: '1', gesture: 'UseGlove' },
-    { id: 'brujula', name: 'Brújula', model: MODEL.brujula, Icon: BrujulaIcon, hotkey: '2', gesture: 'UseCompass' },
-    { id: 'muneca', name: 'Muñeca de trapo', model: MODEL.muneca, Icon: MunecaIcon, hotkey: '3', gesture: 'UseOffer', aim: quienRecibeMuneca },
-  ],
+  items: ITEMS,
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as HedrigItemId, progress),
   hint: (id, progress) => {

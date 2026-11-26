@@ -9,7 +9,7 @@ import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { GameCanvas } from '@/game/GameCanvas';
 import { BackpackButton } from '@/game/hud/backpack/BackpackButton';
 import { BajoDialog } from '@/game/hud/BajoDialog';
-import { IntroVideo } from '@/game/hud/IntroVideo';
+import { IntroButton, IntroVideo } from '@/game/hud/IntroVideo';
 import { QuickItemBar } from '@/game/hud/backpack/QuickItemBar';
 import { Minimap } from '@/game/hud/Minimap';
 import { MobileControls } from '@/game/hud/MobileControls';
@@ -26,6 +26,7 @@ import { StoryFlags } from '@/game/challenges/StoryFlags';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
+import { useUIStore } from '@/store/uiStore';
 
 // The game: the 3D world with its HUD and the dialogs of every challenge drawn over it.
 export default function WorldPage() {
@@ -35,6 +36,8 @@ export default function WorldPage() {
   const rendererError = useWorldStore((state) => state.rendererError);
   const ready = useWorldStore((state) => state.ready);
   const introVista = useProgressStore((state) => state.progress.introVista);
+  // The player asked to watch the introduction again (IntroButton): it plays over the game, which waits under it.
+  const introOpen = useUIStore((state) => state.introOpen);
   // On touch devices: the joystick and its buttons, and the game is played with the screen on its side.
   const showTouchControls = useIsMobile();
 
@@ -57,6 +60,7 @@ export default function WorldPage() {
           <>
             <ObjectiveButton />
             <TutorialButton />
+            <IntroButton />
             <SoundToggle />
             <BackpackButton />
           </>
@@ -73,6 +77,7 @@ export default function WorldPage() {
       <BajoDialog />
       {!ready && <WorldLoadingScreen />}
       <LandscapeOnly />
+      {introOpen && <IntroVideo replay onDone={() => useUIStore.getState().setIntroOpen(false)} />}
     </main>
   );
 }

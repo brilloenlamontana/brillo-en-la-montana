@@ -30,10 +30,10 @@ export function HedrigDialog() {
   };
   if (accepted && !again) {
     return (
-      <ParchmentDialog title="Hedrig" subtitle="Qué hacer ahora" paragraphs={getHedrigHint(progress).paragraphs} voice={[getHedrigHint(progress).voice]} skippable onClose={close}>
+      <ParchmentDialog title="Hedrig" subtitle="Qué hacer ahora" paragraphs={getHedrigHint(progress).paragraphs} voice={[getHedrigHint(progress).voice]} onClose={close}>
         <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
           <ParchmentButton onClick={() => setAgain(true)}>Cuéntame otra vez los peligros</ParchmentButton>
-          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+          <ParchmentButton onClick={close}>Siguiente</ParchmentButton>
         </div>
       </ParchmentDialog>
     );
@@ -54,6 +54,7 @@ export function HedrigDialog() {
     <ParchmentDialog title="Hedrig" subtitle="La enana minera que conoce los túneles de la cumbre" paragraphs={EXPLICACION}
       question={accepted ? undefined : '¿Quieres mi ayuda? En mi casa guardo lo que encontré entre las ruinas: te servirá allá arriba.'}
       voice={accepted ? ['03_hedrig_02'] : ['03_hedrig_02', '03_hedrig_01']}
+      repeated={accepted}
       onClose={accepted ? close : undefined}
     >
       {!accepted && (

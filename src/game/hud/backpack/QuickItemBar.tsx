@@ -56,12 +56,12 @@ export function QuickItemBar({ touch }: { touch: boolean }) {
         touch ? 'top-[calc(max(12px,env(safe-area-inset-top,12px))+62px)]' : 'bottom-[max(16px,env(safe-area-inset-bottom,16px))]'
       }`}
     >
-      {owned.map(({ id, name, hotkey, Icon }) => (
+      {owned.map(({ id, name, hotkey, Icon, purpose }) => (
         <button
           key={id}
           type="button"
           onClick={() => activateItem(backpack, id)}
-          title={`Usar ${name} (${hotkey})`}
+          title={`Usar ${name} (tecla ${hotkey}). ${purpose}`}
           aria-label={`Usar ${name}`}
           className={`relative flex items-center justify-center rounded-lg sm:rounded-2xl bg-[#f4e4bc]/95 border-2 sm:border-[3px] border-[#5c3a21] shadow-xl hover:scale-110 active:scale-95 transition-transform cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f4d03f] ${
             touch ? 'w-10 h-10' : 'w-12 h-12 sm:w-16 sm:h-16'

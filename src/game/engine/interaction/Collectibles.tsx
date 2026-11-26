@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { Box3, Vector3 } from 'three';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useLoopNear } from '@/game/engine/audio/useLoopNear';
+import { PICKUP_GLOW } from '@/game/engine/rendering/pickupGlow';
 import { useProgressStore } from '@/store/progressStore';
 import { InteractionPrompt } from './InteractionPrompt';
 import { PROMPT_Z_RANGE } from './promptLayer';
@@ -11,6 +12,9 @@ import { useInteractKey } from './useInteractKey';
 
 // An item lying in the world: a GLB already placed in world coordinates.
 export type Collectible = { readonly id: string; readonly name: string; readonly url: string };
+
+// The halo of an item is only light: clicks go to the item itself.
+const NO_RAYCAST = () => undefined;
 
 // Horizontal distance from the item's edge to the player to pick it up.
 const PICKUP_RANGE = 1.3;
@@ -36,7 +40,8 @@ export function Collectibles({ items, active, enabled, onCollect }: Collectibles
       items.map((item, i) => {
         const box = new Box3().setFromObject(gltfs[i].scene);
         const size = box.getSize(new Vector3());
-        return { ...item, scene: gltfs[i].scene, center: box.getCenter(new Vector3()), radius: Math.max(size.x, size.z) / 2, top: box.max.y };
+        // `halo`: the ball of light drawn around it while it can be picked up (see PICKUP_GLOW).
+        return { ...item, scene: gltfs[i].scene, center: box.getCenter(new Vector3()), radius: Math.max(size.x, size.z) / 2, top: box.max.y, halo: size.length() / 2 + 0.12 };
       }),
     [gltfs, items],
   );
@@ -103,6 +108,8 @@ export function Collectibles({ items, active, enabled, onCollect }: Collectibles
             }}
           >
             <primitive object={item.scene} />
+            {/* What can be picked up glows, so it is told apart from the furniture around it. */}
+            {active && enabled && <mesh geometry={PICKUP_GLOW.geometry} material={PICKUP_GLOW.material} position={item.center} scale={item.halo} raycast={NO_RAYCAST} renderOrder={4} />}
             {focusedId === item.id && (
               <Html zIndexRange={PROMPT_Z_RANGE} position={[item.center.x, item.top + 0.35, item.center.z]} center>
                 <InteractionPrompt action={`recoger: ${item.name}`} onActivate={collectFocused} />

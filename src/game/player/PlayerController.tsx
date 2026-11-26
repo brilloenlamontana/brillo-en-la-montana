@@ -12,7 +12,7 @@ import { isBodyNamed, LIMIT_BODY_NAME, PLAYER_BODY_NAME } from '@/game/engine/ph
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAuthStore } from '@/store/authStore';
 import { isGameplayPaused, useUIStore } from '@/store/uiStore';
-import type { Control } from './keyboardMap';
+import { KEYBOARD_MAP, type Control } from './keyboardMap';
 import { usePlayerStore, type PlayerAction, type Point, type Spawn } from './playerStore';
 import { cameraAzimuthBehind, PLAYER_START, RESPAWN_POINT } from './spawn';
 import { useMouseLook } from './useMouseLook';
@@ -115,6 +115,23 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
   // The player starts every visit at full health.
   useEffect(() => usePlayerStore.getState().reset(), []);
 
+  // A key held while the window loses the keyboard (another window, another tab) never reports being let go, and the
+  // avatar would keep walking by itself: on leaving, every key of the controls is let go.
+  useEffect(() => {
+    const release = () => {
+      for (const { keys } of KEYBOARD_MAP) for (const key of keys) window.dispatchEvent(new KeyboardEvent('keyup', { key, code: key }));
+    };
+    const hidden = () => {
+      if (document.hidden) release();
+    };
+    window.addEventListener('blur', release);
+    document.addEventListener('visibilitychange', hidden);
+    return () => {
+      window.removeEventListener('blur', release);
+      document.removeEventListener('visibilitychange', hidden);
+    };
+  }, []);
+
   const teleport = (point: Point) => {
     const body = ecctrlRef.current?.body;
     if (!body) return;
@@ -213,6 +230,16 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
         teleport(onRespawn?.() ?? RESPAWN_POINT);
         player.restoreHealth();
       }
+      followWithCamera();
+      return;
+    }
+
+    // Sinking in mud (playerStore.sink): no walking and no jumping, and instead of falling the body goes down slowly
+    // and evenly, so the mud is seen swallowing the avatar.
+    if (player.sink !== null) {
+      ecctrl.body?.setLinvel({ x: 0, y: -player.sink, z: 0 }, true);
+      ecctrl.setMovement(STAND_STILL);
+      if (player.action !== 'Idle') player.setAction('Idle');
       followWithCamera();
       return;
     }

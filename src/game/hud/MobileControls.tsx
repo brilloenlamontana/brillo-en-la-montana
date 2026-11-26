@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
-import { Joystick, VirtualButton } from 'ecctrl/input';
 import { useInteractionStore } from '@/game/engine/interaction/interactionStore';
 import { useUIStore } from '@/store/uiStore';
+import { TouchButton, TouchJoystick } from './TouchInputs';
 
 // The game's colours, see-through so the world shows under the thumbs: parchment, wood and gold.
 const WOOD = '92, 58, 33';
@@ -21,7 +21,8 @@ const CAP: CSSProperties = {
 // Touch controls (phones and tablets, played lying on their side): the joystick under the left thumb; under the right
 // one, RUN at the bottom (tapped once it stays on and reads WALK; tapped again it walks) and JUMP over it, smaller and fainter. When there is something to do with
 // what is in reach (what the E key does: eat a fruit, talk, pick up), a labelled button for it shows beside RUN, in the
-// same place every time, so the thumb learns where it is (the objective shows at the top on a touch screen).
+// same place every time, so the thumb learns where it is (the objective shows at the top on a touch screen). The
+// joystick and JUMP are the game's own (TouchInputs): they let go by themselves if the end of a touch is lost.
 export function MobileControls({ show = true }: { show?: boolean }) {
   const offer = useInteractionStore((state) => state.offers[state.offers.length - 1]);
   // Nothing to tap behind a dialog, a cinematic or the open backpack.
@@ -32,10 +33,9 @@ export function MobileControls({ show = true }: { show?: boolean }) {
   return (
     <div className="mobile-controls-layer pointer-events-none select-none" style={{ position: 'fixed', inset: 0, zIndex: 20, touchAction: 'none' }}>
       <div className="pointer-events-auto">
-        <Joystick
-          id="default"
-          joystickMaxRadius={44}
-          joystickWrapperStyle={{
+        <TouchJoystick
+          maxRadius={44}
+          wrapperStyle={{
             ...FIXED,
             borderRadius: 0,
             bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
@@ -43,7 +43,7 @@ export function MobileControls({ show = true }: { show?: boolean }) {
             width: '140px',
             height: '140px',
           }}
-          joystickBaseStyle={{
+          baseStyle={{
             width: '104px',
             height: '104px',
             background: `radial-gradient(circle, rgba(${PARCHMENT}, 0.16) 0%, rgba(${PARCHMENT}, 0.34) 100%)`,
@@ -51,7 +51,7 @@ export function MobileControls({ show = true }: { show?: boolean }) {
             boxShadow: `0 4px 14px rgba(42, 26, 18, 0.25), inset 0 0 10px rgba(${WOOD}, 0.18)`,
             borderRadius: '50%',
           }}
-          joystickKnobStyle={{
+          knobStyle={{
             width: '50px',
             height: '50px',
             background: `radial-gradient(circle at 35% 35%, rgba(141, 110, 99, 0.92) 0%, rgba(${WOOD}, 0.92) 75%)`,
@@ -106,17 +106,16 @@ export function MobileControls({ show = true }: { show?: boolean }) {
           </span>
         </button>
 
-        <VirtualButton
+        <TouchButton
           id="jump"
-          label="SALTAR"
-          buttonWrapperStyle={{
+          wrapperStyle={{
             ...FIXED,
             bottom: 'max(104px, calc(env(safe-area-inset-bottom, 18px) + 86px))',
             right: 'max(34px, env(safe-area-inset-right, 34px))',
             width: '58px',
             height: '58px',
           }}
-          buttonCapStyle={{
+          capStyle={{
             ...CAP,
             width: '50px',
             height: '50px',
@@ -126,7 +125,9 @@ export function MobileControls({ show = true }: { show?: boolean }) {
             color: 'rgba(62, 39, 35, 0.85)',
             fontSize: '9px',
           }}
-        />
+        >
+          SALTAR
+        </TouchButton>
       </div>
 
       {offer && !busy && (
@@ -134,6 +135,7 @@ export function MobileControls({ show = true }: { show?: boolean }) {
           type="button"
           onClick={offer.activate}
           aria-label={offer.action}
+          data-tutorial-guia
           className="pointer-events-auto fixed z-[26] bottom-[max(22px,env(safe-area-inset-bottom,22px))] right-[max(116px,calc(env(safe-area-inset-right,24px)+92px))] max-w-[42vw] flex items-center gap-2 rounded-full border-2 border-[#5c3a21] bg-[#f4e4bc]/95 pl-2 pr-4 py-1.5 text-left text-[#3e2723] shadow-[0_4px_14px_rgba(42,26,18,0.45)] active:scale-95 transition-transform"
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#5c3a21] text-[#f4d03f]">

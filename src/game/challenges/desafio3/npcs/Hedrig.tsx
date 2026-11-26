@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useContando, useSalida } from '@/game/challenges/llegada';
+import { useSpeaking } from '@/game/engine/audio/audio';
 import { Npc, type NpcEntrance, type NpcGait } from '@/game/engine/interaction/Npc';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
 import { useProgressStore } from '@/store/progressStore';
@@ -30,6 +31,7 @@ export function Hedrig() {
   const warming = useWarmingHere(VISIBLE_FROM.hedrig);
   const present = useProgressStore((state) => isUnlocked(state.progress));
   const talking = useDialogOpen(DIALOG.hedrig);
+  const heard = useSpeaking('hedrig');
   // Still indoors: the story of the arrival is to be told, or is being told and she has not set off yet.
   const porContar = useProgressStore((state) => LLEGADA.pending(state.progress) && !state.progress.historiasContadas.includes(LLEGADA.id));
   const contando = useContando(LLEGADA.id);
@@ -44,7 +46,7 @@ export function Hedrig() {
       rotationY={ROTATION_Y}
       visible={warming || (present && visible)}
       present={present}
-      animation={talking ? 'Talking' : 'Idle'}
+      speaking={talking || heard}
       entrance={{ path: CAMINO, speed: PASO, state, onArrive: () => setOut(true) }}
       gait={PIERNAS}
       talk={{ prompt: 'hablar con Hedrig', enabled: !talking, onTalk: () => useUIStore.getState().openDialog(DIALOG.hedrig) }}

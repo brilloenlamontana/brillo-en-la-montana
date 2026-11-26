@@ -26,8 +26,8 @@ export function ObjectiveBeacon() {
   // The line of the objective changes with every step: the place is read again only then.
   const region = useZoneStore((state) => state.region);
   const text = useProgressStore((state) => currentObjective(state.progress, region)?.text ?? null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- `text` stands for the step: its place only changes with it.
-  const at = useMemo(() => currentObjective(useProgressStore.getState().progress, region)?.at ?? null, [text]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `text` stands for the step: its place only changes with it, or with the region (inside a challenge's own place nothing is marked).
+  const at = useMemo(() => currentObjective(useProgressStore.getState().progress, region)?.at ?? null, [text, region]);
   const hidden = useZoneStore((state) => state.interior !== null || state.region === 'tuneles');
   const cinematic = useUIStore((state) => state.cinematic);
   const group = useRef<Group>(null);

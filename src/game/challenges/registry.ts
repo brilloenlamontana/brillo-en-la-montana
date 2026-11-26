@@ -25,10 +25,12 @@ export function inCurrentDanger(progress: GameProgress, region: Region | undefin
 
 // `region`: where the player is, so the objective follows a player who went into the dangerous place of the challenge.
 // The place of an objective is the way into that dangerous place: once the player is inside, it is no longer marked
-// (no beacon, no dot on the map) and finding the way through is theirs.
+// (no beacon, no dot on the map) and finding the way through is theirs. The exception is a place that is crossed and
+// declares its far shore (`exit`: the swamp): that shore is marked while the player is inside.
 export function currentObjective(progress: GameProgress, region?: Region): Objective | null {
   const current = CHALLENGES.find((challenge) => !challenge.isCompleted?.(progress));
   const there = inCurrentDanger(progress, region);
   const objective = current?.objective?.(progress, there) ?? null;
-  return objective && there ? { text: objective.text } : objective;
+  if (!objective) return null;
+  return { text: objective.text, at: there ? objective.exit : objective.at };
 }

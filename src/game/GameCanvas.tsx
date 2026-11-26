@@ -17,6 +17,7 @@ import { Ambience } from './world/Ambience';
 import { MundoRecuperado } from './world/MundoRecuperado';
 import { Mapa } from './world/mapa/Mapa';
 import { classifyRegion, loadedRegions, type Region } from './world/regions';
+import { BackgroundWarmup } from './world/BackgroundWarmup';
 import { Warmup } from './world/Warmup';
 import { ZoneTracker } from './world/ZoneTracker';
 import { useZoneStore } from './world/zoneStore';
@@ -88,6 +89,7 @@ export function GameCanvas() {
       <GlowMaterials />
       <ObjectiveBeacon />
       <ZoneTracker />
+      <BackgroundWarmup />
       <Suspense fallback={null}>
         <Physics>
           <Mapa />

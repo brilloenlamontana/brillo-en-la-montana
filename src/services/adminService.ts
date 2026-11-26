@@ -41,6 +41,7 @@ export interface AdminUserRecord {
 // Accounts listed in VITE_ADMIN_EMAILS (comma separated) are admins from their first sign-in.
 const configuredAdminEmails = (): string[] =>
   String(import.meta.env.VITE_ADMIN_EMAILS ?? '')
+    .replace(/^["']|["']$/g, '')
     .split(',')
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
@@ -53,9 +54,11 @@ const grantAdminRole = (uid: string, extra: Partial<UserData> = {}) =>
   setDoc(userRef(uid), { ...extra, role: 'admin', isAdmin: true }, { merge: true });
 
 // Role as stored now (not the one cached in the session): it may have been granted a moment ago.
+// In development, only accounts listed in VITE_ADMIN_EMAILS count as admins so an admin in Firestore can test as a student.
 export async function isAdminAccount(user: UserData): Promise<boolean> {
   if (isDevUser(user.uid)) return user.role === 'admin';
   if (isConfiguredAdmin(user.email)) return true;
+  if (import.meta.env.DEV) return false;
   const data = (await getDoc(userRef(user.uid))).data();
   return data?.role === 'admin' || data?.isAdmin === true;
 }
@@ -77,9 +80,12 @@ export async function hasAnyAdmin(): Promise<boolean> {
 
 // Called when a session opens: whether this account is an administrator. The accounts listed in VITE_ADMIN_EMAILS are,
 // from their first sign-in, and get the role written on their profile (merged, nothing else is touched) so the
-// dashboard lists them as such.
+// dashboard lists them as such. In development, accounts not in VITE_ADMIN_EMAILS enter as students in memory without
+// touching their Firestore role.
 export function withAdminRole(user: UserData): UserData {
-  if (user.role === 'admin' || isDevUser(user.uid) || !isConfiguredAdmin(user.email)) return user;
+  if (isDevUser(user.uid)) return user;
+  if (import.meta.env.DEV && !isConfiguredAdmin(user.email)) return { ...user, role: 'student' };
+  if (user.role === 'admin' || !isConfiguredAdmin(user.email)) return user;
   grantAdminRole(user.uid).catch((error) => console.error('Could not write the admin role:', error));
   return { ...user, role: 'admin' };
 }

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
 // Which game dialog is open (one at a time; ids are defined by each challenge, e.g. 'desafio1.aldeana') and whether
-// the backpack is open. While either is open (or a cinematic plays, or the user manual is being read) the avatar
-// stands still.
+// the backpack is open. While either is open (or a cinematic plays, or the user manual is being read, or the
+// introduction video is watched again) the avatar stands still.
 interface UIState {
   dialog: string | null;
   backpackOpen: boolean;
@@ -10,6 +10,9 @@ interface UIState {
   cinematic: boolean;
   // The user manual is open over the game (components/manual/UserManual).
   manualOpen: boolean;
+  // The introduction video is being watched again, over the game (hud/IntroVideo, asked for with IntroButton).
+  introOpen: boolean;
+  setIntroOpen: (open: boolean) => void;
   // The tutorial of the controls is showing (hud/Tutorial): the game goes on under it. `tutorialRun` counts the times
   // it was opened, so asking for it again starts it over.
   tutorialOpen: boolean;
@@ -34,6 +37,8 @@ export const useUIStore = create<UIState>((set) => ({
   backpackOpen: false,
   cinematic: false,
   manualOpen: false,
+  introOpen: false,
+  setIntroOpen: (introOpen) => set({ introOpen }),
   tutorialOpen: false,
   tutorialRun: 0,
   openTutorial: () => set((state) => ({ tutorialOpen: true, tutorialRun: state.tutorialRun + 1 })),
@@ -52,6 +57,6 @@ export const useUIStore = create<UIState>((set) => ({
 export const useDialogOpen = (id: string) => useUIStore((state) => state.dialog === id);
 
 export function isGameplayPaused() {
-  const { dialog, backpackOpen, cinematic, manualOpen } = useUIStore.getState();
-  return dialog !== null || backpackOpen || cinematic || manualOpen;
+  const { dialog, backpackOpen, cinematic, manualOpen, introOpen } = useUIStore.getState();
+  return dialog !== null || backpackOpen || cinematic || manualOpen || introOpen;
 }

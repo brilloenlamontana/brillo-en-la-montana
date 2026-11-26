@@ -10,7 +10,7 @@ import { useTerrainHeight } from '@/game/engine/physics/useTerrainHeight'
 import { usePlayerStore } from '@/game/player/playerStore'
 import { DESAFIO1_MODELS } from '../assets'
 import { usePantanoStore } from '../pantanoStore'
-import { usePantanoWells } from '../pantanoTristeza/wells'
+import { nearestWellRim, usePantanoWells } from '../pantanoTristeza/wells'
 import { ZUMBADOR_COUNT } from '../mission'
 import { pasoEnElPantano, puestoDelZumbador } from './guarida'
 
@@ -154,7 +154,9 @@ export function Zumbador({ index, activo }: { index: number; activo: boolean }) 
         if (!defeated) {
           // Already out, hovering around the golem in the middle of the mud until the player treads on it.
           const puesto = puestoDelZumbador(index, ZUMBADOR_COUNT, wells)
-          const ground = terrainHeight(puesto.x, puesto.z, 60, 80)
+          // No ground found under its place (the opening of a well): it comes out all the same, at the height of the
+          // nearest rim. A zumbador that never comes out can never be defeated, and the swamp is never passed.
+          const ground = terrainHeight(puesto.x, puesto.z, 60, 80) ?? nearestWellRim(puesto.x, puesto.z)?.y ?? null
           if (ground !== null) {
             brainState.hoverY = ground + puesto.height
             p.set(puesto.x, brainState.hoverY, puesto.z)
