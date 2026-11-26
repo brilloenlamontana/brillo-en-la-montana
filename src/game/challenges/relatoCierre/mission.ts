@@ -29,7 +29,7 @@ export const countDerrotas = (progress: Progress) => Object.values(progress?.der
 // Steps of the closing story in order, as the admin dashboard shows them for each player.
 export function getCierreSummary(progress: Progress) {
   const steps: MissionStep[] = [
-    { id: 'cumbre', label: 'Llegar a la Cumbre de la Desolación', detail: 'Por los túneles, tras vencer al ogro', done: isUnlocked(progress) },
+    { id: 'cumbre', label: 'Llegar a la Cumbre de la Desesperación', detail: 'Por los túneles, tras vencer al ogro', done: isUnlocked(progress) },
     { id: 'driada', label: 'Convencer a la dríada', detail: 'Frente a las puertas de sauce del santuario', done: isSantuarioAbierto(progress) },
     { id: 'caliz', label: 'Despertar la luz del cáliz', detail: 'La dríada posa su mano sobre él, en el altar del santuario', done: isCalizTomado(progress) },
   ];

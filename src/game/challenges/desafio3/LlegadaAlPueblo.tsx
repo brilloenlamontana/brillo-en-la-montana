@@ -14,7 +14,7 @@ function checkArrival() {
   const { progress } = useProgressStore.getState();
   if (!isUnlocked(progress) || hasArrived(progress)) return;
   saveProgress({ llegoAlPueblo: true });
-  useToastStore.getState().showToast('Llegaste al pueblo minero de Hedrig, al pie de la Cumbre de la Desolación. Revisa tu mochila.');
+  useToastStore.getState().showToast('Llegaste al pueblo minero de Hedrig, al pie de la Cumbre de la Desesperación. Revisa tu mochila.');
 }
 
 // Records the arrival at Hedrig's mining town: when the player walks into it, or when the world opens there (the

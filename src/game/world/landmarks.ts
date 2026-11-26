@@ -42,7 +42,7 @@ export const REGION_NAMES: Record<Region, string> = {
   bosque: 'Bosque de la Oscuridad',
   pueblo: 'Pueblo de Hedrig',
   tuneles: 'Túneles de la Cumbre',
-  cumbre: 'Cumbre de la Desolación',
+  cumbre: 'Cumbre de la Desesperación',
 };
 
 // How far the story has gone, as a step: the map starts dark and each step uncovers the part the story sends the

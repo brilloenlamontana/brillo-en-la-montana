@@ -17,5 +17,5 @@ export function LlegadaSantuarioDialog() {
   const isOpen = useDialogOpen(DIALOG.llegada);
   if (!isOpen) return null;
 
-  return <ParchmentDialog title="La Cumbre de la Desolación" subtitle="Camino al santuario" paragraphs={HISTORIA} voice={['04_narrador_00']} onDone={() => terminarLlegada(LLEGADA.id)} />;
+  return <ParchmentDialog title="La Cumbre de la Desesperación" subtitle="Camino al santuario" paragraphs={HISTORIA} voice={['04_narrador_00']} onDone={() => terminarLlegada(LLEGADA.id)} />;
 }

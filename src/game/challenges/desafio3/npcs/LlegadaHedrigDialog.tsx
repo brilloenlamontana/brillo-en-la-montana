@@ -16,5 +16,5 @@ export function LlegadaHedrigDialog() {
   const isOpen = useDialogOpen(DIALOG.llegada);
   if (!isOpen) return null;
 
-  return <ParchmentDialog title="El pueblo minero" subtitle="Al pie de la Cumbre de la Desolación" paragraphs={HISTORIA} voice={['03_narrador_00']} onDone={() => terminarLlegada(LLEGADA.id)} />;
+  return <ParchmentDialog title="El pueblo minero" subtitle="Al pie de la Cumbre de la Desesperación" paragraphs={HISTORIA} voice={['03_narrador_00']} onDone={() => terminarLlegada(LLEGADA.id)} />;
 }

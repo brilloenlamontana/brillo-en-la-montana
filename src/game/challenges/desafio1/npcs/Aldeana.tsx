@@ -73,7 +73,7 @@ export function AldeanaAyudaDialog() {
       title="Aldeana de la Villa de Boj"
       subtitle="Lo que pasó en la villa"
       paragraphs={RELATO}
-      question="¿Necesitas ayuda para llegar a la Cumbre de la Desolación?"
+      question="¿Necesitas ayuda para llegar a la Cumbre de la Desesperación?"
       voice={['01_aldeana_02', '01_aldeana_03']}
     >
       <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
