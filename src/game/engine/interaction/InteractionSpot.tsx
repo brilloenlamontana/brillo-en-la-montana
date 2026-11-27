@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { usePlayerStore } from '@/game/player/playerStore';
+import { isNarratorTelling } from '@/game/engine/audio/audio';
 import { isGameplayPaused } from '@/store/uiStore';
 import { InteractionPrompt } from './InteractionPrompt';
 import { PROMPT_Z_RANGE } from './promptLayer';
@@ -30,7 +31,8 @@ export function InteractionSpot({ position, radius, heightRange = [-2, 1.5], pro
 
   useFrame(() => {
     let next = false;
-    if (enabled && !isGameplayPaused()) {
+    // Not during a narration, nor while the narrator is telling the story in a notice.
+    if (enabled && !isGameplayPaused() && !isNarratorTelling()) {
       const player = usePlayerStore.getState();
       const dy = player.position.y - position[1];
       next =

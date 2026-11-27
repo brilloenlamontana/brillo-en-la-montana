@@ -215,10 +215,10 @@ export function Hada({ visible, liberada, completado, canTalk }: HadaProps) {
   return (
     <group ref={group} position={[...HADA_PEDESTAL]} visible={visible}>
       <primitive object={scene} />
-      {/* Her light: what was seen flickering from the trail. */}
+      {/* Her light: a small glow at her chest, so that she is seen and not a ball of light in her place. */}
       <group ref={luz} position={[0, 0.5, 0]}>
         <mesh material={GLOW} renderOrder={2}>
-          <sphereGeometry args={[0.3, 24, 16]} />
+          <sphereGeometry args={[0.13, 24, 16]} />
         </mesh>
       </group>
       {near && (

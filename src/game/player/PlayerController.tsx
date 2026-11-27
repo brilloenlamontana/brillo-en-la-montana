@@ -8,11 +8,12 @@ import { useButtonStore, useJoystickStore } from 'ecctrl/input';
 import { MathUtils, Vector3 } from 'three';
 import { findCharacter } from '@/data/characters';
 import { useCameraColliderStore } from '@/game/engine/camera/cameraColliderStore';
-import { isBodyNamed, LIMIT_BODY_NAME, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
+import { isBodyNamed, LIMIT_BODY_NAME, PLAYER_BODY_NAME, TUNNEL_CEILING_BODY_NAME } from '@/game/engine/physics/bodies';
+import { useZoneStore } from '@/game/world/zoneStore';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useAuthStore } from '@/store/authStore';
-import { isGameplayPaused, useUIStore } from '@/store/uiStore';
-import type { Control } from './keyboardMap';
+import { isMovementPaused, useUIStore } from '@/store/uiStore';
+import { KEYBOARD_MAP, type Control } from './keyboardMap';
 import { usePlayerStore, type PlayerAction, type Point, type Spawn } from './playerStore';
 import { cameraAzimuthBehind, PLAYER_START, RESPAWN_POINT } from './spawn';
 import { useMouseLook } from './useMouseLook';
@@ -54,8 +55,13 @@ const CAMERA_MAX_POLAR = Math.PI * 0.55;
 // The camera aims near the head: this fraction of the character's height above its feet.
 const CAMERA_TARGET_FRACTION = 0.86;
 
-// What the camera collides with: everything fixed except the invisible walls of the map's edge.
-const seenByCamera = (collider: { parent: () => { userData?: unknown } | null }) => !isBodyNamed(collider.parent()?.userData, LIMIT_BODY_NAME);
+// What the camera collides with: everything fixed except the invisible walls of the map's edge. The ceiling of the
+// tunnels (a body only the camera sees) counts only inside them: the galleries run under the town and the summit.
+const seenByCamera = (collider: { parent: () => { userData?: unknown } | null }) => {
+  const data = collider.parent()?.userData;
+  if (isBodyNamed(data, LIMIT_BODY_NAME)) return false;
+  return !isBodyNamed(data, TUNNEL_CEILING_BODY_NAME) || useZoneStore.getState().region === 'tuneles';
+};
 
 // The Death clip lasts 3.63 s; a short pause follows before respawning.
 const DEATH_RESPAWN_DELAY = 4.1;
@@ -114,6 +120,23 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
 
   // The player starts every visit at full health.
   useEffect(() => usePlayerStore.getState().reset(), []);
+
+  // A key held while the window loses the keyboard (another window, another tab) never reports being let go, and the
+  // avatar would keep walking by itself: on leaving, every key of the controls is let go.
+  useEffect(() => {
+    const release = () => {
+      for (const { keys } of KEYBOARD_MAP) for (const key of keys) window.dispatchEvent(new KeyboardEvent('keyup', { key, code: key }));
+    };
+    const hidden = () => {
+      if (document.hidden) release();
+    };
+    window.addEventListener('blur', release);
+    document.addEventListener('visibilitychange', hidden);
+    return () => {
+      window.removeEventListener('blur', release);
+      document.removeEventListener('visibilitychange', hidden);
+    };
+  }, []);
 
   const teleport = (point: Point) => {
     const body = ecctrlRef.current?.body;
@@ -217,8 +240,18 @@ export function PlayerController({ children, start = PLAYER_START, onRespawn }: 
       return;
     }
 
-    // A dialog or the backpack is open: the avatar stands still.
-    if (isGameplayPaused()) {
+    // Sinking in mud (playerStore.sink): no walking and no jumping, and instead of falling the body goes down slowly
+    // and evenly, so the mud is seen swallowing the avatar.
+    if (player.sink !== null) {
+      ecctrl.body?.setLinvel({ x: 0, y: -player.sink, z: 0 }, true);
+      ecctrl.setMovement(STAND_STILL);
+      if (player.action !== 'Idle') player.setAction('Idle');
+      followWithCamera();
+      return;
+    }
+
+    // The backpack, a cinematic or a "bajo" has the screen: the avatar stands still. A narration does not hold it.
+    if (isMovementPaused()) {
       ecctrl.setMovement(STAND_STILL);
       if (player.action !== 'Idle') player.setAction('Idle');
       followWithCamera();

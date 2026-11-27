@@ -14,7 +14,7 @@ import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
 import { useProgressStore } from '@/store/progressStore';
-import { isGameplayPaused } from '@/store/uiStore';
+import { isMovementPaused } from '@/store/uiStore';
 import { DESAFIO3_MODELS } from '../assets';
 import { ESCALERA_PIE, MESA_PULSO, OGRO_GUARDIA, OGRO_HALL_Y, OGRO_POSITION, OGRO_PULSO } from '../lugares';
 import { isOgroVencido } from '../mission';
@@ -126,7 +126,7 @@ function OgroEnSuSala() {
     const tunel = useTunelStore.getState();
     const player = usePlayerStore.getState();
     const vencido = isOgroVencido(useProgressStore.getState().progress);
-    const playing = player.health > 0 && !isGameplayPaused() && !useWorldStore.getState().warming;
+    const playing = player.health > 0 && !isMovementPaused() && !useWorldStore.getState().warming;
     const l = live.current;
 
     // Where he belongs now: on guard in front of the stairs, crouched at his table for the arm wrestling, or by it

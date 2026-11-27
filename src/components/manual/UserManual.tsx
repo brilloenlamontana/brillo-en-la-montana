@@ -174,8 +174,9 @@ const SECTIONS: Section[] = [
           no se puede volver a escoger. El nombre sí lo puedes cambiar cuando quieras desde tu perfil.
         </Nota>
         <p className={P}>
-          La primera vez que entras al mundo se reproduce un <strong>video introductorio</strong> que cuenta el robo del cáliz. Se ve una sola vez y no
-          se puede saltar: sube el volumen.
+          La primera vez que entras al mundo se reproduce un <strong>video introductorio</strong> que cuenta el robo del cáliz. La primera vez no
+          se puede saltar: sube el volumen. Después puedes volver a verlo cuando quieras con el botón de la <strong>película</strong> de la barra de
+          arriba.
         </p>
       </>
     ),
@@ -236,8 +237,8 @@ const SECTIONS: Section[] = [
           rows={[
             ['Arriba a la izquierda', <>Tu <strong>barra de vida</strong> (de 0 a 100) y tus <strong>estrellas</strong> <Estrella /><Estrella /><Estrella />. Si ganaste estrellas extra, aparecen junto a ellas.</>],
             ['Debajo de la vida', <>Indicadores del desafío actual, por ejemplo la <strong>barra de hambre</strong> en el bosque.</>],
-            ['Arriba a la derecha', <>Sonido, <strong>mochila</strong>, tu perfil, este manual y el botón <strong>Salir</strong>.</>],
-            ['Abajo a la izquierda', <>El <strong>minimapa</strong>: la flecha roja eres tú y el punto dorado que late es tu siguiente destino.</>],
+            ['Arriba a la derecha', <>Tu objetivo (la diana), la ayuda de los controles (<strong>?</strong>), el video de introducción (la película), sonido, <strong>mochila</strong>, tu perfil, este manual y el botón <strong>Salir</strong>.</>],
+            ['Abajo a la izquierda', <>El <strong>minimapa</strong> (el cuadro con el letrero «Mapa»): la flecha roja eres tú y el punto dorado que late es tu siguiente destino.</>],
             ['Abajo a la derecha', <>La <strong>barra rápida</strong> con los objetos que llevas y su número (1, 2, 3).</>],
             ['Abajo, al centro', <>Los <strong>pergaminos</strong> con lo que dicen los personajes y el narrador.</>],
           ]}
@@ -251,7 +252,8 @@ const SECTIONS: Section[] = [
         <h3 className={H3}>Sonido</h3>
         <p className={P}>
           El ícono del parlante abre el panel de sonido, con barras separadas para el volumen general, las narraciones, la música, el ambiente y los
-          efectos.
+          efectos. Puedes silenciar la música y los efectos, pero <strong>las voces del narrador y de los personajes siempre se escuchan</strong>: ellas te
+          dicen qué hacer.
         </p>
       </>
     ),
@@ -614,7 +616,8 @@ function BookIcon({ className = 'w-5 h-5' }: { className?: string }) {
 }
 
 // Opens the manual. `onOpen` lets the caller put away what it had open (a game dialog, the backpack).
-export function ManualButton({ variant, onOpen }: { variant: keyof typeof BUTTON_STYLES; onOpen?: () => void }) {
+// `blocked`: asked before opening; true keeps the manual shut (a narration is being told in the game).
+export function ManualButton({ variant, onOpen, blocked }: { variant: keyof typeof BUTTON_STYLES; onOpen?: () => void; blocked?: () => boolean }) {
   const [open, setOpen] = useState(false);
   const label = 'Manual de usuario';
   return (
@@ -622,6 +625,7 @@ export function ManualButton({ variant, onOpen }: { variant: keyof typeof BUTTON
       <button
         type="button"
         onClick={() => {
+          if (blocked?.()) return;
           onOpen?.();
           setOpen(true);
         }}

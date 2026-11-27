@@ -7,7 +7,9 @@ import type { GameProgress } from '@/store/progressStore';
 
 // What the story asks of the player right now: one short line that stays on screen (ObjectiveLine) and, when it
 // happens at a place, where that place is (its ground), which a beacon of light marks in the world (ObjectiveBeacon).
-export type Objective = { text: string; at?: Point };
+// `exit`: for a dangerous place that is crossed (the swamp), its far shore: marked instead of `at` while the player is
+// inside, so nobody wanders off toward the wrong side of it.
+export type Objective = { text: string; at?: Point; exit?: Point };
 
 // The dangerous place of a challenge (the swamp, the forest, the tunnels) and what the game tells the player at its
 // edge (DangerWarnings): nobody walks in unprepared, or out with the challenge half done, without being told why.
@@ -20,8 +22,9 @@ export interface Hint {
 
 export interface Danger {
   region: Region;
-  // Said on walking out of it with the challenge unfinished: only that it is not passed yet. Nothing is said on
-  // walking in, and never what is missing or where to get it: finding that out is the player's part.
+  // Said on walking out of it with the challenge unfinished: that it is not passed and what is still to be done in
+  // there (players walked out the far side and found nobody waiting, without knowing why). Nothing is said on walking
+  // in.
   pending: (progress: GameProgress) => string | null;
 }
 
@@ -40,6 +43,8 @@ export interface BackpackItem {
   Icon: ComponentType<{ className?: string }>;
   // Key that uses the item ('1'...'9'), fixed per item so it never shifts.
   hotkey: string;
+  // What it is for and when to use it, in one line: told on picking it up and written under it in the backpack.
+  purpose: string;
   // How the avatar takes it out of the backpack and uses it (see player/gestureStore).
   gesture: GestureName;
   // What taking it out sounds like, when it has a sound of its own (a sword leaving its sheath).
@@ -56,13 +61,20 @@ export interface Backpack {
   stateOf: (id: string, progress: GameProgress) => ItemState;
   // Caption under a slot that is not carried ("En la casa de Imeri", "Pociones 3/5"...).
   hint: (id: string, progress: GameProgress) => string;
-  // What the player has to do now: what is left to pick up and where, then what to use it on.
+  // What the player has to do now: what is left to pick up and where, then where to go.
   goal: (progress: GameProgress) => string;
   use: (id: string) => void;
 }
 
 // A chapter of the story. Each lives in its own folder (desafio1, desafio2...) with everything it needs: its part of
 // the map, NPCs, enemies, dialogs, items and rules. The game only knows this contract (see registry.ts).
+// A list as it reads in a sentence: "a", "a y b", "a, b y c".
+export const listed = (parts: readonly string[]) => (parts.length < 2 ? parts.join('') : `${parts.slice(0, -1).join(', ')} y ${parts[parts.length - 1]}`);
+
+// What is told on picking an item up: that it is in the backpack, what it is for and how it is taken out.
+export const pickupNotice = (item: Pick<BackpackItem, 'name' | 'purpose' | 'hotkey'>) =>
+  `Guardaste en tu mochila: ${item.name}. ${item.purpose} Se usa con la tecla ${item.hotkey} o tocando su botón en la pantalla.`;
+
 export interface Challenge {
   id: string;
   title: string;

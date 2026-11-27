@@ -17,7 +17,7 @@ import { ClaroEscena } from './ClaroEscena';
 import { useClaroStore } from './claroStore';
 import { empezarEntrega } from './entrega';
 import { Hada } from './Hada';
-import { ATRIL, HADA_PEDESTAL, HADA_SUELO } from './lugares';
+import { ATRIL, HADA_PEDESTAL } from './lugares';
 import { RescateEscena } from './RescateEscena';
 import { empezarRescate, rescateVivo, TALLOS } from './rescate';
 
@@ -32,10 +32,8 @@ const ZARZA_REACH = 4;
 const ATRIL_REACH = 3.2;
 // The flickering light is noticed from this far (m), once per visit to the forest.
 const LIGHT_NOTICED_FROM = 42;
-// Her call for help: three short flashes and a pause, every LLAMADA seconds; a chime goes with every other call,
-// heard from CAMPANA_ALCANCE (m).
+// Her call for help: a chime every other LLAMADA seconds, heard from CAMPANA_ALCANCE (m).
 const LLAMADA = 2.6;
-const DESTELLO = 0.32;
 const CAMPANA_ALCANCE = 34;
 export const SIN_ESPADA = 'Hada: «Estas zarzas son duras como el hierro. Solo una hoja élfica puede con ellas: pídesela al elfo del árbol gigante».';
 
@@ -65,26 +63,21 @@ export function ClaroDelHada() {
   const completado = useProgressStore((state) => state.progress.bono2Completado);
   const dialogOpen = useUIStore((state) => state.dialog !== null);
   const enEscena = useClaroStore((state) => state.rescate !== null || state.auxilio !== null || state.entrega !== null);
-  const { scene, nodes } = useGLTF(INTERACTIVOS_URL);
+  const { scene } = useGLTF(INTERACTIVOS_URL);
   const live = useRef({ pulse: 0, call: -1, noticed: false });
 
+  // The ball of blue light that blinked over the pedestal is not drawn any more: the only thing on the pedestal is
+  // the fairy herself, with her own glow.
   useLayoutEffect(() => {
-    setNodeVisible(scene, 'HadaLuzLejana', !liberada);
-  }, [scene, liberada]);
+    setNodeVisible(scene, 'HadaLuzLejana', false);
+  }, [scene]);
 
   // The distant light calls for help while the fairy is trapped; the first time it comes into sight it is pointed out.
   useFrame((_, delta) => {
     if (!visible || liberada || warming) return;
     const l = live.current;
-    const luz = nodes.HadaLuzLejana;
     l.pulse += delta;
     const call = Math.floor(l.pulse / LLAMADA);
-    const within = l.pulse - call * LLAMADA;
-    if (luz) {
-      // Three flashes, DESTELLO seconds apart, each fading quickly; dim in the pause.
-      const flash = within < DESTELLO * 3 ? Math.max(0, 1 - ((within % DESTELLO) / DESTELLO) * 1.6) : 0;
-      luz.scale.setScalar(0.6 + 0.9 * flash + 0.05 * Math.sin(l.pulse * 13));
-    }
     if (call !== l.call) {
       l.call = call;
       const { rescate, auxilio } = useClaroStore.getState();
@@ -112,7 +105,7 @@ export function ClaroDelHada() {
       <ClaroEscena model={scene} amuletoUrl={AMULETO_URL} visible={visible} />
       <Hada visible={visible || warmingHere} liberada={liberada} completado={completado} canTalk={libre && completado} />
       <InteractionSpot position={ZARZA} radius={ZARZA_REACH} promptHeight={2.6} enabled={libre && !liberada && !jaulaAbierta} prompt="cortar las zarzas con la espada" onInteract={cortarZarzas} />
-      <InteractionSpot position={HADA_SUELO} radius={2.4} promptHeight={1.2} enabled={libre && !liberada && jaulaAbierta} prompt="ayudar al hada" onInteract={cortarZarzas} />
+      <InteractionSpot position={ZARZA} radius={ZARZA_REACH} promptHeight={2.6} enabled={libre && !liberada && jaulaAbierta} prompt="ayudar al hada" onInteract={cortarZarzas} />
       <InteractionSpot position={ATRIL} radius={ATRIL_REACH} heightRange={[-2.5, 1.5]} promptHeight={1} enabled={libre && liberada && !completado} prompt="recibir el amuleto del hada" onInteract={empezarEntrega} />
     </group>
   );

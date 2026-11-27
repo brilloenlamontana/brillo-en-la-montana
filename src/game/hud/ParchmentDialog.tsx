@@ -14,13 +14,15 @@ type ParchmentDialogProps = {
   // Recorded voices that say it all aloud, in order (ids of docs/sonido/guion_voces.csv).
   voice?: readonly string[];
   tone?: Tone;
-  // A short indication, not a story: "Saltar" is offered from the first time.
-  skippable?: boolean;
+  // It is being told again because the player asked for it (the dangers, told once already in other words or with a
+  // question at the end): "Saltar" is offered, as for anything heard before.
+  repeated?: boolean;
   // Told once, when everything has been said.
   onDone?: () => void;
-  // Closing it: an × in its top corner, shown once everything has been said.
+  // Going on once everything has been said: Escape or Enter and, when the dialog brings no buttons of its own
+  // (`children`), a "Siguiente" button in the footer. There is no × to close it: every scroll goes on the same way.
   onClose?: () => void;
-  // Footer with the answers to a question: only shown once everything has been said.
+  // Footer with the answers to a question, or the dialog's own way on: only shown once everything has been said.
   children?: ReactNode;
 };
 
@@ -74,12 +76,12 @@ function paginate(paragraphs: readonly string[], question: string | undefined): 
 }
 
 // What the story characters and the narrator say, as in a visual novel: a text box along the bottom of the screen
-// where the words are written as their voice says them. The first time nothing can be skipped: the answers only show
-// up once everything has been said. A narration this player already heard to the end (heardNarrations) offers
-// "Saltar", which goes straight to its end. It is a dialog for the game (the avatar stands still, the items wait) but it does not
+// where the words are written as their voice says them. The first time nothing can be skipped: the answers (or
+// "Siguiente") only show up once everything has been said. Only what this player already heard to the end
+// (heardNarrations: the interaction is being repeated) offers "Saltar", which goes straight to its end. It is a dialog for the game (the avatar stands still, the items wait) but it does not
 // cover the canvas, so the camera can still be turned to look around. No backdrop blur: blurring a live 3D canvas
 // every frame is expensive on phones.
-export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, tone = 'pergamino', skippable = false, onDone, onClose, children }: ParchmentDialogProps) {
+export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, tone = 'pergamino', repeated = false, onDone, onClose, children }: ParchmentDialogProps) {
   const voiceKey = voice?.join('|') ?? '';
   // By its content: the dialogs build their paragraphs anew on every render.
   const textKey = JSON.stringify([paragraphs, question ?? '']);
@@ -93,7 +95,7 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
   const [state, setState] = useState({ said, typed: 0, done: false });
   const { typed, done } = state.said === said ? state : { typed: 0, done: false };
   // Heard before, to the end: it can be skipped. Read once per narration, so "Saltar" does not show up as it ends.
-  const canSkip = useMemo(() => skippable || wasHeard(said), [said, skippable]);
+  const canSkip = useMemo(() => repeated || wasHeard(said), [said, repeated]);
   const skipRef = useRef<() => void>(() => {});
   // Read when the time comes: a new function on every render must not start the voice again.
   const onDoneRef = useRef(onDone);
@@ -169,7 +171,7 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
     };
   }, [said, voiceKey, total]);
 
-  // Once everything has been said, Escape (or Enter) closes it as the × does.
+  // Once everything has been said, Escape (or Enter) goes on as "Siguiente" does.
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -206,24 +208,6 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
         style={{ backgroundImage: `url(${PERGAMINO})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
         className="relative pointer-events-auto w-full max-w-5xl [@media(max-height:520px)]:max-w-2xl! text-[#3e2723] drop-shadow-[0_6px_14px_rgba(0,0,0,0.45)] px-[7%] pt-6 pb-5 sm:pt-8 sm:pb-7 [@media(max-height:520px)]:pt-5! [@media(max-height:520px)]:pb-4! font-serif"
       >
-        {/* Shown once everything has been said, in the top corner of the paper by the right roller: it closes the scroll
-            and the game goes on. */}
-        {done && onClose && (
-          <button
-            type="button"
-            onClick={() => {
-              playSfx('ui_boton', { volume: 0.6 });
-              onClose();
-            }}
-            aria-label="Cerrar y seguir"
-            title="Cerrar y seguir (Esc)"
-            className="absolute top-[17%] right-[5.2%] w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 border-[#5c3a21] text-[#5c3a21] bg-[#f4e4bc]/70 hover:bg-[#5c3a21] hover:text-[#f4e4bc] active:scale-95 transition-colors cursor-pointer"
-          >
-            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true">
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </button>
-        )}
         <div className="flex items-center justify-between gap-3 mb-1 min-h-7 sm:min-h-8">
           <p className="min-w-0 truncate">
             <span className={`text-xs sm:text-sm font-bold uppercase tracking-wider ${style.name}`}>{title}</span>
@@ -259,6 +243,11 @@ export function ParchmentDialog({ title, subtitle, paragraphs, question, voice, 
           </span>
         </p>
         {done && children && <div className="mt-2 pt-2 border-t border-current/15">{children}</div>}
+        {done && !children && onClose && (
+          <div className="mt-2 pt-2 border-t border-current/15 flex justify-end">
+            <ParchmentButton onClick={onClose}>Siguiente</ParchmentButton>
+          </div>
+        )}
       </div>
     </div>
   );

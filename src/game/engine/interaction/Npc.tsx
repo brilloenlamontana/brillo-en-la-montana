@@ -4,6 +4,8 @@ import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, CuboidCollider, RigidBody, type IntersectionEnterPayload, type RapierRigidBody } from '@react-three/rapier';
 import { MathUtils, Quaternion, Vector3, type Group, type Object3D, type SkinnedMesh } from 'three';
 import { isBodyNamed, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
+import { useNarratorTelling } from '@/game/engine/audio/audio';
+import { isGameplayPaused } from '@/store/uiStore';
 import { InteractionPrompt } from './InteractionPrompt';
 import { PROMPT_Z_RANGE } from './promptLayer';
 import { useInteractKey } from './useInteractKey';
@@ -24,7 +26,6 @@ const KNEE_BEND = 0.75;
 const GAIT_FADE = 6;
 const TURN_SPEED = 7;
 const UP = new Vector3(0, 1, 0);
-
 const isPlayer = (payload: IntersectionEnterPayload) => isBodyNamed(payload.other.rigidBody?.userData, PLAYER_BODY_NAME);
 
 type NpcTalk = {
@@ -60,6 +61,9 @@ type NpcProps = {
   talk?: NpcTalk;
   entrance?: NpcEntrance;
   gait?: NpcGait;
+  // Speaking right now (its voice is heard, or its scroll is open): plays its 'Talking' clip, over and over, for as
+  // long as it speaks.
+  speaking?: boolean;
 };
 
 // Turns `bone` by a rotation given in world space (the clip has just posed it).
@@ -75,7 +79,7 @@ function turnInWorld(bone: Object3D, axis: Vector3, angle: number) {
 // and, when it has something to say, a sensor in front that shows the prompt and answers E, a tap or a click.
 // While hidden its animations stop, so its skeleton costs nothing. With an `entrance` it comes out of its house and
 // walks to its place (legs moved by `gait`); only then can it be bumped into or spoken to.
-export function Npc({ url, position, rotationY, visible, present = true, animation = 'Idle', talk, entrance, gait }: NpcProps) {
+export function Npc({ url, position, rotationY, visible, present = true, animation = 'Idle', talk, entrance, gait, speaking = false }: NpcProps) {
   const body = useRef<RapierRigidBody>(null);
   const group = useRef<Group>(null);
   const { scene, animations } = useGLTF(url);
@@ -93,10 +97,13 @@ export function Npc({ url, position, rotationY, visible, present = true, animati
     return (bones as Object3D[]).map((bone) => ({ bone, base: bone.quaternion.clone(), written: bone.quaternion.clone() }));
   }, [scene, gait]);
   const work = useMemo(() => ({ step: new Vector3(), side: new Vector3() }), []);
+  const clip = speaking ? 'Talking' : animation;
   const out = stage === 'out';
   const here = present && out;
   const shown = visible && stage !== 'inside';
-  const canTalk = Boolean(talk?.enabled && here && visible && playerNearby);
+  // Not while the narrator is telling the story (an arrival, a notice): talking would cut him short.
+  const narrating = useNarratorTelling();
+  const canTalk = Boolean(talk?.enabled && here && visible && playerNearby && !narrating);
 
   // Whoever is already out when the story says so (spoken to on an earlier visit) stands at its place.
   useEffect(() => {
@@ -172,15 +179,16 @@ export function Npc({ url, position, rotationY, visible, present = true, animati
       Object.values(actions).forEach((action) => action?.stop());
       return;
     }
-    const action = actions[animation] ?? actions.Idle;
+    const action = actions[clip] ?? actions.Idle;
     action?.reset().fadeIn(FADE_SECONDS).play();
     return () => {
       action?.fadeOut(FADE_SECONDS);
     };
-  }, [actions, animation, shown]);
+  }, [actions, clip, shown]);
 
   const startTalk = useCallback(() => {
-    if (canTalk) talk?.onTalk();
+    // Not over a narration that is being told (the player walks around while listening).
+    if (canTalk && !isGameplayPaused()) talk?.onTalk();
   }, [canTalk, talk]);
   useInteractKey(canTalk, startTalk);
 

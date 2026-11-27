@@ -1,3 +1,4 @@
+import { useClaroStore } from '../claroDelHada/claroStore';
 import { useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
@@ -196,7 +197,9 @@ export function SenderoMapa() {
   const activado = useProgressStore((state) => isMapaActivado(state.progress));
   // Its job is done once the player reaches Hedrig's town (Challenge 3 begins): it goes away for good.
   const llegoAlPueblo = useProgressStore((state) => state.progress.llegoAlPueblo);
-  return visible && activado && !llegoAlPueblo ? <Sendero /> : null;
+  // While the fairy of the clearing is being helped (Bonus 2) the arrows are put away: they ran across the scene.
+  const conElHada = useClaroStore((state) => state.rescate !== null || state.auxilio !== null || state.entrega !== null);
+  return visible && activado && !llegoAlPueblo && !conElHada ? <Sendero /> : null;
 }
 
 function Sendero() {

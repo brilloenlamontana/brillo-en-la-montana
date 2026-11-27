@@ -1,4 +1,5 @@
-import { useAudioStore, type Volumes } from './audioStore';
+import { create } from 'zustand';
+import { MIN_VOICE, useAudioStore, type Volumes } from './audioStore';
 import { ambienceUrl, musicUrl, SFX, sfxUrl, voiceUrl, type AmbienceId, type MusicId, type SfxId } from './catalog';
 
 // The sound of the game (Web Audio): one-shot effects, looping beds (music, ambience, loops placed in the world) and
@@ -24,14 +25,15 @@ let failed = false;
 let ducked = false;
 
 // How loud everything plays, and each bus, from the player's volumes. The general volume is not applied again here:
-// moving it already moves every kind of sound (audioStore.setVolume).
+// moving it already moves every kind of sound (audioStore.setVolume). Silencing the game silences music, ambience and
+// effects (the master); the voices do not go through it: the narrator and the characters are always heard.
 const masterLevel = () => (useAudioStore.getState().muted ? 0 : 1);
 const busLevel = (bus: Bus) => {
   const level = BUS_VOLUME[bus] * useAudioStore.getState().volumes[BUS_CHANNEL[bus]];
   return ducked && (bus === 'music' || bus === 'ambience') ? level * DUCKED : level;
 };
 // The dialog voices do not go through the graph: their <audio> element takes both volumes itself.
-const voiceLevel = () => Math.min(1, useAudioStore.getState().volumes.voces);
+const voiceLevel = () => Math.min(1, Math.max(MIN_VOICE, useAudioStore.getState().volumes.voces));
 
 function getGraph(): Graph | null {
   if (graph || failed) return graph;
@@ -43,7 +45,7 @@ function getGraph(): Graph | null {
     const bus = (name: Bus) => {
       const gain = context.createGain();
       gain.gain.value = busLevel(name);
-      gain.connect(master);
+      gain.connect(name === 'voice' ? context.destination : master);
       return gain;
     };
     graph = { context, master, buses: { sfx: bus('sfx'), music: bus('music'), ambience: bus('ambience'), voice: bus('voice') } };
@@ -60,15 +62,12 @@ const ramp = (gain: GainNode, value: number, seconds: number, context: AudioCont
   gain.gain.linearRampToValueAtTime(value, now + seconds);
 };
 
-useAudioStore.subscribe((state) => {
+useAudioStore.subscribe(() => {
   if (graph) {
     ramp(graph.master, masterLevel(), 0.1, graph.context);
     for (const bus of Object.keys(graph.buses) as Bus[]) ramp(graph.buses[bus], busLevel(bus), 0.1, graph.context);
   }
-  if (voice) {
-    voice.element.muted = state.muted;
-    voice.element.volume = voiceLevel();
-  }
+  if (voice) voice.element.volume = voiceLevel();
 });
 
 // Called on the first key or tap: from then on the browser lets the game sound.
@@ -261,6 +260,19 @@ export const setAmbience = (id: AmbienceId | null) => setChannel('ambience', id 
 let voice: { element: HTMLAudioElement; token: number } | null = null;
 let voiceToken = 0;
 
+// Whose recorded voice is being heard right now ('aldeana', 'imeri', 'narrador'...: the character of the clip), so
+// that whoever speaks keeps moving as they talk for as long as their voice lasts, in a scroll or in a notice.
+export const useSpeakerStore = create<{ speaker: string | null; clip: string | null }>(() => ({ speaker: null, clip: null }));
+const setSpeaker = (speaker: string | null, clip: string | null = null) => {
+  if (useSpeakerStore.getState().clip !== clip || useSpeakerStore.getState().speaker !== speaker) useSpeakerStore.setState({ speaker, clip });
+};
+// The narrator is telling the story right now (not the tutorial of the controls, clips 06_, which asks the player to
+// interact): nobody is to be spoken to meanwhile, or the new voice would cut the story short.
+const telling = (state: { speaker: string | null; clip: string | null }) => state.speaker === 'narrador' && !state.clip?.startsWith('06_');
+export const isNarratorTelling = () => telling(useSpeakerStore.getState());
+export const useNarratorTelling = () => useSpeakerStore(telling);
+export const useSpeaking = (character: string) => useSpeakerStore((state) => state.speaker === character);
+
 function duck(on: boolean) {
   ducked = on;
   const g = graph;
@@ -271,6 +283,7 @@ function duck(on: boolean) {
 
 export function stopVoice() {
   voiceToken++;
+  setSpeaker(null);
   if (!voice) return;
   voice.element.pause();
   voice.element.removeAttribute('src');
@@ -296,7 +309,6 @@ export function followVoice(clips: readonly string[], onDone?: () => void): { st
   const token = voiceToken;
   const element = new Audio();
   element.preload = 'auto';
-  element.muted = useAudioStore.getState().muted;
   element.volume = voiceLevel();
   voice = { element, token };
   let index = 0;
@@ -310,14 +322,23 @@ export function followVoice(clips: readonly string[], onDone?: () => void): { st
       finish();
       return void onDone?.();
     }
-    element.src = voiceUrl(clips[index++]);
+    const clip = clips[index++];
+    element.src = voiceUrl(clip);
     element.play().then(
-      () => duck(true),
+      () => {
+        duck(true);
+        if (voiceToken === token) setSpeaker(clip.split('_')[1] ?? null, clip);
+      },
       () => {
         // Not allowed to sound yet (no key or tap so far): try again on the first one.
         const retry = () => {
           waitingForGesture.delete(retry);
-          if (voiceToken === token) element.play().then(() => duck(true), finish);
+          if (voiceToken === token) {
+            element.play().then(() => {
+              duck(true);
+              if (voiceToken === token) setSpeaker(clip.split('_')[1] ?? null, clip);
+            }, finish);
+          }
         };
         waitingForGesture.add(retry);
       },

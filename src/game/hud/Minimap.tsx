@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { inCurrentDanger } from '@/game/challenges/registry';
+import { currentObjective, inCurrentDanger } from '@/game/challenges/registry';
 import { playSfx } from '@/game/engine/audio/audio';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
@@ -78,10 +78,18 @@ function Fog({ stage }: { stage: number }) {
 }
 
 // The places the story has uncovered so far, as dots over the map picture (they fill the same box as the picture);
-// `names` writes what each one is called. Where the story sends the player next pulses in gold.
-function Places({ next, names, stage }: { next: string | null; names: boolean; stage: number }) {
+// `names` writes what each one is called. Where the story sends the player next pulses in gold; so does `spot`, a
+// place that is no landmark (the far shore of the swamp while it is being crossed).
+function Places({ next, names, stage, spot }: { next: string | null; names: boolean; stage: number; spot: { x: number; z: number } | null }) {
+  const far = spot && onMapPicture(spot.x, spot.z);
   return (
     <>
+      {far && (
+        <span className="absolute pointer-events-none" style={{ left: percent(far.left), top: percent(far.top), transform: 'scale(var(--map-inv, 1))', transformOrigin: '0 0' }}>
+          <span className="absolute -translate-x-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-[#f4d03f]/70 animate-ping" />
+          <span className="absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-[#2b1a0e] bg-[#f4d03f]" />
+        </span>
+      )}
       {LANDMARKS.filter((landmark) => landmark.stage <= stage).map((landmark) => {
         const at = onMapPicture(landmark.x, landmark.z);
         const isNext = landmark.id === next;
@@ -254,9 +262,13 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
   const ready = useWorldStore((state) => state.ready);
   const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen);
   const region = useZoneStore((state) => state.region);
-  // Inside the swamp, the forest or the tunnels being played nothing is marked as the next place any more.
+  // Inside the swamp, the forest or the tunnels being played no landmark is marked as the next place any more; a
+  // place that declares its far shore (the swamp) has that shore marked instead, as its beacon does.
   const next = useProgressStore((state) => (inCurrentDanger(state.progress, region) ? null : nextLandmark(state.progress)));
+  const shore = useProgressStore((state) => (inCurrentDanger(state.progress, region) ? (currentObjective(state.progress, region)?.at ?? null) : null));
   const stage = useProgressStore((state) => mapStage(state.progress));
+  // With the game completed the world is green again, and so is its map.
+  const picture = useProgressStore((state) => (state.progress.juegoCompletado ? MAP_PICTURE.recovered : MAP_PICTURE.url));
   const [open, setOpen] = useState(false);
   const ground = useRef<HTMLDivElement>(null);
   const arrow = useRef<HTMLDivElement>(null);
@@ -287,7 +299,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
   // Both maps follow the avatar every frame without re-rendering.
   useEffect(() => {
     if (!shown) return;
-    const target = LANDMARKS.find((landmark) => landmark.id === next) ?? null;
+    const target = LANDMARKS.find((landmark) => landmark.id === next) ?? shore;
     let frame = 0;
     let heading = 0;
     const last = { x: NaN, z: NaN };
@@ -332,7 +344,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
     };
     tick();
     return () => cancelAnimationFrame(frame);
-  }, [shown, next, wholeOpen]);
+  }, [shown, next, shore, wholeOpen]);
 
   if (!shown) return null;
 
@@ -349,14 +361,19 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
           onClick={() => toggle(true)}
           aria-label="Abrir el mapa completo"
           title="Abrir el mapa completo (M)"
+          data-tutorial-guia
           className={`relative ${touch ? 'w-[4.5rem]' : 'w-36 sm:w-44'} aspect-square overflow-hidden ${PANEL} cursor-pointer hover:brightness-105 active:scale-[0.98] transition`}
         >
           {/* The ground: the whole picture, much bigger than the panel, hung from the panel's middle. */}
           <div ref={ground} className="absolute left-1/2 top-1/2 will-change-transform" style={{ width: percent(ZOOM), aspectRatio: ASPECT }}>
-            <img src={MAP_PICTURE.url} alt="" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
+            <img src={picture} alt="" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
             <Fog stage={stage} />
-            <Places next={next} names={false} stage={stage} />
+            <Places next={next} names={false} stage={stage} spot={shore} />
           </div>
+          {/* Its name, so nobody takes it for the world itself (the tutorial speaks of "the map"). */}
+          <span className="absolute left-0 top-0 rounded-br-lg bg-[#5c3a21]/90 px-1.5 py-0.5 font-sans text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#f4d03f] pointer-events-none">
+            {touch ? 'Mapa' : 'Mapa · M'}
+          </span>
           <div ref={pointer} className="absolute h-3.5 w-3.5 transition-opacity duration-200" style={{ opacity: 0 }}>
             <svg viewBox="0 0 16 16" className="h-full w-full drop-shadow-[0_0_2px_rgba(0,0,0,0.9)]" aria-hidden="true">
               <path d="M8 1.5 14.5 12.5H1.5Z" fill="#f4d03f" stroke="#5c3a21" strokeWidth="1.4" strokeLinejoin="round" />
@@ -426,9 +443,9 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
                 className={`map-frame ${touch ? 'map-frame-side' : ''} order-2 relative overflow-hidden rounded-lg sm:rounded-xl border-2 border-[#5c3a21]`}
                 style={{ aspectRatio: ASPECT, '--map-aspect': ASPECT } as CSSProperties}
               >
-                <img src={MAP_PICTURE.url} alt="El mundo visto desde arriba" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
+                <img src={picture} alt="El mundo visto desde arriba" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
                 <Fog stage={stage} />
-                <Places next={next} names stage={stage} />
+                <Places next={next} names stage={stage} spot={shore} />
                 <div ref={whole} className="absolute h-5 w-5">
                   <Arrow className="h-full w-full" />
                 </div>

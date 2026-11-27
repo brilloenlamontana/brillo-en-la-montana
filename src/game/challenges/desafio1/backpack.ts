@@ -1,5 +1,5 @@
 import { playSfx } from '@/game/engine/audio/audio';
-import type { Backpack } from '@/game/challenges/types';
+import { pickupNotice, type Backpack, type BackpackItem } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore, type GameProgress } from '@/store/progressStore';
@@ -64,23 +64,38 @@ function applyInsecticida() {
 
 const EFFECTS: Record<BackpackItemId, () => void> = { gema: applyGema, soga: applySoga, insecticida: applyInsecticida };
 
-// Picking up an item in Imeri's house. The fifth potion completes the insecticide.
+const ITEMS: readonly BackpackItem[] = [
+  { id: 'gema', name: 'Gema', model: `${DIR}/Gema.glb`, Icon: GemaIcon, hotkey: '1', gesture: 'UseThrow', purpose: 'Apaga la luz azul del pecho del Golem: úsala cuando lo tengas cerca.' },
+  { id: 'soga', name: 'Soga', model: `${DIR}/Soga.glb`, Icon: SogaIcon, hotkey: '2', gesture: 'UseRope', purpose: 'Te saca de un pozo de lodo: úsala en cuanto empieces a hundirte.' },
+  {
+    id: 'insecticida',
+    name: 'Insecticida',
+    model: `${DIR}/Insecticida.glb`,
+    Icon: InsecticidaIcon,
+    hotkey: '3',
+    gesture: 'UseSpray',
+    purpose: 'Acaba con los zumbadores que tengas cerca. Se prepara al recoger las 5 pociones.',
+  },
+];
+
+// Picking up an item in Imeri's house: the player is told what it is for. The fifth potion completes the insecticide.
 export function collectImeriItem(id: string) {
   const { progress } = useProgressStore.getState();
   const hadInsecticida = hasItem('insecticida', progress);
   saveProgress({ collectedItems: [...progress.collectedItems, id] });
-  if (!hadInsecticida && hasItem('insecticida', useProgressStore.getState().progress)) {
-    toast('🧪 Con las 5 pociones preparaste el insecticida. Ya está en tu mochila.');
+  const item = ITEMS.find((candidate) => candidate.id === id);
+  if (item) return toast(pickupNotice(item));
+  const pociones = countPociones(useProgressStore.getState().progress);
+  if (!hadInsecticida && pociones === POTION_IDS.length) {
+    toast(`🧪 Con las 5 pociones preparaste el insecticida. ${pickupNotice(ITEMS[2])}`);
+  } else if (pociones < POTION_IDS.length) {
+    toast(`Poción ${pociones} de ${POTION_IDS.length}: con las ${POTION_IDS.length} se prepara el insecticida contra los zumbadores.`);
   }
 }
 
 // Backpack of Challenge 1: active since Imeri's help was accepted.
 export const DESAFIO1_BACKPACK: Backpack = {
-  items: [
-    { id: 'gema', name: 'Gema', model: `${DIR}/Gema.glb`, Icon: GemaIcon, hotkey: '1', gesture: 'UseThrow' },
-    { id: 'soga', name: 'Soga', model: `${DIR}/Soga.glb`, Icon: SogaIcon, hotkey: '2', gesture: 'UseRope' },
-    { id: 'insecticida', name: 'Insecticida', model: `${DIR}/Insecticida.glb`, Icon: InsecticidaIcon, hotkey: '3', gesture: 'UseSpray' },
-  ],
+  items: ITEMS,
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as BackpackItemId, progress),
   hint: (id, progress) => {

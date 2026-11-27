@@ -1,5 +1,5 @@
 import { playSfx } from '@/game/engine/audio/audio';
-import type { Backpack } from '@/game/challenges/types';
+import { pickupNotice, type Backpack, type BackpackItem } from '@/game/challenges/types';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
@@ -65,21 +65,32 @@ function swingSword() {
   }
 }
 
-// Picking up one of the elf's tools.
+const ITEMS: readonly BackpackItem[] = [
+  {
+    id: 'espada',
+    name: 'Espada élfica',
+    model: MODEL.espada,
+    Icon: EspadaIcon,
+    hotkey: '1',
+    gesture: 'UseSlash',
+    drawSound: 'd2_espada_desenvainar',
+    purpose: 'Derrota a los duendes que tengas al alcance: úsala cuando se te acerquen.',
+  },
+  { id: 'lente', name: 'Lente revelador', model: MODEL.lente, Icon: LenteIcon, hotkey: '2', gesture: 'UseLens', purpose: 'Deja ver cuáles frutas del bosque se pueden comer y cuáles hacen daño.' },
+  { id: 'mapa', name: 'Mapa del bosque', model: MODEL.mapa, Icon: MapaIcon, hotkey: '3', gesture: 'UseMap', purpose: 'Baja el muro de roca que cierra el bosque y marca en el suelo el camino hasta la salida.' },
+];
+
+// Picking up one of the elf's tools: the player is told what it is for.
 export function collectElfoItem(id: string) {
   const { progress } = useProgressStore.getState();
   saveProgress({ collectedItems: [...progress.collectedItems, id] });
-  const item = ELFO_COLLECTIBLES.find((candidate) => candidate.id === id);
-  if (item) toast(`Guardaste en tu mochila: ${item.name}.`);
+  const item = ITEMS.find((candidate) => candidate.id === id);
+  if (item) toast(pickupNotice(item));
 }
 
 // Backpack of Challenge 2: replaces Challenge 1's once the elf's help is accepted.
 export const DESAFIO2_BACKPACK: Backpack = {
-  items: [
-    { id: 'espada', name: 'Espada élfica', model: MODEL.espada, Icon: EspadaIcon, hotkey: '1', gesture: 'UseSlash', drawSound: 'd2_espada_desenvainar' },
-    { id: 'lente', name: 'Lente revelador', model: MODEL.lente, Icon: LenteIcon, hotkey: '2', gesture: 'UseLens' },
-    { id: 'mapa', name: 'Mapa del bosque', model: MODEL.mapa, Icon: MapaIcon, hotkey: '3', gesture: 'UseMap' },
-  ],
+  items: ITEMS,
   isActive: isBackpackActive,
   stateOf: (id, progress) => getItemState(id as ElfoItemId, progress),
   hint: (id, progress) => {

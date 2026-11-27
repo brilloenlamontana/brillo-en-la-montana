@@ -1,4 +1,4 @@
-import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
+import { listed, type Hint, type ItemState, type MissionStep, type Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { isDesafio1Completado } from '../desafio1/mission';
 import { ELFO_COLLECTIBLES, type ElfoItemId } from './items';
@@ -86,9 +86,17 @@ export function getElfoHint(progress: Progress): Hint {
   };
 }
 
-// Said on walking out of the forest with something still to do in it: only that it is not passed.
+// Said on walking out of the forest with something still to do in it: what is left.
 export function getPending(progress: Progress): string | null {
-  return isDesafio2Completado(progress) ? null : 'Aún no has superado el Bosque de la Oscuridad.';
+  if (isDesafio2Completado(progress)) return null;
+  const duendes = DUENDE_COUNT - defeatedDuendes(progress);
+  const frutas = FRUTOS_NEEDED - frutosEaten(progress);
+  const left = [
+    ...(duendes > 0 ? [duendes === 1 ? 'derrotar al último duende' : `derrotar a ${duendes} duendes`] : []),
+    ...(frutas > 0 ? [frutas === 1 ? 'comer 1 fruta buena más' : `comer ${frutas} frutas buenas`] : []),
+    ...(isMapaActivado(progress) ? [] : ['abrir el paso oculto de la salida']),
+  ];
+  return `Aún no has superado el Bosque de la Oscuridad: te falta ${listed(left)}.`;
 }
 
 // What the player has to do now (shown in the backpack): what, never how.

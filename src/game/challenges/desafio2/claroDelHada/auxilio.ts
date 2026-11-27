@@ -8,8 +8,9 @@ import { useClaroStore, type Auxilio } from './claroStore';
 import { hadaEscena } from './hadaViva';
 import { AUXILIO_RODILLA, HADA_PEDESTAL, HADA_SUELO } from './lugares';
 
-// Bonus 2, second step: the cage is open but the fairy cannot fly, one wing crumpled by the brambles. She flutters,
-// falls to the ground by the pedestal and the avatar kneels by her and holds out a hand. The player keeps the button
+// Bonus 2, second step: the cage is open but the fairy cannot fly, one wing crumpled by the brambles. She flutters
+// and sinks back down on the middle of the pedestal (she never leaves it until she is freed), and the avatar comes to
+// the foot of the pedestal and holds a hand up to her. The player keeps the button
 // down while she gathers strength (she gets up, her wings unfold and light up) and lets go to send her off: she takes
 // off and the clearing wakes around her. Being freed is saved when she takes off.
 
@@ -19,8 +20,8 @@ const PEDESTAL = new Vector3(...HADA_PEDESTAL);
 const HACIA_AVATAR = new Vector3(AUXILIO_RODILLA.x - SUELO.x, 0, AUXILIO_RODILLA.z - SUELO.z).normalize();
 // The avatar comes to its place from a little farther out, so that it is left facing her.
 const LLEGADA = { x: AUXILIO_RODILLA.x + HACIA_AVATAR.x * 0.6, z: AUXILIO_RODILLA.z + HACIA_AVATAR.z * 0.6 };
-// The hand the avatar holds out: this far from her toward the avatar and this high above the ground (m).
-const MANO = { lejos: 0.26, alto: 0.4 };
+// The hand the avatar holds up to her: this far in front of the avatar and this high above its feet (m).
+const MANO = { lejos: 0.5, alto: 1.3 };
 
 // She flutters up for REVOLOTEO_MS and falls for the rest of CAE_MS; kneeling takes its clip (ARRODILLA_MS); she
 // needs SEGUNDOS of a held hand, and stands up at LEVANTA of them; let go, she takes DESPEGA_MS to rise (her clip
@@ -45,7 +46,7 @@ const BAJA_MS = 4300;
 export const auxilioVivo = { fuerza: 0, sosteniendo: false, onda: 0 };
 
 const pose: ScenePose = {
-  clip: 'Arrodillarse',
+  clip: 'Idle',
   feet: new Vector3(),
   yaw: Math.atan2(-HACIA_AVATAR.x, -HACIA_AVATAR.z),
   sway: new Vector3(),
@@ -60,6 +61,8 @@ const pose: ScenePose = {
 let camino: { x: number; z: number }[] = [];
 let voz: (() => void) | null = null;
 let levantado = false;
+// How high the held-out hand is (world y), to follow her up from there as she takes off.
+let manoAlto = 0;
 
 const setAuxilio = (auxilio: Auxilio | null) => useClaroStore.getState().setAuxilio(auxilio);
 
@@ -106,12 +109,12 @@ function despegar() {
   setAuxilio({ fase: 'despega', desde: performance.now() });
 }
 
-// The avatar kneels by her, its right hand held out, palm up.
+// The avatar stands at the foot of the pedestal, its right hand held up to her, palm up.
 function arrodillar() {
   const player = usePlayerStore.getState();
   pose.feet.set(AUXILIO_RODILLA.x, player.position.y, AUXILIO_RODILLA.z);
-  pose.hand.copy(SUELO).addScaledVector(HACIA_AVATAR, MANO.lejos);
-  pose.hand.y += MANO.alto;
+  pose.hand.set(AUXILIO_RODILLA.x - HACIA_AVATAR.x * MANO.lejos, player.position.y + MANO.alto, AUXILIO_RODILLA.z - HACIA_AVATAR.z * MANO.lejos);
+  manoAlto = pose.hand.y;
   pose.reach = 0;
   player.setGuide({ walkTo: null });
   player.setPose(pose);
@@ -209,7 +212,7 @@ export function avanzarAuxilio(now: number, delta: number) {
 
   if (auxilio.fase === 'despega') {
     // The hand follows her up for a moment; then the avatar stands.
-    pose.hand.y = SUELO.y + MANO.alto + 0.3 * Math.min(1, elapsed / 500);
+    pose.hand.y = manoAlto + 0.3 * Math.min(1, elapsed / 500);
     pose.reach = Math.max(0, 1 - Math.max(0, elapsed - 500) / 400);
     if (elapsed > 900 && player.pose) {
       player.setPose(null);

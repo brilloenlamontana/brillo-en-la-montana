@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useOnboardingRedirect } from '@/app/onboarding';
 import { LoginLayout } from '@/components/auth/LoginLayout';
 import { useMenuMusic } from '@/game/engine/audio/useMenuMusic';
+import { SoundToggle } from '@/game/hud/SoundToggle';
 import { StudentRegistrationModal } from '@/components/modals/StudentRegistrationModal';
 import { isPopupDismissed, saveRegistration, signInWithGoogle, signOutUser, type RegistrationData } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
@@ -45,6 +46,8 @@ export function LoginPage() {
   return (
     <>
       <LoginLayout onSignIn={signIn} loading={signingIn} />
+      {/* Over the login page and the registration form: the background music can be turned down from the first screen. */}
+      <SoundToggle backgroundOnly />
       <StudentRegistrationModal
         isOpen={step === 'registro'}
         user={user}

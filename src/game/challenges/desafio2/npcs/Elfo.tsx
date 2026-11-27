@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useContando, useSalida } from '@/game/challenges/llegada';
+import { useSpeaking } from '@/game/engine/audio/audio';
 import { Npc, type NpcEntrance, type NpcGait } from '@/game/engine/interaction/Npc';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
 import { useProgressStore } from '@/store/progressStore';
@@ -31,6 +32,7 @@ export function Elfo() {
   const warming = useWarmingHere(VISIBLE_FROM.elfo);
   const present = useProgressStore((state) => isElfoPresent(state.progress));
   const talking = useDialogOpen(DIALOG.elfo);
+  const heard = useSpeaking('elfo');
   // Still up in his house: the story of the arrival is to be told, or is being told and he has not set off yet.
   const porContar = useProgressStore((state) => LLEGADA.pending(state.progress) && !state.progress.historiasContadas.includes(LLEGADA.id));
   const contando = useContando(LLEGADA.id);
@@ -47,6 +49,7 @@ export function Elfo() {
       present={present}
       entrance={{ path: CAMINO, speed: PASO, state, onArrive: () => setOut(true) }}
       gait={PIERNAS}
+      speaking={talking || heard}
       talk={{ prompt: 'hablar con el elfo', enabled: !talking, onTalk: () => useUIStore.getState().openDialog(DIALOG.elfo) }}
     />
   );

@@ -47,6 +47,8 @@ function Soundscape() {
   const region = useZoneStore((state) => state.region);
   const interior = useZoneStore((state) => state.interior);
   const cinematic = useUIStore((state) => state.cinematic);
+  // The introduction video is being watched again: it has its own sound.
+  const intro = useUIStore((state) => state.introOpen);
   const ready = useWorldStore((state) => state.ready);
   const recovered = useMundoRecuperado();
   const combat = useCombatStore((state) => state.fights.length > 0);
@@ -62,6 +64,12 @@ function Soundscape() {
   }, []);
 
   useEffect(() => {
+    // The introduction video has its own sound, also while the world loads behind its first showing.
+    if (intro) {
+      setMusic(null);
+      setAmbience(null);
+      return;
+    }
     if (!ready) {
       setMusic('mus_menu');
       setAmbience(null);
@@ -70,7 +78,7 @@ function Soundscape() {
     const place = { region, interior, spot, cinematic, recovered, combat };
     setMusic(musicFor(place));
     setAmbience(ambienceFor(place));
-  }, [ready, region, interior, spot, cinematic, recovered, combat]);
+  }, [ready, region, interior, spot, cinematic, recovered, combat, intro]);
 
   // Leaving the world (profile, admin, sign out) silences it.
   useEffect(

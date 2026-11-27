@@ -5,6 +5,7 @@ import { ProfileModal } from '@/components/modals/ProfileModal';
 import { CHARACTERS } from '@/data/characters';
 import { signOutUser } from '@/services/userService';
 import { useAuthStore } from '@/store/authStore';
+import { useToastStore } from '@/store/toastStore';
 import { useUIStore } from '@/store/uiStore';
 
 // Top-right bar: the user manual, the profile (opens ProfileModal) and sign out. `leading` goes to the left of the profile (e.g. the
@@ -15,14 +16,18 @@ export function UserMenu({ leading }: { leading?: ReactNode }) {
 
   if (!user) return null;
 
-  // The profile takes the screen: whatever narration or panel of the game was open closes (its voice stops with it).
-  // A bajo stays: closing it is what applies its consequence (back to the start, or choosing another character).
-  const putAway = () => {
+  // The profile and the manual take the screen, so the backpack closes. A narration is never closed by them: closing
+  // a scroll in the middle (the conversation with the dryad, a "bajo") left the story broken. While someone is
+  // speaking, or a cinematic plays, they wait: a notice says so.
+  const busy = () => {
     const ui = useUIStore.getState();
-    if (ui.dialog !== null && !ui.dialog.startsWith('bajo.')) ui.closeDialog();
-    ui.setBackpackOpen(false);
+    if (ui.dialog === null && !ui.cinematic) return false;
+    useToastStore.getState().showToast('Podrás abrirlo cuando termine la narración.');
+    return true;
   };
+  const putAway = () => useUIStore.getState().setBackpackOpen(false);
   const openProfile = () => {
+    if (busy()) return;
     putAway();
     setIsProfileOpen(true);
   };
@@ -35,7 +40,7 @@ export function UserMenu({ leading }: { leading?: ReactNode }) {
       >
         <div className="flex items-center gap-2 bg-papel-200/95 hover:bg-papel-200 px-2.5 py-1.5 rounded-full border-2 border-madera-600 shadow-[0_4px_12px_rgba(62,39,35,0.35)] transition-all">
           {leading}
-          <ManualButton variant="icon" onOpen={putAway} />
+          <ManualButton variant="icon" onOpen={putAway} blocked={busy} />
           <div className="w-px h-5 bg-papel-300" />
           <button
             type="button"

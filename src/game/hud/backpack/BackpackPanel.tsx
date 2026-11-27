@@ -44,8 +44,8 @@ function SpinningItem({ url, slot }: { url: string; slot: SlotRect }) {
 
 type BackpackPanelProps = { backpack: Backpack; progress: GameProgress; onClose: () => void };
 
-// The open backpack of the active challenge: what to do now, and one slot per item; carried ones spin in 3D (WebGPU,
-// like the world), the rest show their icon faded with where to find them.
+// The open backpack of the active challenge: what to do now, and one slot per item with what it is for; carried ones
+// spin in 3D (WebGPU, like the world), the rest show their icon faded with where to find them.
 export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProps) {
   const states = backpack.items.map((item) => backpack.stateOf(item.id, progress));
   const ownedCount = states.filter((state) => state === 'owned').length;
@@ -121,7 +121,7 @@ export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProp
         </div>
 
         <div ref={gridRef} className="relative grid grid-cols-3 gap-2 sm:gap-3">
-          {backpack.items.map(({ id, name, Icon }, i) => {
+          {backpack.items.map(({ id, name, Icon, purpose, hotkey }, i) => {
             const owned = states[i] === 'owned';
             return (
               <div key={id} className="flex flex-col items-center gap-1">
@@ -138,6 +138,14 @@ export function BackpackPanel({ backpack, progress, onClose }: BackpackPanelProp
                 </div>
                 <span className="text-[11px] sm:text-xs text-center leading-tight font-semibold">{name}</span>
                 {!owned && <span className="text-[10px] sm:text-[11px] text-center leading-tight text-[#3e2723]/60">{backpack.hint(id, progress)}</span>}
+                {/* What it is for, carried or still to be fetched; nothing once it has done its part. */}
+                {states[i] !== 'spent' && (
+                  <span className="text-[10px] sm:text-[11px] text-center leading-snug text-[#3e2723]">
+                    <strong className="font-bold text-[#5c3a21]">Para qué sirve: </strong>
+                    {purpose}
+                    {owned && <strong className="block font-bold text-[#5c3a21]">Úsalo con la tecla {hotkey} o tocando su botón.</strong>}
+                  </span>
+                )}
               </div>
             );
           })}

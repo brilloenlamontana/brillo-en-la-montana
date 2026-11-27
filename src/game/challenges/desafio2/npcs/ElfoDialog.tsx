@@ -47,10 +47,10 @@ export function ElfoDialog() {
   }
   if (accepted && !again) {
     return (
-      <ParchmentDialog title="El elfo del bosque" subtitle="Qué hacer ahora" paragraphs={getElfoHint(progress).paragraphs} voice={[getElfoHint(progress).voice]} skippable onClose={close}>
+      <ParchmentDialog title="El elfo del bosque" subtitle="Qué hacer ahora" paragraphs={getElfoHint(progress).paragraphs} voice={[getElfoHint(progress).voice]} onClose={close}>
         <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
           <ParchmentButton onClick={() => setAgain(true)}>Cuéntame otra vez los peligros</ParchmentButton>
-          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+          <ParchmentButton onClick={close}>Siguiente</ParchmentButton>
         </div>
       </ParchmentDialog>
     );
@@ -71,6 +71,7 @@ export function ElfoDialog() {
     <ParchmentDialog title="El elfo del bosque" subtitle="Un mago elfo que vive en la copa de un árbol" paragraphs={EXPLICACION}
       question={accepted ? undefined : '¿Quieres llevar mis herramientas? En mi casa tengo una espada, un lente y un mapa.'}
       voice={accepted ? ['02_elfo_02'] : ['02_elfo_02', '02_elfo_01']}
+      repeated={accepted}
       onClose={accepted ? close : undefined}
     >
       {!accepted && (

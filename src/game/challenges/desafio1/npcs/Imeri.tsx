@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Zone } from '@/game/engine/geometry/zone';
+import { useSpeaking } from '@/game/engine/audio/audio';
 import { Npc, type NpcEntrance, type NpcGait } from '@/game/engine/interaction/Npc';
 import { usePlayerNear } from '@/game/engine/interaction/usePlayerNear';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
@@ -30,6 +31,7 @@ export function Imeri() {
   const warming = useWarmingHere(VISIBLE_FROM.imeri);
   const atHome = useProgressStore((state) => state.progress.aldeanoHelp === 'accepted');
   const talking = useDialogOpen(DIALOG.imeri);
+  const heard = useSpeaking('imeri');
   const met = useProgressStore((state) => state.progress.interactedWithImeri);
   const near = usePlayerNear(SALE);
   // Out of the house already in this visit.
@@ -45,6 +47,7 @@ export function Imeri() {
       present={atHome}
       entrance={{ path: CAMINO, speed: PASO, state, onArrive: () => setOut(true) }}
       gait={PIERNAS}
+      speaking={talking || heard}
       talk={{ prompt: 'hablar con Imeri', enabled: !talking, onTalk: () => useUIStore.getState().openDialog(DIALOG.imeri) }}
     />
   );

@@ -31,10 +31,10 @@ export function ImeriDialog() {
   };
   if (accepted && !again) {
     return (
-      <ParchmentDialog title="Imeri" subtitle="Qué hacer ahora" paragraphs={getImeriHint(progress).paragraphs} voice={[getImeriHint(progress).voice]} skippable onClose={close}>
+      <ParchmentDialog title="Imeri" subtitle="Qué hacer ahora" paragraphs={getImeriHint(progress).paragraphs} voice={[getImeriHint(progress).voice]} onClose={close}>
         <div className="flex justify-end flex-wrap gap-2.5 sm:gap-3">
           <ParchmentButton onClick={() => setAgain(true)}>Cuéntame otra vez los peligros</ParchmentButton>
-          <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+          <ParchmentButton onClick={close}>Siguiente</ParchmentButton>
         </div>
       </ParchmentDialog>
     );
@@ -58,6 +58,7 @@ export function ImeriDialog() {
       paragraphs={EXPLICACION}
       question={accepted ? undefined : '¿Quieres que te ayude? En mi casa tengo lo que necesitas para cruzar el pantano.'}
       voice={accepted ? ['01_imeri_02'] : ['01_imeri_02', '01_imeri_01']}
+      repeated={accepted}
       onClose={accepted ? close : undefined}
     >
       {!accepted && (

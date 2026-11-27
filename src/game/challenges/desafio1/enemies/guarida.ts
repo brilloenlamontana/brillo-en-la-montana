@@ -36,11 +36,17 @@ export function guaridaDelPantano(wells: readonly Well[]): { x: number; z: numbe
   return found;
 }
 
+// A zumbador keeps this far from the rim of any well (m): over the opening of a well there is no ground to hover
+// over, and three of the ten never came out (so the swamp could not be finished).
+const POST_CLEAR = 1;
+const overWell = (x: number, z: number, wells: readonly Well[]) => wells.some((well) => Math.hypot(well.x - x, well.z - z) < well.outerRadius + POST_CLEAR);
+
 // Where each zumbador hovers while it waits: on a ring around the golem, each at its own distance and height (m over
-// the ground).
+// the ground), brought in toward the golem (whose place is clear of wells) if its spot is over a well.
 export function puestoDelZumbador(index: number, count: number, wells: readonly Well[]) {
   const { x, z } = guaridaDelPantano(wells);
   const angle = (index / count) * Math.PI * 2;
-  const radius = 5 + (index % 3) * 1.6;
+  let radius = 5 + (index % 3) * 1.6;
+  while (radius > 1.5 && overWell(x + Math.cos(angle) * radius, z + Math.sin(angle) * radius, wells)) radius -= 0.5;
   return { x: x + Math.cos(angle) * radius, z: z + Math.sin(angle) * radius, height: 2 + (index % 3) * 0.45 };
 }

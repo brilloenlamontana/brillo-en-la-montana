@@ -1,3 +1,4 @@
+import { useSpeaking } from '@/game/engine/audio/audio';
 import { Npc } from '@/game/engine/interaction/Npc';
 import { ParchmentButton, ParchmentDialog } from '@/game/hud/ParchmentDialog';
 import { useVisibleFrom } from '@/game/world/visibility';
@@ -33,6 +34,8 @@ export function Aldeana() {
   const telling = useDialogOpen(DIALOG.aldeana);
   const accepted = useProgressStore((state) => state.progress.aldeanoHelp === 'accepted');
   const talking = asking || telling;
+  // Her voice goes on after the scroll closes (her reply to the answer): she keeps talking for as long as it lasts.
+  const heard = useSpeaking('aldeana');
 
   return (
     <Npc
@@ -40,7 +43,7 @@ export function Aldeana() {
       position={POSITION}
       rotationY={ROTATION_Y}
       visible={visible}
-      animation={talking ? 'Talking' : 'Idle'}
+      speaking={talking || heard}
       talk={{
         prompt: 'hablar con la aldeana',
         enabled: !talking,
@@ -95,9 +98,9 @@ export function AldeanaDialog() {
   const close = () => useUIStore.getState().closeDialog();
   const hint = getAldeanaHint(progress);
   return (
-    <ParchmentDialog title="Aldeana de la Villa de Boj" subtitle="Qué hacer ahora" paragraphs={hint.paragraphs} voice={[hint.voice]} skippable onClose={close}>
+    <ParchmentDialog title="Aldeana de la Villa de Boj" subtitle="Qué hacer ahora" paragraphs={hint.paragraphs} voice={[hint.voice]} onClose={close}>
       <div className="flex justify-end">
-        <ParchmentButton onClick={close}>Entendido</ParchmentButton>
+        <ParchmentButton onClick={close}>Siguiente</ParchmentButton>
       </div>
     </ParchmentDialog>
   );

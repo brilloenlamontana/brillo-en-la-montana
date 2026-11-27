@@ -1,19 +1,32 @@
 import { useCallback, useEffect, useState, type MouseEvent, type ReactNode } from 'react';
+import { playVoice } from '@/game/engine/audio/audio';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { saveProgress } from '@/services/progressService';
 import { useProgressStore } from '@/store/progressStore';
 import { useUIStore } from '@/store/uiStore';
 
-// The tutorial of the controls: four short steps shown at the bottom of the screen while the game goes on. The first
-// three are learned by doing (walk, look around, run): each one is ticked off when the player actually does it, and
-// can also be passed with "Siguiente". It starts by itself the first time the world opens (progress.tutorialVisto)
-// and again whenever the player asks for it with the "?" button of the top bar (TutorialButton).
+// The tutorial of the controls: four short steps shown at the bottom of the screen while the game goes on, each one
+// told aloud by the narrator (clips 06_narrador_01..08: the first four for keyboard and mouse, the rest for a touch
+// screen). They are learned by doing (walk, look around, run, interact): each one is ticked off when the player
+// actually does it, once the narrator has finished telling it, and can also be passed with "Siguiente". After the last
+// one is done the tutorial closes by itself. It starts by itself the first time the world opens
+// (progress.tutorialVisto) and again whenever the player asks for it with the "?" button of the top bar
+// (TutorialButton).
 
 // Metres walked, pixels dragged over the world and seconds a tick stays before the next step comes.
 const WALKED = 3;
 const DRAGGED = 120;
 const TICK_SECONDS = 0.9;
+// The last step is done by talking, reading or picking up, by opening the map, or by having followed the light this
+// far (m).
+const FOLLOWED = 15;
+// A step counts as told after this long (s) even if its voice could not be heard to the end (a notice spoke over it,
+// or the clip is missing): the longest clip lasts 14 s.
+const TOLD_SECONDS = 16;
+// What is tapped or clicked to do what the last step teaches carries this attribute (the map, the button that talks,
+// reads or picks up on a touch screen).
+const TEACHES = '[data-tutorial-guia]';
 // A step between two readings longer than this (m) is a teleport, not walking.
 const TELEPORT = 5;
 
@@ -30,10 +43,12 @@ function Tecla({ children }: { children: ReactNode }) {
 
 const Boton = ({ children }: { children: ReactNode }) => <strong className="font-sans text-[0.92em] tracking-wide">{children}</strong>;
 
-// What each step says, with a keyboard and mouse and on a touch screen.
-const TEXT: Record<Step, { title: string; keyboard: ReactNode; touch: ReactNode }> = {
+// What each step says, with a keyboard and mouse and on a touch screen, and the narrator's clip that tells it (the
+// same words: if a text changes here, its clip has to be recorded again; script in docs/Guion_Voces_Indicaciones.md).
+const TEXT: Record<Step, { title: string; keyboard: ReactNode; touch: ReactNode; voice: { keyboard: string; touch: string } }> = {
   mover: {
     title: 'Camina',
+    voice: { keyboard: '06_narrador_01', touch: '06_narrador_05' },
     keyboard: (
       <>
         Camina con <Tecla>W</Tecla>
@@ -42,15 +57,22 @@ const TEXT: Record<Step, { title: string; keyboard: ReactNode; touch: ReactNode 
         <Tecla>D</Tecla> o con las flechas del teclado.
       </>
     ),
-    touch: <>Arrastra el círculo de la izquierda hacia donde quieras caminar.</>,
+    touch: <>Arrastra el círculo de la izquierda hacia donde quieras ir.</>,
   },
+  // It never says "the world": a player took that for the small map of the corner. It names the middle of the screen.
   camara: {
-    title: 'Mira alrededor',
-    keyboard: <>Mantén presionado el clic del mouse sobre el mundo y arrastra para girar la cámara.</>,
-    touch: <>Desliza un dedo por la pantalla, fuera de los botones, para girar la cámara.</>,
+    title: 'Mira a tu alrededor',
+    voice: { keyboard: '06_narrador_02', touch: '06_narrador_06' },
+    keyboard: (
+      <>
+        Mantén presionado el clic del mouse en el centro de la pantalla y arrastra hacia los lados. El cuadro de la esquina es el mapa: sobre él la cámara no gira.
+      </>
+    ),
+    touch: <>Desliza un dedo por el centro de la pantalla, fuera de los botones y del mapa.</>,
   },
   correr: {
     title: 'Corre y salta',
+    voice: { keyboard: '06_narrador_03', touch: '06_narrador_07' },
     keyboard: (
       <>
         Mantén <Tecla>Shift</Tecla> mientras caminas para correr. Con <Tecla>Espacio</Tecla> saltas.
@@ -58,12 +80,13 @@ const TEXT: Record<Step, { title: string; keyboard: ReactNode; touch: ReactNode 
     ),
     touch: (
       <>
-        Toca <Boton>CORRER</Boton> una vez para correr; el botón cambia a <Boton>CAMINAR</Boton>: tócalo para volver a caminar. Con <Boton>SALTAR</Boton> saltas.
+        Toca <Boton>CORRER</Boton> una vez para correr; el botón cambia a <Boton>CAMINAR</Boton>: tócalo otra vez para volver a caminar. Con <Boton>SALTAR</Boton> saltas.
       </>
     ),
   },
   guia: {
     title: 'A dónde ir y qué hacer',
+    voice: { keyboard: '06_narrador_04', touch: '06_narrador_08' },
     keyboard: (
       <>
         La columna de luz dorada marca a dónde ir. Junto a una persona o un objeto, presiona <Tecla>E</Tecla> para hablar, leer o recoger. Con <Tecla>M</Tecla> abres el
@@ -79,7 +102,7 @@ const TEXT: Record<Step, { title: string; keyboard: ReactNode; touch: ReactNode 
   },
 };
 
-// Calls `onDone` once the player does what the step teaches. The last step is only read.
+// Calls `onDone` once the player does what the step teaches.
 function useStepDone(step: Step, active: boolean, onDone: () => void) {
   useEffect(() => {
     if (!active) return;
@@ -135,21 +158,50 @@ function useStepDone(step: Step, active: boolean, onDone: () => void) {
         window.removeEventListener('keydown', key);
       };
     }
+    if (step === 'guia') {
+      // Something was talked to, read or picked up (E, or its button on a touch screen), the map was opened (M, or a
+      // tap on it), or the light was followed for a while.
+      const { position } = usePlayerStore.getState();
+      let x = position.x, z = position.z, walked = 0;
+      const timer = setInterval(() => {
+        const moved = Math.hypot(position.x - x, position.z - z);
+        x = position.x;
+        z = position.z;
+        if (moved < TELEPORT) walked += moved;
+        if (walked >= FOLLOWED) onDone();
+      }, 150);
+      const key = (event: KeyboardEvent) => {
+        if (!event.repeat && ['e', 'm'].includes(event.key.toLowerCase())) onDone();
+      };
+      const tap = (event: PointerEvent) => {
+        if (event.target instanceof Element && event.target.closest(TEACHES)) onDone();
+      };
+      window.addEventListener('keydown', key);
+      window.addEventListener('pointerdown', tap, true);
+      return () => {
+        clearInterval(timer);
+        window.removeEventListener('keydown', key);
+        window.removeEventListener('pointerdown', tap, true);
+      };
+    }
   }, [step, active, onDone]);
 }
 
 function TutorialCard({ touch }: { touch: boolean }) {
   // A narration, a cinematic, the backpack or the manual fills the screen: the tutorial waits behind it.
-  const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen || state.manualOpen);
+  const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen || state.manualOpen || state.introOpen);
+  const talking = useUIStore((state) => state.dialog !== null);
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState(false);
+  // The step that the narrator has finished telling (see TOLD_SECONDS).
+  const [told, setTold] = useState(-1);
   const step = STEPS[index];
   const last = index === STEPS.length - 1;
 
-  const finish = () => {
+  const finish = useCallback(() => {
     useUIStore.getState().closeTutorial();
     if (!useProgressStore.getState().progress.tutorialVisto) void saveProgress({ tutorialVisto: true });
-  };
+  }, []);
   const next = () => {
     setDone(false);
     if (last) finish();
@@ -159,15 +211,37 @@ function TutorialCard({ touch }: { touch: boolean }) {
   const markDone = useCallback(() => setDone(true), []);
   useStepDone(step, !done && !busy, markDone);
 
-  // Done: the tick stays a moment, so it is seen, and the next step comes.
+  // The narrator tells each step as it comes (and again when it comes back from behind a narration or the backpack).
+  const clip = TEXT[step].voice[touch ? 'touch' : 'keyboard'];
   useEffect(() => {
-    if (!done) return;
+    if (busy) return;
+    const heard = () => setTold(index);
+    const stop = playVoice([clip], heard);
+    const timer = setTimeout(heard, TOLD_SECONDS * 1000);
+    return () => {
+      clearTimeout(timer);
+      stop();
+    };
+  }, [clip, index, busy]);
+
+  // Done and told: the tick stays a moment, so it is seen, and the next step comes. After the last one the tutorial
+  // closes by itself.
+  const passed = done && told === index;
+  useEffect(() => {
+    if (!passed) return;
     const timer = setTimeout(() => {
       setDone(false);
-      setIndex((current) => Math.min(current + 1, STEPS.length - 1));
+      if (last) finish();
+      else setIndex(index + 1);
     }, TICK_SECONDS * 1000);
     return () => clearTimeout(timer);
-  }, [done]);
+  }, [passed, last, index, finish]);
+
+  // On the last step, talking to someone or reading something is doing what it teaches: the narration that opens
+  // takes the screen and the tutorial is over.
+  useEffect(() => {
+    if (last && talking) finish();
+  }, [last, talking, finish]);
 
   if (busy) return null;
 

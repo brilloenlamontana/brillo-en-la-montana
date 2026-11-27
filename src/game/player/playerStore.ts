@@ -49,6 +49,10 @@ interface PlayerState {
   initialSpawn: Spawn | null;
   // Teleport applied by PlayerController on the next frame.
   teleportRequest: Point | null;
+  // Sinking in mud (a swamp well): the keys do nothing and the avatar goes down at this speed (m/s) instead of
+  // falling. null = not sinking.
+  sink: number | null;
+  setSink: (sink: number | null) => void;
   // A scripted scene leads the avatar: the player's keys are ignored and it walks by itself to `walkTo` (or stands
   // still while that is null). The camera stays free. null = the player is in control.
   guide: { walkTo: Point | null } | null;
@@ -83,6 +87,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   cameraRoom: null,
   initialSpawn: null,
   teleportRequest: null,
+  sink: null,
+  setSink: (sink) => set({ sink }),
   guide: null,
   setGuide: (guide) => set({ guide }),
   pose: null,
@@ -107,5 +113,5 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   requestTeleport: (teleportRequest) => set({ teleportRequest }),
   clearTeleportRequest: () => set({ teleportRequest: null }),
-  reset: () => set({ action: 'Idle', health: MAX_HEALTH, cameraDistance: null, cameraRoom: null, initialSpawn: null, teleportRequest: null, guide: null, pose: null, wear: null }),
+  reset: () => set({ action: 'Idle', health: MAX_HEALTH, cameraDistance: null, cameraRoom: null, initialSpawn: null, teleportRequest: null, sink: null, guide: null, pose: null, wear: null }),
 }));

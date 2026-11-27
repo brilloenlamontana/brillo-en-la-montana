@@ -1,4 +1,4 @@
-import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
+import { listed, type Hint, type ItemState, type MissionStep, type Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { isDesafio2Completado } from '../desafio2/mission';
 import { HEDRIG_COLLECTIBLES, type HedrigItemId } from './items';
@@ -90,7 +90,9 @@ export function getHedrigHint(progress: Progress): Hint {
 // Said on walking back out of the tunnels with the spectre or the Ogre still in the way: only that they are not
 // passed (nothing once the Ogre is beaten: the way up is open).
 export function getPending(progress: Progress): string | null {
-  return isDesafio3Completado(progress) || isOgroVencido(progress) ? null : 'Aún no has superado los Túneles de la Cumbre.';
+  if (isDesafio3Completado(progress) || isOgroVencido(progress)) return null;
+  const left = [...(isEspectroCalmado(progress) ? [] : ['calmar al espectro de la niña']), 'ganarle las vencidas al Ogro'];
+  return `Aún no has superado los Túneles de la Cumbre: te falta ${listed(left)}.`;
 }
 
 // What the player has to do now (shown in the backpack).

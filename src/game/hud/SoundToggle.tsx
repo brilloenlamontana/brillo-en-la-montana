@@ -1,12 +1,12 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { playSfx } from '@/game/engine/audio/audio';
-import { useAudioStore, type VolumeChannel } from '@/game/engine/audio/audioStore';
+import { MIN_VOICE, useAudioStore, type VolumeChannel } from '@/game/engine/audio/audioStore';
 
 // The bars of the sound panel, top to bottom.
 const CANALES: readonly { channel: VolumeChannel; label: string; detail: string }[] = [
   { channel: 'general', label: 'Volumen general', detail: 'Todo el sonido del juego' },
-  { channel: 'voces', label: 'Narraciones y voces', detail: 'El narrador y los personajes' },
+  { channel: 'voces', label: 'Narraciones y voces', detail: 'El narrador y los personajes: siempre se escuchan' },
   { channel: 'musica', label: 'Música', detail: 'Los temas de cada lugar' },
   { channel: 'ambiente', label: 'Sonido de ambiente', detail: 'Viento, bosque, pantano, cuevas' },
   { channel: 'efectos', label: 'Efectos', detail: 'Pasos, golpes, objetos, avisos' },
@@ -45,7 +45,7 @@ function Barra({ channel, label, detail }: (typeof CANALES)[number]) {
       <input
         id={id}
         type="range"
-        min={0}
+        min={channel === 'voces' ? MIN_VOICE * 100 : 0}
         max={100}
         step={5}
         value={percent}
@@ -58,9 +58,10 @@ function Barra({ channel, label, detail }: (typeof CANALES)[number]) {
   );
 }
 
-// The sound panel: a bar for everything and one per kind of sound, plus silencing it all. It is drawn over the game
+// The sound panel: a bar for everything and one per kind of sound, plus silencing music, ambience and effects (the
+// voices are always heard: audioStore.MIN_VOICE). It is drawn over the game
 // (no backdrop blur over the canvas) and keeps the keys to itself, so the arrows move the bars and not the avatar.
-function PanelDeSonido({ onClose }: { onClose: () => void }) {
+function PanelDeSonido({ onClose, backgroundOnly }: { onClose: () => void; backgroundOnly: boolean }) {
   const titleId = useId();
   const muted = useAudioStore((state) => state.muted);
   const panel = useRef<HTMLDivElement>(null);
@@ -106,11 +107,19 @@ function PanelDeSonido({ onClose }: { onClose: () => void }) {
           </button>
         </div>
         <div className="divide-y divide-[#5c3a21]/15 font-sans">
-          {CANALES.map((canal) => (
-            <Barra key={canal.channel} {...canal} />
-          ))}
+          {backgroundOnly ? (
+            <Barra channel="musica" label="Música de fondo" detail="La música que suena en esta página" />
+          ) : (
+            CANALES.map((canal) => <Barra key={canal.channel} {...canal} />)
+          )}
         </div>
-        <div className="mt-4 pt-3 border-t border-[#5c3a21]/20 flex flex-wrap items-center justify-between gap-2.5 font-sans">
+        {backgroundOnly && <p className="mt-3 text-[11px] sm:text-xs font-sans text-[#5c3a21]">Las voces, el ambiente y los efectos se ajustan dentro del juego, con este mismo botón.</p>}
+        {!backgroundOnly && (
+        <>
+        <p className="mt-3 text-[11px] sm:text-xs font-sans text-[#5c3a21]">
+          Aunque silencies el juego, las voces del narrador y de los personajes se siguen escuchando: ellas te dicen qué hacer.
+        </p>
+        <div className="mt-3 pt-3 border-t border-[#5c3a21]/20 flex flex-wrap items-center justify-between gap-2.5 font-sans">
           <button
             type="button"
             onClick={() => useAudioStore.getState().toggleMuted()}
@@ -120,7 +129,7 @@ function PanelDeSonido({ onClose }: { onClose: () => void }) {
             }`}
           >
             <VolumeIcon muted={muted} low={false} />
-            {muted ? 'Activar el sonido' : 'Silenciar todo'}
+            {muted ? 'Activar música y efectos' : 'Silenciar música y efectos'}
           </button>
           <button
             type="button"
@@ -130,6 +139,8 @@ function PanelDeSonido({ onClose }: { onClose: () => void }) {
             Volver a los valores iniciales
           </button>
         </div>
+        </>
+        )}
       </div>
     </div>,
     document.body,
@@ -138,11 +149,33 @@ function PanelDeSonido({ onClose }: { onClose: () => void }) {
 
 // The sound button of the top bar: it opens the sound panel. Its icon shows whether the game is silenced. The volumes
 // are remembered on this device.
-export function SoundToggle() {
-  const muted = useAudioStore((state) => state.muted || state.volumes.general === 0);
-  const low = useAudioStore((state) => state.volumes.general < 0.5);
+// `backgroundOnly`: outside the game (the login page and the registration form) it floats in the top corner and only
+// sets the background music; everything else is set in the game.
+export function SoundToggle({ backgroundOnly = false }: { backgroundOnly?: boolean }) {
+  const channel = backgroundOnly ? 'musica' : 'general';
+  const muted = useAudioStore((state) => (!backgroundOnly && state.muted) || state.volumes[channel] === 0);
+  const low = useAudioStore((state) => state.volumes[channel] < 0.5);
   const [open, setOpen] = useState(false);
-  const label = 'Ajustar el sonido';
+  const label = backgroundOnly ? 'Ajustar la música de fondo' : 'Ajustar el sonido';
+
+  if (backgroundOnly) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          title={label}
+          aria-label={label}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          className="fixed top-[max(12px,env(safe-area-inset-top,12px))] right-[max(12px,env(safe-area-inset-right,12px))] z-[95] flex items-center justify-center w-10 h-10 rounded-full bg-[#f4e4bc] text-[#5c3a21] border-2 border-[#5c3a21] shadow-[0_4px_12px_rgba(62,39,35,0.35)] hover:scale-110 active:scale-95 transition-all cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#f4d03f]"
+        >
+          <VolumeIcon muted={muted} low={low} />
+        </button>
+        {open && <PanelDeSonido onClose={() => setOpen(false)} backgroundOnly />}
+      </>
+    );
+  }
 
   return (
     <>
@@ -158,7 +191,7 @@ export function SoundToggle() {
         <VolumeIcon muted={muted} low={low} />
       </button>
       <div className="w-px h-5 bg-papel-300" />
-      {open && <PanelDeSonido onClose={() => setOpen(false)} />}
+      {open && <PanelDeSonido onClose={() => setOpen(false)} backgroundOnly={false} />}
     </>
   );
 }

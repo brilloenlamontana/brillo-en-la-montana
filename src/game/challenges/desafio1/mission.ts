@@ -1,4 +1,4 @@
-import type { Hint, ItemState, MissionStep, Objective } from '@/game/challenges/types';
+import { listed, type Hint, type ItemState, type MissionStep, type Objective } from '@/game/challenges/types';
 import type { GameProgress } from '@/store/progressStore';
 import { POTION_IDS, type BackpackItemId } from './items';
 
@@ -40,12 +40,12 @@ export function getItemState(id: BackpackItemId, progress: Progress): ItemState 
 
 export const hasItem = (id: BackpackItemId, progress: Progress) => getItemState(id, progress) === 'owned';
 
-// What the player has to do now (shown in the backpack): first Imeri's house, then the swamp. It says what is to be
-// done, never how: finding out what each thing is for is the player's part.
+// What the player has to do now (shown in the backpack): first Imeri's house, then the swamp. What each thing is for
+// is written under it (BackpackItem.purpose).
 export function getGoal(progress: Progress): string {
   if (isDesafio1Completado(progress)) return '¡Atravesaste el pantano! Busca la casa del elfo, suspendida de un árbol al otro lado.';
   if (missingItems(progress).length) return 'En la casa de Imeri te esperan la gema, la soga y las 5 pociones.';
-  return 'Cruza el Pantano de la Tristeza.';
+  return 'Cruza el Pantano de la Tristeza hasta la otra orilla, hacia el árbol gigante del elfo.';
 }
 
 // What is left to pick up in Imeri's house, as it reads in a sentence.
@@ -64,6 +64,9 @@ const ALDEANA = { x: -77.6, y: 10.9, z: 20.4 };
 const IMERI = { x: 10.5, y: 10.3, z: 41.5 };
 const CASA_IMERI = { x: 16, y: 10.1, z: 44 };
 const PANTANO = { x: 60, y: 7.8, z: 8 };
+// The far shore of the swamp, where the mud ends toward the valley of the giant tree (the elf's house is 25 m beyond).
+// Players told to "cross the swamp" walked straight on, toward the mountain: inside the swamp this shore is marked.
+const SALIDA_PANTANO = { x: -38, y: 9, z: -100 };
 
 // The step of Challenge 1 the player is on, in one line, and where it happens. It names the place to go, never what
 // is left to do there nor how many enemies remain: finding that out is the player's part.
@@ -80,7 +83,8 @@ export function getObjective(progress: Progress, there = false): Objective {
   // General on purpose: it names everything Imeri offers, not what this player still lacks. Whoever walks into the
   // swamp without something has chosen to: from then on the objective is the swamp's.
   if (missingItems(progress).length && !there) return { text: 'Entra a la casa de Imeri y recoge lo que te ofrece: la gema, la soga y las 5 pociones.', at: CASA_IMERI };
-  return { text: 'Cruza el Pantano de la Tristeza.', at: PANTANO };
+  if (there) return { text: 'Cruza el Pantano de la Tristeza hasta la otra orilla: la luz dorada marca la salida.', at: PANTANO, exit: SALIDA_PANTANO };
+  return { text: 'Cruza el Pantano de la Tristeza.', at: PANTANO, exit: SALIDA_PANTANO };
 }
 
 // What the villager woman says, in a few words, to a player who already accepted her help: where to go now, never
@@ -133,9 +137,16 @@ export function getImeriHint(progress: Progress): Hint {
   };
 }
 
-// Said on walking out of the swamp with the Golem or the zumbadores still there: only that it is not passed.
+// Said on walking out of the swamp with the Golem or the zumbadores still there: what is left to do in it, and that
+// the elf will not be there until it is done.
 export function getPending(progress: Progress): string | null {
-  return isDesafio1Completado(progress) ? null : 'Aún no has superado el Pantano de la Tristeza.';
+  if (isDesafio1Completado(progress)) return null;
+  const zumbadores = ZUMBADOR_COUNT - defeatedZumbadores(progress);
+  const left = [
+    ...(progress?.golemDefeated ? [] : ['apagar la luz azul del Golem']),
+    ...(zumbadores > 0 ? [zumbadores === 1 ? 'acabar con el último zumbador' : `acabar con ${zumbadores} zumbadores`] : []),
+  ];
+  return `Aún no has superado el Pantano de la Tristeza: te falta ${listed(left)}. Hasta entonces el elfo no saldrá a recibirte.`;
 }
 
 const answerLabel =(help: string) => (help === 'accepted' ? 'Aceptó la ayuda' : help === 'rejected' ? 'Rechazó la ayuda' : 'Pendiente');

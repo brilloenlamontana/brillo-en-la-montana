@@ -11,8 +11,8 @@ import { CHALLENGES, currentObjective } from './registry';
 const REPEAT_AFTER = 40;
 
 // What to tell a player who walks from one region into another, if anything (see `danger` in each challenge):
-// - out of the dangerous place of the challenge being played, with it unfinished: that it is not passed yet (nothing
-//   on the way in: going in unprepared is the player's own choice, and so is finding out what is missing);
+// - out of the dangerous place of the challenge being played, with it unfinished: that it is not passed yet and what
+//   is left to do in it (nothing on the way in: going in unprepared is the player's own choice);
 // - into the dangerous place of a later challenge: that it is not time yet, and what to do first.
 function warningFor(from: Region, to: Region, progress: GameProgress): string | null {
   const current = CHALLENGES.findIndex((challenge) => !challenge.isCompleted?.(progress));
