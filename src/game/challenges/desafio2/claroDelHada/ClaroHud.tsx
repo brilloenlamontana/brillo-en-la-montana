@@ -9,7 +9,7 @@ const HOLD_KEYS = new Set([' ', 'Enter', 'e', 'E']);
 
 const auxilioTexto = (fase: Auxilio['fase'], mobile: boolean) => {
   if (fase === 'cae') return 'La jaula se abre, pero el hada no puede volar: tiene un ala arrugada y cae al suelo';
-  if (fase === 'camino' || fase === 'arrodilla') return 'Te arrodillas junto a ella y le tiendes la mano…';
+  if (fase === 'camino' || fase === 'arrodilla') return 'Te acercas al pedestal y le tiendes la mano…';
   if (fase === 'sostiene') return mobile ? 'Mantén el dedo en la pantalla para sostenerla mientras recupera fuerzas' : 'Mantén presionado el clic (o la tecla E) para sostenerla mientras recupera fuerzas';
   if (fase === 'lista') return '¡Sus alas brillan! Suelta para dejarla volar';
   if (fase === 'despega') return '¡El hada alza el vuelo!';

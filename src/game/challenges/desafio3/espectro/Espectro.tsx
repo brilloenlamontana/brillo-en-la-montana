@@ -4,14 +4,14 @@ import { useFrame } from '@react-three/fiber';
 import { useRapier, type RapierCollider } from '@react-three/rapier';
 import { Color, MathUtils, Quaternion, Vector3, type Group, type Mesh, type MeshStandardMaterial, type Object3D, type SkinnedMesh } from 'three';
 import { playSfx, shout } from '@/game/engine/audio/audio';
-import { isBodyNamed, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
+import { isBodyNamed, PLAYER_BODY_NAME, TUNNEL_CEILING_BODY_NAME } from '@/game/engine/physics/bodies';
 import { useWorldStore } from '@/game/engine/rendering/worldStore';
 import { usePlayerStore } from '@/game/player/playerStore';
 import { useVisibleFrom, useWarmingHere } from '@/game/world/visibility';
 import { useZoneStore } from '@/game/world/zoneStore';
 import { useProgressStore } from '@/store/progressStore';
 import { useToastStore } from '@/store/toastStore';
-import { isGameplayPaused } from '@/store/uiStore';
+import { isMovementPaused } from '@/store/uiStore';
 import { DESAFIO3_MODELS } from '../assets';
 import { CAMARA_SIMONA } from '../lugares';
 import { isEspectroCalmado } from '../mission';
@@ -48,8 +48,11 @@ const JOY_SECONDS = 2.8;
 const FADE_OUT_SECONDS = 4.5;
 const WALK_SPEED = 0.9;
 const DOWN = { x: 0, y: -1, z: 0 };
-// The floor she walks on: anything solid except the player.
-const isFloor = (collider: RapierCollider) => !collider.isSensor() && !isBodyNamed(collider.parent()?.userData, PLAYER_BODY_NAME);
+// The floor she walks on: anything solid except the player and the ceiling that only the camera sees.
+const isFloor = (collider: RapierCollider) => {
+  const data = collider.parent()?.userData;
+  return !collider.isSensor() && !isBodyNamed(data, PLAYER_BODY_NAME) && !isBodyNamed(data, TUNNEL_CEILING_BODY_NAME);
+};
 
 // Every material of the model replaced by its own copy, so it can be made translucent without touching the cache.
 function ownMaterials(root: Object3D, tweak: (material: MeshStandardMaterial) => void): MeshStandardMaterial[] {
@@ -126,7 +129,7 @@ function Fantasma() {
     const player = usePlayerStore.getState();
     const tunel = useTunelStore.getState();
     const haunting = useZoneStore.getState().region === 'tuneles' && player.health > 0 && !useWorldStore.getState().warming;
-    const paused = isGameplayPaused();
+    const paused = isMovementPaused();
     let frio = 0;
 
     if (haunting) {

@@ -616,7 +616,8 @@ function BookIcon({ className = 'w-5 h-5' }: { className?: string }) {
 }
 
 // Opens the manual. `onOpen` lets the caller put away what it had open (a game dialog, the backpack).
-export function ManualButton({ variant, onOpen }: { variant: keyof typeof BUTTON_STYLES; onOpen?: () => void }) {
+// `blocked`: asked before opening; true keeps the manual shut (a narration is being told in the game).
+export function ManualButton({ variant, onOpen, blocked }: { variant: keyof typeof BUTTON_STYLES; onOpen?: () => void; blocked?: () => boolean }) {
   const [open, setOpen] = useState(false);
   const label = 'Manual de usuario';
   return (
@@ -624,6 +625,7 @@ export function ManualButton({ variant, onOpen }: { variant: keyof typeof BUTTON
       <button
         type="button"
         onClick={() => {
+          if (blocked?.()) return;
           onOpen?.();
           setOpen(true);
         }}

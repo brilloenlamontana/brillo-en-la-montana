@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, CuboidCollider, RigidBody, type IntersectionEnterPayload, type RapierRigidBody } from '@react-three/rapier';
 import { MathUtils, Quaternion, Vector3, type Group, type Object3D, type SkinnedMesh } from 'three';
 import { isBodyNamed, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
+import { isGameplayPaused } from '@/store/uiStore';
 import { InteractionPrompt } from './InteractionPrompt';
 import { PROMPT_Z_RANGE } from './promptLayer';
 import { useInteractKey } from './useInteractKey';
@@ -183,7 +184,8 @@ export function Npc({ url, position, rotationY, visible, present = true, animati
   }, [actions, clip, shown]);
 
   const startTalk = useCallback(() => {
-    if (canTalk) talk?.onTalk();
+    // Not over a narration that is being told (the player walks around while listening).
+    if (canTalk && !isGameplayPaused()) talk?.onTalk();
   }, [canTalk, talk]);
   useInteractKey(canTalk, startTalk);
 

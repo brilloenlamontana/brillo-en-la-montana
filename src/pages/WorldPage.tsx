@@ -1,5 +1,6 @@
 // First: the GLTF loader must know where the Draco decoder is before the challenges preload their models.
 import '@/game/engine/models/dracoDecoder';
+import { useEffect } from 'react';
 import { useOnboardingRedirect } from '@/app/onboarding';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { Toast } from '@/components/Toast';
@@ -38,15 +39,20 @@ export default function WorldPage() {
   const introVista = useProgressStore((state) => state.progress.introVista);
   // The player asked to watch the introduction again (IntroButton): it plays over the game, which waits under it.
   const introOpen = useUIStore((state) => state.introOpen);
+  // While the first showing plays the game waits under it, as it does under a replay.
+  useEffect(() => {
+    if (!introVista) useUIStore.getState().setIntroOpen(true);
+  }, [introVista]);
   // On touch devices: the joystick and its buttons, and the game is played with the screen on its side.
   const showTouchControls = useIsMobile();
 
   if (step !== 'mundo') return null;
   if (backend === 'none') return <RendererErrorScreen error="unsupported" />;
   if (rendererError) return <RendererErrorScreen error={rendererError} />;
-  // First visit: the introduction plays before anything of the world is mounted; the world loads when it ends. The
-  // video is square and is watched with the phone held either way: turning it is only asked for the world.
-  if (!introVista) return <IntroVideo onDone={() => void saveProgress({ introVista: true })} />;
+  // First visit: the introduction plays over the world, which loads and gets ready behind it meanwhile (the video is
+  // long: by its end nothing is left to load). The game waits under it (uiStore.introOpen) and it cannot be skipped. It
+  // is square and is watched with the phone held either way: turning it is only asked for the world.
+  const firstIntro = !introVista;
 
   return (
     <main className="w-screen h-dvh relative overflow-hidden select-none">
@@ -76,8 +82,16 @@ export default function WorldPage() {
       {CHALLENGES.map(({ id, Dialogs }) => Dialogs && <Dialogs key={id} />)}
       <BajoDialog />
       {!ready && <WorldLoadingScreen />}
-      <LandscapeOnly />
-      {introOpen && <IntroVideo replay onDone={() => useUIStore.getState().setIntroOpen(false)} />}
+      {!firstIntro && <LandscapeOnly />}
+      {firstIntro && (
+        <IntroVideo
+          onDone={() => {
+            void saveProgress({ introVista: true });
+            useUIStore.getState().setIntroOpen(false);
+          }}
+        />
+      )}
+      {!firstIntro && introOpen && <IntroVideo replay onDone={() => useUIStore.getState().setIntroOpen(false)} />}
     </main>
   );
 }

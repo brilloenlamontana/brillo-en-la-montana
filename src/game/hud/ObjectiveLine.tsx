@@ -17,7 +17,7 @@ const SECONDS = 5;
 // backpack, the tutorial or a notice has the screen.
 export function ObjectiveLine() {
   const ready = useWorldStore((state) => state.ready);
-  const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen || state.tutorialOpen);
+  const busy = useUIStore((state) => state.dialog !== null || state.cinematic || state.backpackOpen || state.tutorialOpen || state.introOpen);
   const asked = useUIStore((state) => state.objectiveRun);
   const region = useZoneStore((state) => state.region);
   const text = useProgressStore((state) => currentObjective(state.progress, region)?.text ?? null);

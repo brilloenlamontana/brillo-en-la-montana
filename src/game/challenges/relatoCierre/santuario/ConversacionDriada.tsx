@@ -12,13 +12,9 @@ type Voz = 'narrador' | 'driada' | 'jugador';
 type Linea = { voz: Voz; clip: string; texto: string };
 
 // The dryad does not hand the chalice over just like that: the player has to answer her. From the scene schedule
-// ("Lo que les dice la Dríada"), turned into a conversation.
+// ("Lo que les dice la Dríada"), turned into a conversation between the two of them: she speaks with her voice and
+// the player with theirs (the narrator already told the arrival: LlegadaSantuarioDialog).
 const LINEAS: readonly Linea[] = [
-  {
-    voz: 'narrador',
-    clip: '04_narrador_12',
-    texto: 'Llamado por la calidez del resplandor verde, llegas ante la puerta del santuario, con su enorme sauce de filigrana de plata. Una figura delgada sale a tu encuentro: una dríada.',
-  },
   {
     voz: 'driada',
     clip: '04_driada_02',

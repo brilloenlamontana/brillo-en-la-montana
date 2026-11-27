@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
 // Which game dialog is open (one at a time; ids are defined by each challenge, e.g. 'desafio1.aldeana') and whether
-// the backpack is open. While either is open (or a cinematic plays, or the user manual is being read, or the
-// introduction video is watched again) the avatar stands still.
+// the backpack is open. While a narration is told the avatar walks freely (items and interactions wait); the backpack,
+// a cinematic, the manual and the introduction video hold it still (see isMovementPaused and isGameplayPaused).
 interface UIState {
   dialog: string | null;
   backpackOpen: boolean;
@@ -56,6 +56,16 @@ export const useUIStore = create<UIState>((set) => ({
 
 export const useDialogOpen = (id: string) => useUIStore((state) => state.dialog === id);
 
+// Whether the avatar has to stand still. A narration does not hold it any more: while a character or the narrator
+// speaks the player walks and looks around freely, listening. Only a "bajo" does (the avatar has fallen), and what
+// takes the whole screen: the backpack, a cinematic, the manual, the introduction video.
+export function isMovementPaused() {
+  const { dialog, backpackOpen, cinematic, manualOpen, introOpen } = useUIStore.getState();
+  return (dialog !== null && dialog.startsWith('bajo.')) || backpackOpen || cinematic || manualOpen || introOpen;
+}
+
+// Whether the game's own actions wait: using an item, starting an interaction (so that a second narration is never
+// opened over the one being told). True during any narration, though the avatar walks on (isMovementPaused).
 export function isGameplayPaused() {
   const { dialog, backpackOpen, cinematic, manualOpen, introOpen } = useUIStore.getState();
   return dialog !== null || backpackOpen || cinematic || manualOpen || introOpen;

@@ -64,13 +64,14 @@ function Soundscape() {
   }, []);
 
   useEffect(() => {
-    if (!ready) {
-      setMusic('mus_menu');
+    // The introduction video has its own sound, also while the world loads behind its first showing.
+    if (intro) {
+      setMusic(null);
       setAmbience(null);
       return;
     }
-    if (intro) {
-      setMusic(null);
+    if (!ready) {
+      setMusic('mus_menu');
       setAmbience(null);
       return;
     }

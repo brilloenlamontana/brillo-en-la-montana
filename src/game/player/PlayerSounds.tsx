@@ -6,7 +6,7 @@ import { playSfx } from '@/game/engine/audio/audio';
 import { footstepsFor } from '@/game/sound/soundscape';
 import { useZoneStore } from '@/game/world/zoneStore';
 import { useProgressStore } from '@/store/progressStore';
-import { isGameplayPaused } from '@/store/uiStore';
+import { isMovementPaused } from '@/store/uiStore';
 import type { Control } from './keyboardMap';
 import { usePlayerStore } from './playerStore';
 
@@ -44,7 +44,7 @@ export function PlayerSounds() {
 
     const alive = player.health > 0;
     // Led by a scripted scene the avatar does not jump, whatever the keys say.
-    const jump = alive && !isGameplayPaused() && player.guide === null && (getKeys().jump || Boolean(useButtonStore.getState().buttons['jump']));
+    const jump = alive && !isMovementPaused() && player.guide === null && (getKeys().jump || Boolean(useButtonStore.getState().buttons['jump']));
     if (jump && !m.jumpHeld && !m.falling) playSfx('jug_salto', { volume: 0.55 });
     m.jumpHeld = jump;
 

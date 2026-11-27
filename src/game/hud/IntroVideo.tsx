@@ -77,7 +77,9 @@ export function IntroButton() {
   const label = 'Ver de nuevo el video de introducción';
   const open = () => {
     const ui = useUIStore.getState();
-    // The video takes the screen: the backpack closes and whoever was speaking stops. A narration stays open under it.
+    // Not over a narration or a cinematic: silencing whoever speaks would cut the story short.
+    if (ui.dialog !== null || ui.cinematic) return;
+    // The video takes the screen: the backpack closes and whoever was speaking in a notice stops.
     ui.setBackpackOpen(false);
     stopVoice();
     ui.setIntroOpen(true);
