@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, CuboidCollider, RigidBody, type IntersectionEnterPayload, type RapierRigidBody } from '@react-three/rapier';
 import { MathUtils, Quaternion, Vector3, type Group, type Object3D, type SkinnedMesh } from 'three';
 import { isBodyNamed, PLAYER_BODY_NAME } from '@/game/engine/physics/bodies';
+import { useNarratorTelling } from '@/game/engine/audio/audio';
 import { isGameplayPaused } from '@/store/uiStore';
 import { InteractionPrompt } from './InteractionPrompt';
 import { PROMPT_Z_RANGE } from './promptLayer';
@@ -100,7 +101,9 @@ export function Npc({ url, position, rotationY, visible, present = true, animati
   const out = stage === 'out';
   const here = present && out;
   const shown = visible && stage !== 'inside';
-  const canTalk = Boolean(talk?.enabled && here && visible && playerNearby);
+  // Not while the narrator is telling the story (an arrival, a notice): talking would cut him short.
+  const narrating = useNarratorTelling();
+  const canTalk = Boolean(talk?.enabled && here && visible && playerNearby && !narrating);
 
   // Whoever is already out when the story says so (spoken to on an earlier visit) stands at its place.
   useEffect(() => {

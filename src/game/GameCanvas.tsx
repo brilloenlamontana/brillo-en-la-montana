@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { /* lazy, */ Suspense, useCallback, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 import { useProgressStore } from '@/store/progressStore';
@@ -7,7 +7,7 @@ import { handleDefeat, resumeSpawn } from './challenges/progression';
 import { CHALLENGES } from './challenges/registry';
 import { AdaptiveResolution } from './engine/rendering/AdaptiveResolution';
 import { RenderGate } from './engine/rendering/RenderGate';
-import { createRenderer, DEV_STATS } from './engine/rendering/renderer';
+import { createRenderer /* , DEV_STATS */ } from './engine/rendering/renderer';
 import { renderQuality } from './engine/rendering/resolution';
 import { Player } from './player/Player';
 import { usePlayerStore } from './player/playerStore';
@@ -21,7 +21,8 @@ import { ZoneTracker } from './world/ZoneTracker';
 
 // Development only: the performance meter (frames per second, processor and graphics card time, draw calls). Vite
 // drops this branch, and with it the meter's code, from the published game. `?perf=0` hides it.
-const DevStats = import.meta.env.DEV ? lazy(() => import('./engine/rendering/DevStats').then((m) => ({ default: m.DevStats }))) : null;
+// Comentado mientras se graba un video (ver el medidor más abajo).
+// const DevStats = import.meta.env.DEV ? lazy(() => import('./engine/rendering/DevStats').then((m) => ({ default: m.DevStats }))) : null;
 
 // Tells when what is mounted before it, inside the same <Suspense>, has loaded: its effect only runs then.
 function Loaded({ onLoaded }: { onLoaded: () => void }) {
@@ -46,11 +47,12 @@ export function GameCanvas() {
   return (
     <Canvas camera={{ position: [start.spawn.x, start.spawn.y + 1.5, start.spawn.z + 2], far: 450 }} dpr={renderQuality().startDpr} gl={createRenderer}>
       <RenderGate />
+      {/* Medidor de rendimiento desactivado por ahora (grabación de video). Para volver a verlo, quitar este comentario:
       {DEV_STATS && DevStats && (
         <Suspense fallback={null}>
           <DevStats />
         </Suspense>
-      )}
+      )} */}
       <AdaptiveResolution />
       <Ambience />
       <MundoRecuperado />

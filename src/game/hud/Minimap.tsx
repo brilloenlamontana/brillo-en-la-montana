@@ -267,6 +267,8 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
   const next = useProgressStore((state) => (inCurrentDanger(state.progress, region) ? null : nextLandmark(state.progress)));
   const shore = useProgressStore((state) => (inCurrentDanger(state.progress, region) ? (currentObjective(state.progress, region)?.at ?? null) : null));
   const stage = useProgressStore((state) => mapStage(state.progress));
+  // With the game completed the world is green again, and so is its map.
+  const picture = useProgressStore((state) => (state.progress.juegoCompletado ? MAP_PICTURE.recovered : MAP_PICTURE.url));
   const [open, setOpen] = useState(false);
   const ground = useRef<HTMLDivElement>(null);
   const arrow = useRef<HTMLDivElement>(null);
@@ -364,7 +366,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
         >
           {/* The ground: the whole picture, much bigger than the panel, hung from the panel's middle. */}
           <div ref={ground} className="absolute left-1/2 top-1/2 will-change-transform" style={{ width: percent(ZOOM), aspectRatio: ASPECT }}>
-            <img src={MAP_PICTURE.url} alt="" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
+            <img src={picture} alt="" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
             <Fog stage={stage} />
             <Places next={next} names={false} stage={stage} spot={shore} />
           </div>
@@ -441,7 +443,7 @@ export function Minimap({ touch = false }: { touch?: boolean }) {
                 className={`map-frame ${touch ? 'map-frame-side' : ''} order-2 relative overflow-hidden rounded-lg sm:rounded-xl border-2 border-[#5c3a21]`}
                 style={{ aspectRatio: ASPECT, '--map-aspect': ASPECT } as CSSProperties}
               >
-                <img src={MAP_PICTURE.url} alt="El mundo visto desde arriba" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
+                <img src={picture} alt="El mundo visto desde arriba" draggable={false} className="absolute inset-0 h-full w-full object-fill" />
                 <Fog stage={stage} />
                 <Places next={next} names stage={stage} spot={shore} />
                 <div ref={whole} className="absolute h-5 w-5">

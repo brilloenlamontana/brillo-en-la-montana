@@ -262,10 +262,15 @@ let voiceToken = 0;
 
 // Whose recorded voice is being heard right now ('aldeana', 'imeri', 'narrador'...: the character of the clip), so
 // that whoever speaks keeps moving as they talk for as long as their voice lasts, in a scroll or in a notice.
-export const useSpeakerStore = create<{ speaker: string | null }>(() => ({ speaker: null }));
-const setSpeaker = (speaker: string | null) => {
-  if (useSpeakerStore.getState().speaker !== speaker) useSpeakerStore.setState({ speaker });
+export const useSpeakerStore = create<{ speaker: string | null; clip: string | null }>(() => ({ speaker: null, clip: null }));
+const setSpeaker = (speaker: string | null, clip: string | null = null) => {
+  if (useSpeakerStore.getState().clip !== clip || useSpeakerStore.getState().speaker !== speaker) useSpeakerStore.setState({ speaker, clip });
 };
+// The narrator is telling the story right now (not the tutorial of the controls, clips 06_, which asks the player to
+// interact): nobody is to be spoken to meanwhile, or the new voice would cut the story short.
+const telling = (state: { speaker: string | null; clip: string | null }) => state.speaker === 'narrador' && !state.clip?.startsWith('06_');
+export const isNarratorTelling = () => telling(useSpeakerStore.getState());
+export const useNarratorTelling = () => useSpeakerStore(telling);
 export const useSpeaking = (character: string) => useSpeakerStore((state) => state.speaker === character);
 
 function duck(on: boolean) {
@@ -322,7 +327,7 @@ export function followVoice(clips: readonly string[], onDone?: () => void): { st
     element.play().then(
       () => {
         duck(true);
-        if (voiceToken === token) setSpeaker(clip.split('_')[1] ?? null);
+        if (voiceToken === token) setSpeaker(clip.split('_')[1] ?? null, clip);
       },
       () => {
         // Not allowed to sound yet (no key or tap so far): try again on the first one.
@@ -331,7 +336,7 @@ export function followVoice(clips: readonly string[], onDone?: () => void): { st
           if (voiceToken === token) {
             element.play().then(() => {
               duck(true);
-              if (voiceToken === token) setSpeaker(clip.split('_')[1] ?? null);
+              if (voiceToken === token) setSpeaker(clip.split('_')[1] ?? null, clip);
             }, finish);
           }
         };

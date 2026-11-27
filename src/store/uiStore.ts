@@ -56,12 +56,18 @@ export const useUIStore = create<UIState>((set) => ({
 
 export const useDialogOpen = (id: string) => useUIStore((state) => state.dialog === id);
 
+// Narrations during which the avatar stands still after all, because a scene that moves it follows (the statue of
+// the hut, the fairy of the clearing): walking away meanwhile left that scene without its avatar. Each challenge
+// names its own (see its dialogs.ts).
+const HOLDING = new Set<string>();
+export const holdAvatarDuring = (...dialogs: string[]) => dialogs.forEach((dialog) => HOLDING.add(dialog));
+
 // Whether the avatar has to stand still. A narration does not hold it any more: while a character or the narrator
-// speaks the player walks and looks around freely, listening. Only a "bajo" does (the avatar has fallen), and what
-// takes the whole screen: the backpack, a cinematic, the manual, the introduction video.
+// speaks the player walks and looks around freely, listening. Only a "bajo" does (the avatar has fallen), the
+// narrations of the two bonuses (HOLDING), and what takes the whole screen: the backpack, a cinematic, the manual, the introduction video.
 export function isMovementPaused() {
   const { dialog, backpackOpen, cinematic, manualOpen, introOpen } = useUIStore.getState();
-  return (dialog !== null && dialog.startsWith('bajo.')) || backpackOpen || cinematic || manualOpen || introOpen;
+  return (dialog !== null && (dialog.startsWith('bajo.') || HOLDING.has(dialog))) || backpackOpen || cinematic || manualOpen || introOpen;
 }
 
 // Whether the game's own actions wait: using an item, starting an interaction (so that a second narration is never
